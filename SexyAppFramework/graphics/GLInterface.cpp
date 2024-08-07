@@ -522,11 +522,9 @@ void TextureData::CreateTextures(MemoryImage *theImage)
 			if (createTextures)
 			{
 				glGenTextures(1, &aPiece.mTexture);
-				glBindTexture(GL_TEXTURE_2D, aPiece.mTexture);
 				mTexMemSize += aPiece.mWidth*aPiece.mHeight*aFormatSize;
 			}
-			else if (aPiece.mTexture)
-				glBindTexture(GL_TEXTURE_2D, aPiece.mTexture);
+			glBindTexture(GL_TEXTURE_2D, aPiece.mTexture);
 
 			CopyImageToTexture(aPiece.mTexture,theImage,x,y,aPiece.mWidth,aPiece.mHeight,aFormat, createTextures);
 		}
@@ -950,28 +948,29 @@ void GLInterface::UpdateViewport()
 	// https://bumbershootsoft.wordpress.com/2018/11/29/forcing-an-aspect-ratio-in-3d-with-opengl/
 
 	int width, viewport_width;
-    int height, viewport_height;
-    int viewport_x = 0;
-    int viewport_y = 0;
+	int height, viewport_height;
+	int viewport_x = 0;
+	int viewport_y = 0;
 
-    SDL_GL_GetDrawableSize(mApp->mSDLWindow, &width, &height);
+	SDL_GL_GetDrawableSize(mApp->mSDLWindow, &width, &height);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	Flush();
 
-    viewport_width = width;
-    viewport_height = height;
-    if (width * 3 > height * 4)
+	viewport_width = width;
+	viewport_height = height;
+	if (width * 3 > height * 4)
 	{
-        viewport_width = height * 4 / 3;
-        viewport_x = (width - viewport_width) / 2;
-    }
+		viewport_width = height * 4 / 3;
+		viewport_x = (width - viewport_width) / 2;
+	}
 	else if (width * 3 < height * 4)
 	{
-        viewport_height = width * 3 / 4;
-        viewport_y = (height - viewport_height) / 2;
-    }
-    glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
+		viewport_height = width * 3 / 4;
+		viewport_y = (height - viewport_height) / 2;
+	}
+	glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
+	mPresentationRect = Rect( viewport_x, viewport_y, viewport_width, viewport_height );
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	Flush();

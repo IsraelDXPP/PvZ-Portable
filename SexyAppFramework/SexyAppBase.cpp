@@ -4202,6 +4202,7 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 				{
 					case SDL_WINDOWEVENT_RESIZED:
 						mGLInterface->UpdateViewport();
+						mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -4779,7 +4780,7 @@ void SexyAppBase::MakeWindow()
         SexyStringToStringFast(mTitle).c_str(),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         mWidth, mHeight,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | (!mIsWindowed ? SDL_WINDOW_FULLSCREEN : 0)
     );
 
 	mSDLGLContext = (SDL_GLContext*)SDL_GL_CreateContext(mSDLWindow);
