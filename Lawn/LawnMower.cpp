@@ -345,7 +345,8 @@ void LawnMower::Draw(Graphics* g)
         {
             aMowerType = LawnMowerType::LAWNMOWER_SUPER_MOWER;
         }
-        mApp->mReanimatorCache->DrawCachedMower(&aMowerGraphics, 0.0f, 19.0f, aMowerType);
+        //mApp->mReanimatorCache->DrawCachedMower(&aMowerGraphics, 0.0f, 19.0f, aMowerType);
+        mApp->ReanimationGet(mReanimID)->Draw(&aMowerGraphics);
     }
 }
 
