@@ -358,7 +358,7 @@ protected:
 	
 	// Loading thread methods	
 	virtual void			LoadingThreadCompleted();
-	static void				LoadingThreadProcStub(void *theArg);	
+	static void*			LoadingThreadProcStub(void *theArg);	
 
 	// Cursor thread methods
 	void					CursorThreadProc();

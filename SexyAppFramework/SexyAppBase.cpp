@@ -503,6 +503,7 @@ SexyAppBase::~SexyAppBase()
 	*/
 }
 
+/*
 static BOOL CALLBACK ChangeDisplayWindowEnumProc(HWND hwnd, LPARAM lParam)
 {
 	typedef std::map<HWND,RECT> WindowMap;
@@ -535,6 +536,7 @@ static BOOL CALLBACK ChangeDisplayWindowEnumProc(HWND hwnd, LPARAM lParam)
 	}
 	return TRUE;
 }
+*/
 
 void SexyAppBase::ClearUpdateBacklog(bool relaxForASecond)
 {
@@ -812,6 +814,7 @@ void SexyAppBase::DemoRegisterHandle(HANDLE theHandle)
 	}
 }
 
+/*
 void SexyAppBase::DemoWaitForHandle(HANDLE theHandle)
 {
 	WaitForSingleObject(theHandle, INFINITE);
@@ -889,6 +892,7 @@ bool SexyAppBase::DemoCheckHandle(HANDLE theHandle)
 		return false;
 	}
 }
+*/
 
 void SexyAppBase::DemoAssertIntEqual(int theInt)
 {
@@ -1079,6 +1083,7 @@ bool SexyAppBase::OpenURL(const std::string& theURL, bool shutdownOnOpen)
 		mOpeningURL = theURL;
 		mOpeningURLTime = SDL_GetTicks();
 
+        /*
 		if ((intptr_t) ShellExecuteA(NULL, "open", theURL.c_str(), NULL, NULL, SW_SHOWNORMAL) > 32)
 		{
 			return true;
@@ -1088,6 +1093,7 @@ bool SexyAppBase::OpenURL(const std::string& theURL, bool shutdownOnOpen)
 			URLOpenFailed(theURL);
 			return false;
 		}
+        */
 	}
 
 	return true;
@@ -1146,8 +1152,13 @@ std::string SexyAppBase::GetProductVersion(const std::string& thePath)
 
 void SexyAppBase::WaitForLoadingThread()
 {
+	int ms = 20;
+
+	timespec ts;
+	ts.tv_sec = ms / 1000;
+	ts.tv_nsec = (ms % 1000) * 1000000;
 	while ((mLoadingThreadStarted) && (!mLoadingThreadCompleted))
-		Sleep(20);
+		nanosleep(&ts, &ts);
 }
 
 void SexyAppBase::SetCursorImage(int theCursorNum, Image* theImage)
@@ -2178,7 +2189,7 @@ bool SexyAppBase::EraseFile(const std::string& theFileName)
 	if (mPlayingDemoBuffer)
 		return true;
 
-	return DeleteFileA(theFileName.c_str()) != 0;
+	return remove(theFileName.c_str()) == 0;
 }
 
 void SexyAppBase::SEHOccured()
@@ -2220,7 +2231,7 @@ void SexyAppBase::ShutdownHook()
 
 void SexyAppBase::Shutdown()
 {
-	if ((mPrimaryThreadId != 0) && (GetCurrentThreadId() != mPrimaryThreadId))
+	if ((mPrimaryThreadId != 0) && (pthread_self() != mPrimaryThreadId))
 	{
 		mLoadingFailed = true;
 	}
@@ -2241,10 +2252,12 @@ void SexyAppBase::Shutdown()
 		}
 
 		// Blah
+		/*
 		while (mCursorThreadRunning)
 		{
 			Sleep(10);
 		}
+		*/
 		
 		if (mMusicInterface != NULL)
 			mMusicInterface->StopAllMusic();		
@@ -2272,6 +2285,7 @@ void SexyAppBase::Shutdown()
 
 void SexyAppBase::RestoreScreenResolution()
 {
+    /*
 	if (mFullScreenWindow)
 	{
 		EnumWindows(ChangeDisplayWindowEnumProc,0); // get any windows that appeared while we were running
@@ -2279,6 +2293,7 @@ void SexyAppBase::RestoreScreenResolution()
 		EnumWindows(ChangeDisplayWindowEnumProc,1); // restore window pos
 		mFullScreenWindow = false;
 	}
+    */
 }
 	
 void SexyAppBase::DoExit(int theCode)
@@ -2319,7 +2334,7 @@ bool SexyAppBase::DoUpdateFrames()
 		if ((mLoadingThreadCompleted) && (!mLoaded) && (mDemoLoadingComplete))
 		{			
 			mLoaded = true;
-			::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+			//::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 			mYieldMainThread = false;
 			LoadingThreadCompleted();
 		}
@@ -2337,7 +2352,7 @@ bool SexyAppBase::DoUpdateFrames()
 	{
 		if ((mLoadingThreadCompleted) && (!mLoaded))
 		{
-			::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+			//::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 			mLoaded = true;
 			mYieldMainThread = false;
 			LoadingThreadCompleted();
@@ -2370,6 +2385,8 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 		return;
 
 	static DWORD aRetryTick = 0;
+	mGLInterface->Redraw(theClipRect);
+	/*
 	if (!mGLInterface->Redraw(theClipRect))
 	{
 		//gD3DInterfacePreDrawError = false; // this predraw error happens naturally when ddraw is failing
@@ -2379,12 +2396,10 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 			gIsFailing = true;
 		}
 
-		/*
 		WINDOWPLACEMENT aWindowPlacement;
 		ZeroMemory(&aWindowPlacement, sizeof(aWindowPlacement));
 		aWindowPlacement.length = sizeof(aWindowPlacement);
 		::GetWindowPlacement(mHWnd, &aWindowPlacement);
-		*/
 
 		DWORD aTick = SDL_GetTicks();
 		//if ((mActive || (aTick-aRetryTick>1000 && mIsPhysWindowed)) && (aWindowPlacement.showCmd != SW_SHOWMINIMIZED) && (!mMinimized))
@@ -2395,6 +2410,7 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 			mWidgetManager->mImage = NULL;
 
 			// Re-check resolution at this point, because we hit here when you change your resolution.
+		
 			if (((mWidth >= GetSystemMetrics(SM_CXFULLSCREEN)) || (mHeight >= GetSystemMetrics(SM_CYFULLSCREEN))) && (mIsWindowed))
 			{
 				if (mForceWindowed)
@@ -2414,7 +2430,6 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 
 			//gDebugStream << GetTickCount() << " ReInit..." << std::endl;
 
-			/*
 			if ((mIsWindowed) && (aResult == DDInterface::RESULT_INVALID_COLORDEPTH))
 			{
 				//gDebugStream << GetTickCount() << "ReInit Invalid Colordepth" << std::endl;
@@ -2438,7 +2453,6 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 				
 				return;
 			}
-			*/
 			if (!aResult) return;
 
 			ReInitImages();
@@ -2458,6 +2472,7 @@ void SexyAppBase::Redraw(Rect* theClipRect)
 			aRetryTick = 0;
 		}
 	}
+	*/
 
 	mFPSFlipCount++;
 }
@@ -2791,6 +2806,7 @@ bool SexyAppBase::DrawDirtyStuff()
 
 void SexyAppBase::LogScreenSaverError(const std::string &theError)
 {
+	/*
 	static bool firstTime = true;
 	char aBuf[512];
 
@@ -2803,6 +2819,7 @@ void SexyAppBase::LogScreenSaverError(const std::string &theError)
 		fprintf(aFile,"%s %s %lu\n",theError.c_str(),_strtime(aBuf),GetTickCount());
 		fclose(aFile);
 	}
+	*/
 }
 
 void SexyAppBase::BeginPopup()
@@ -2830,7 +2847,7 @@ void SexyAppBase::EndPopup()
 	if (mWidgetManager->mDownButtons)
 	{
 		mWidgetManager->DoMouseUps();
-		ReleaseCapture();
+		//ReleaseCapture();
 	}
 }
 
@@ -2838,11 +2855,13 @@ int SexyAppBase::MsgBox(const std::string& theText, const std::string& theTitle,
 {
 //	if (mDDInterface && mDDInterface->mDD)
 //		mDDInterface->mDD->FlipToGDISurface();
+	/*
 	if (IsScreenSaver())
 	{
 		LogScreenSaverError(theText);
 		return IDOK;
 	}
+	*/
 
 	BeginPopup();
 	//int aResult = MessageBoxA(mHWnd, theText.c_str(), theTitle.c_str(), theFlags);
@@ -2856,15 +2875,17 @@ int SexyAppBase::MsgBox(const std::wstring& theText, const std::wstring& theTitl
 {
 //	if (mDDInterface && mDDInterface->mDD)
 //		mDDInterface->mDD->FlipToGDISurface();
+	/*
 	if (IsScreenSaver())
 	{
 		LogScreenSaverError(WStringToString(theText));
 		return IDOK;
 	}
+	*/
 
 	BeginPopup();
 	//int aResult = MessageBoxW(mHWnd, theText.c_str(), theTitle.c_str(), theFlags);
-	printf("%s\n===\n%s\n", theTitle.c_str(), theText.c_str());
+	wprintf(L"%s\n===\n%s\n", theTitle.c_str(), theText.c_str());
 	EndPopup();
 
 	return 0;
@@ -2895,7 +2916,7 @@ void SexyAppBase::Popup(const std::wstring& theString)
 
 	BeginPopup();
 	if (!mShutdown)
-		printf("FATAL ERROR\n===\n%s\n", theString.c_str());
+		wprintf(L"FATAL ERROR\n===\n%s\n", theString.c_str());
 		//::MessageBoxW(mHWnd, theString.c_str(), SexyStringToWString(GetString("FATAL_ERROR", _S("FATAL ERROR"))).c_str(), MB_APPLMODAL | MB_ICONSTOP);
 	EndPopup();
 }
@@ -2908,6 +2929,7 @@ void SexyAppBase::SafeDeleteWidget(Widget* theWidget)
 	mSafeDeleteList.push_back(aWidgetSafeDeleteInfo);
 }
 
+/*
 BOOL CALLBACK EnumCloseThing2(HWND hwnd, LPARAM lParam)
 {
 	//CloseWindow(hwnd);
@@ -3026,6 +3048,7 @@ static LPWORD lpdwAlign ( LPWORD lpIn)
     ul <<=2;
     return (LPWORD)(intptr_t)ul;
 }
+*/
 
 static int ListDemoMarkers()
 {
@@ -3321,7 +3344,7 @@ void SexyAppBase::RehupFocus()
 			mWidgetManager->LostFocus();
 			LostFocus();
 
-			ReleaseCapture();
+			//ReleaseCapture();
 			mWidgetManager->DoMouseUps();
 		}
 	}
@@ -3341,7 +3364,7 @@ void SexyAppBase::ClearKeysDown()
 void SexyAppBase::WriteDemoTimingBlock()
 {
 	// Demo writing functions can only be called from the main thread and after SexyAppBase::Init
-	DBG_ASSERTE(GetCurrentThreadId() == mPrimaryThreadId);
+	DBG_ASSERTE(pthread_self() == mPrimaryThreadId);
 
 	while (mUpdateCount - mLastDemoUpdateCnt > 15)
 	{
@@ -3532,10 +3555,10 @@ void SexyAppBase::ProcessDemo()
 
 void SexyAppBase::ShowMemoryUsage()
 {
+	/*
 	DWORD aTotal = 0;
 	DWORD aFree = 0;
 
-	/*
 	if (mDDInterface->mDD7 != NULL)
 	{
 		DDSCAPS2 aCaps;
@@ -3543,7 +3566,6 @@ void SexyAppBase::ShowMemoryUsage()
 		aCaps.dwCaps = DDSCAPS_VIDEOMEMORY;	
 		mDDInterface->mDD7->GetAvailableVidMem(&aCaps,&aTotal,&aFree);
 	}
-	*/
 
 	MemoryImageSet::iterator anItr = mMemoryImageSet.begin();
 	typedef std::pair<int,int> FormatUsage;
@@ -3594,6 +3616,7 @@ void SexyAppBase::ShowMemoryUsage()
 	
 	MsgBox(aStr,"Video Stats",MB_OK);
 	mLastTime = SDL_GetTicks();
+	*/
 }
 
 bool SexyAppBase::DebugKeyDown(int theKey)
@@ -3612,6 +3635,7 @@ bool SexyAppBase::DebugKeyDown(int theKey)
 #endif
 */
 	}
+	/*
 	else if (theKey == VK_F3)
 	{
 		if(mWidgetManager->mKeyDown[KEYCODE_SHIFT])
@@ -3697,6 +3721,7 @@ bool SexyAppBase::DebugKeyDown(int theKey)
 	}
 	else
 		return false;
+	*/
 
 	return false;
 }
@@ -4599,17 +4624,16 @@ void SexyAppBase::LoadingThreadCompleted()
 {
 }
 
-void SexyAppBase::LoadingThreadProcStub(void *theArg)
+void* SexyAppBase::LoadingThreadProcStub(void *theArg)
 {
 	SexyAppBase* aSexyApp = (SexyAppBase*) theArg;
 	
 	aSexyApp->LoadingThreadProc();		
 
-	char aStr[256];
-	sprintf(aStr, "Resource Loading Time: %ld\r\n", (SDL_GetTicks() - aSexyApp->mTimeLoaded));
-	OutputDebugStringA(aStr);
+	printf("Resource Loading Time: %d\r\n", (SDL_GetTicks() - aSexyApp->mTimeLoaded));
 
 	aSexyApp->mLoadingThreadCompleted = true;
+	return 0;
 }
 
 void SexyAppBase::StartLoadingThread()
@@ -4617,9 +4641,12 @@ void SexyAppBase::StartLoadingThread()
 	if (!mLoadingThreadStarted)
 	{
 		mYieldMainThread = true; 
-		::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);		
+		//::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);		
 		mLoadingThreadStarted = true;
-		_beginthread(LoadingThreadProcStub, 0, this);
+		//_beginthread(LoadingThreadProcStub, 0, this);
+		pthread_t id;
+		pthread_create(&id, NULL, LoadingThreadProcStub, this);
+		pthread_detach(id);
 	}
 }
 void SexyAppBase::CursorThreadProc()
@@ -4946,7 +4973,7 @@ bool SexyAppBase::Process(bool allowSleep)
 				Mute(true);
 			}
 
-			static DWORD aTick = GetTickCount();
+			static DWORD aTick = SDL_GetTicks();
 			while (mUpdateCount < mFastForwardToUpdateNum || mFastForwardToMarker)
 			{
 				ClearUpdateBacklog();
@@ -4990,11 +5017,11 @@ bool SexyAppBase::Process(bool allowSleep)
 				if (aLastUpdateCount == mUpdateCount)
 					return true;
 
-				DWORD aNewTick = GetTickCount();
+				DWORD aNewTick = SDL_GetTicks();
 				if (aNewTick - aTick >= 1000 || mFastForwardStep) // let the app draw some
 				{
 					mFastForwardStep = false;
-					aTick = GetTickCount();
+					aTick = SDL_GetTicks();
 					DrawDirtyStuff();			
 					return true;
 				}
@@ -5145,7 +5172,11 @@ bool SexyAppBase::Process(bool allowSleep)
 
 					// Wait till next processing cycle
 					++mSleepCount;
-					Sleep(aTimeToNextFrame);
+
+					timespec ts;
+					ts.tv_sec = aTimeToNextFrame / 1000;
+					ts.tv_nsec = (aTimeToNextFrame % 1000) * 1000000;
+					nanosleep(&ts, &ts);
 
 					aCumSleepTime += aTimeToNextFrame;					
 				}
@@ -5166,7 +5197,10 @@ bool SexyAppBase::Process(bool allowSleep)
 				if (!allowSleep)
 					return false;
 
-				Sleep(aLoadingYieldSleepTime);
+				timespec ts;
+				ts.tv_sec = aLoadingYieldSleepTime / 1000;
+				ts.tv_nsec = (aLoadingYieldSleepTime % 1000) * 1000000;
+				nanosleep(&ts, &ts);
 			}
 		}
 	}
@@ -5235,13 +5269,15 @@ bool SexyAppBase::UpdateAppStep(bool* updated)
 	// We update in two stages to avoid doing a Process if our loop termination
 	//  condition has already been met by processing windows messages		
 	if (mUpdateAppState == UPDATESTATE_MESSAGES)
-	{		
+	{
+		/*
 		MSG msg;
 		while ((PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) && (!mShutdown))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		*/
 
 		ProcessDemo();
 		if (!ProcessDeferredMessages(true))
@@ -5256,7 +5292,11 @@ bool SexyAppBase::UpdateAppStep(bool* updated)
 		{
 			if (mStepMode==2)
 			{
-				Sleep(mFrameTime);
+				timespec ts;
+				ts.tv_sec = mFrameTime / 1000;
+				ts.tv_nsec = (mFrameTime % 1000) * 1000000;
+				nanosleep(&ts, &ts);
+
 				mUpdateAppState = UPDATESTATE_PROCESS_DONE; // skip actual update until next step
 			}
 			else
@@ -5328,7 +5368,7 @@ void SexyAppBase::Start()
 	//::ShowWindow(mHWnd, SW_SHOW);
 	//::SetFocus(mHWnd);
 
-	timeBeginPeriod(1);
+	//timeBeginPeriod(1);
 
 	//int aCount = 0; // unused
 	//int aSleepCount = 0; // unused
@@ -5347,28 +5387,19 @@ void SexyAppBase::Start()
 
 	WaitForLoadingThread();
 
-	char aString[256];
-	sprintf(aString, "Seconds       = %g\r\n", (SDL_GetTicks() - aStartTime) / 1000.0);
-	OutputDebugStringA(aString);
-	//sprintf(aString, "Count         = %d\r\n", aCount);
-	//OutputDebugString(aString);
-	sprintf(aString, "Sleep Count   = %d\r\n", mSleepCount);
-	OutputDebugStringA(aString);
-	sprintf(aString, "Update Count  = %d\r\n", mUpdateCount);
-	OutputDebugStringA(aString);
-	sprintf(aString, "Draw Count    = %d\r\n", mDrawCount);
-	OutputDebugStringA(aString);
-	sprintf(aString, "Draw Time     = %d\r\n", mDrawTime);
-	OutputDebugStringA(aString);
-	sprintf(aString, "Screen Blt    = %d\r\n", mScreenBltTime);
-	OutputDebugStringA(aString);
+	printf("Seconds       = %g\r\n", (SDL_GetTicks() - aStartTime) / 1000.0);
+	//printf("Count         = %d\r\n", aCount);
+	printf("Sleep Count   = %d\r\n", mSleepCount);
+	printf("Update Count  = %d\r\n", mUpdateCount);
+	printf("Draw Count    = %d\r\n", mDrawCount);
+	printf("Draw Time     = %d\r\n", mDrawTime);
+	printf("Screen Blt    = %d\r\n", mScreenBltTime);
 	if (mDrawTime+mScreenBltTime > 0)
 	{
-		sprintf(aString, "Avg FPS       = %d\r\n", (mDrawCount*1000)/(mDrawTime+mScreenBltTime));
-		OutputDebugStringA(aString);
+		printf("Avg FPS       = %d\r\n", (mDrawCount*1000)/(mDrawTime+mScreenBltTime));
 	}
 
-	timeEndPeriod(1);	
+	//timeEndPeriod(1);	
 
 	PreTerminate();
 
@@ -5563,6 +5594,7 @@ void SexyAppBase::SetDouble(const std::string& theId, double theValue)
 
 void SexyAppBase::DoParseCmdLine()
 {
+	/*
 	char* aCmdLine = GetCommandLineA();	
 	char* aCmdLinePtr = aCmdLine;
 	if (aCmdLinePtr[0] == '"')
@@ -5578,6 +5610,7 @@ void SexyAppBase::DoParseCmdLine()
 		if (aCmdLinePtr != NULL)
 			ParseCmdLine(aCmdLinePtr+1);	
 	}
+	*/
 
 	mCmdLineParsed = true;
 }
@@ -5629,6 +5662,7 @@ void SexyAppBase::ParseCmdLine(const std::string& theCmdLine)
 
 static int GetMaxDemoFileNum(const std::string& theDemoPrefix, int theMaxToKeep, bool doErase)
 {
+	/*
 	WIN32_FIND_DATAA aData;
 	HANDLE aHandle = FindFirstFileA((theDemoPrefix + "*.dmo").c_str(), &aData);
 	if (aHandle==INVALID_HANDLE_VALUE)
@@ -5655,6 +5689,8 @@ static int GetMaxDemoFileNum(const std::string& theDemoPrefix, int theMaxToKeep,
 	anItr = aSet.end();
 	--anItr;
 	return (*anItr);
+	*/
+	return 0;
 }
 
 void SexyAppBase::HandleCmdLineParam(const std::string& theParamName, const std::string& theParamValue)
@@ -5760,7 +5796,7 @@ void SexyAppBase::InitHook()
 
 void SexyAppBase::Init()
 {
-	mPrimaryThreadId = GetCurrentThreadId();	
+	mPrimaryThreadId = pthread_self();	
 	
 	if (mShutdown)
 		return;
@@ -5807,13 +5843,13 @@ void SexyAppBase::Init()
 		}
 	}
 	*/
-	char aPath[MAX_PATH];
-	getcwd(aPath, MAX_PATH);
+	char aPath[512];
+	getcwd(aPath, 512);
 	strcat(aPath, "/savedata/");
 	SetAppDataFolder(aPath);
 	
 	if (!mCmdLineParsed)
-		DoParseCmdLine();
+		mCmdLineParsed = true;
 
 	if (IsScreenSaver())	
 		mOnlyAllowOneCopyToRun = false;	
@@ -5831,7 +5867,7 @@ void SexyAppBase::Init()
 	*/
 
 	// Create a message we can use to talk to ourselves inter-process
-	mNotifyGameMessage = RegisterWindowMessage((_S("Notify") + StringToSexyString(mProdName)).c_str());
+	//mNotifyGameMessage = RegisterWindowMessage((_S("Notify") + StringToSexyString(mProdName)).c_str());
 
 	// Create a globally unique mutex
 	/*
@@ -5917,6 +5953,7 @@ void SexyAppBase::Init()
 
 	mWidgetManager->Resize(Rect(0, 0, mWidth, mHeight), Rect(0, 0, mWidth, mHeight));
 
+	/*
 	// Check to see if we CAN run windowed or not...
 	if (mIsWindowed && !mFullScreenWindow)
 	{
@@ -5929,7 +5966,6 @@ void SexyAppBase::Init()
 		}
 	}
 
-	/*
 	if (mFullScreenWindow) // change resoultion using ChangeDisplaySettings
 	{
 		EnumWindows(ChangeDisplayWindowEnumProc,0); // record window pos
@@ -5997,9 +6033,11 @@ void SexyAppBase::HandleGameAlreadyRunning()
 {
 	if(mOnlyAllowOneCopyToRun)
 	{
+		/*
 		// Notify the other window and then shut ourselves down
 		if (mNotifyGameMessage != 0)
 			PostMessage(HWND_BROADCAST, mNotifyGameMessage, 0, 0);
+		*/
 
 		DoExit(0);
 	}
@@ -6010,11 +6048,11 @@ void SexyAppBase::CopyToClipboard(const std::string& theString)
 	if (mPlayingDemoBuffer)
 		return;
 
+	/*
 	HGLOBAL				aGlobalHandle;
 	char*				theData;	
 	WCHAR*				theWData;
 
-	/*
 	if (OpenClipboard(mHWnd))
 	{
 		EmptyClipboard();
@@ -6042,6 +6080,7 @@ void SexyAppBase::CopyToClipboard(const std::string& theString)
 
 std::string	SexyAppBase::GetClipboard()
 {
+	/*
 	HGLOBAL				aGlobalHandle;	
 	std::string			aString;
 
@@ -6063,12 +6102,13 @@ std::string	SexyAppBase::GetClipboard()
 			
 			CloseClipboard();
 		}
-		*/
 	}
 
 	DemoSyncString(&aString);
 
 	return aString;
+	*/
+	return "";
 }
 
 void SexyAppBase::SetCursor(int theCursorNum)
@@ -6382,10 +6422,10 @@ void SexyAppBase::RotateImageHue(Sexy::MemoryImage *theImage, int theDelta)
 		theDelta += 256;
 
 	int aSize = theImage->mWidth * theImage->mHeight;
-	DWORD *aPtr = theImage->GetBits();
+	ulong *aPtr = theImage->GetBits();
 	for (int i=0; i<aSize; i++)
 	{
-		DWORD aPixel = *aPtr;
+		ulong aPixel = *aPtr;
 		int alpha = aPixel&0xff000000;
 		int r = (aPixel>>16)&0xff;
 		int g = (aPixel>>8) &0xff;
