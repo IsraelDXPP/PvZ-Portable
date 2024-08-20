@@ -94,7 +94,7 @@ typedef std::string			SexyString;
 
 #define sexystrncmp			strncmp
 #define sexystrcmp			strcmp
-#define sexystricmp			stricmp
+#define sexystricmp			strcasecmp
 #define sexysscanf			sscanf
 #define sexyatoi			atoi
 #define sexystrcpy			strcpy

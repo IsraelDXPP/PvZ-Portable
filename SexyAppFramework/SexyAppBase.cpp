@@ -8,7 +8,9 @@
 #include <time.h>
 #include <math.h>
 
+#ifndef NO_GLEW
 #include <GL/glew.h>
+#endif
 
 #include "SexyAppBase.h"
 //#include "misc/SEHCatcher.h"
@@ -1662,7 +1664,7 @@ bool SexyAppBase::RegistryEraseKey(const SexyString& _theKeyName)
 	int aResult = RegDeleteKeyA(HKEY_CURRENT_USER, aKeyName.c_str());
 	if (aResult != ERROR_SUCCESS)
 	*/
-	if (!regemu::RegistryEraseKey(aKeyName));
+	if (!regemu::RegistryEraseKey(aKeyName))
 	{
 		if (mRecordingDemoBuffer)
 		{
@@ -4048,7 +4050,6 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 				}				
 				break;	
 			case WM_CLOSE:
-				/*
 				//if ((hWnd == mHWnd) || (hWnd == mInvisHWnd))
 				//{
 					//WriteDemoTimingBlock();
@@ -4373,11 +4374,13 @@ void SexyAppBase::MakeWindow()
 	mSDLGLContext = (SDL_GLContext*)SDL_GL_CreateContext(mSDLWindow);
     SDL_GL_SetSwapInterval(1);
 
+#ifndef NO_GLEW
 	if (!reload)
 	{
 		glewExperimental = GL_TRUE;
 		const GLenum glewInitResult = glewInit();
 	}
+#endif
 
 	/*
 	if (mHWnd != NULL)
@@ -4510,7 +4513,7 @@ void SexyAppBase::MakeWindow()
 		*/
 	}
 
-	int aResult = InitGLInterface();
+	InitGLInterface();
 
 	/*
 	if (mDDInterface->mD3DTester!=NULL && mDDInterface->mD3DTester->ResultsChanged())
@@ -6087,7 +6090,6 @@ std::string	SexyAppBase::GetClipboard()
 
 	if (!mPlayingDemoBuffer)
 	{
-		/*
 		if (OpenClipboard(mHWnd))
 		{
 			aGlobalHandle = GetClipboardData(CF_TEXT);	
