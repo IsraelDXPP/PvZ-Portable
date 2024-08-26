@@ -9,10 +9,10 @@ Fork of Patoke's PVZ GOTY decompilation with the following objectives:
 - [x] main.pak support
 * Port the game to some videogame consoles:
 
-| Console         | Notes                                                                                      |
-|-----------------|--------------------------------------------------------------------------------------------|
-| Nintendo Switch | Works on yuzu and real hardware (after compiling all definitions). Ryujinx crashes on boot |
-| Nintendo 3DS    | Not started yet, might not have enough memory for Old 3DS, might barely work on New 3DS    |
+| Console         | Notes                                                                                                                                      |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Nintendo Switch | Works on yuzu (after compiling all definitions). Ryujinx crashes on boot. Real hardware works but has problems with textures after a while |
+| Nintendo 3DS    | Not started yet, might not have enough memory for Old 3DS, might barely work on New 3DS                                                    |
 
 Original README continues below
 
