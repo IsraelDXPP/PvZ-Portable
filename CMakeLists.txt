@@ -29,7 +29,7 @@ list(REMOVE_ITEM SOURCES
 set(NO_GLEW OFF)
 if(NINTENDO_SWITCH)
 	set(NO_GLEW ON)
-	set(VORBIS_LIBS "vorbisfile vorbis")
+	set(VORBIS_LIBS vorbisfile vorbis)
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/switch/graphics/Window.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/switch/graphics/GLInterface.cpp
@@ -52,7 +52,7 @@ elseif(NINTENDO_3DS)
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/3ds
 	)
 else()
-	set(VORBIS_LIBS "vorbisfile vorbis")
+	set(VORBIS_LIBS vorbisfile vorbis)
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/pc/graphics/Window.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/pc/graphics/GLInterface.cpp
