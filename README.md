@@ -21,7 +21,7 @@ This project is licensed under the **[GNU Lesser General Public License v2.1](LI
 * The codebase is a manual reimplementation derived from publicly available reverse-engineering documentation and community research (such as [植物大战僵尸吧](https://tieba.baidu.com/f?ie=utf-8&kw=%E6%A4%8D%E7%89%A9%E5%A4%A7%E6%88%98%E5%83%B5%E5%B0%B8), [PVZ Wiki](https://wiki.pvz1.com/doku.php?id=home) and [PvZ Tools](https://pvz.tools/memory/)). It is written to utilize portable backends like SDL2 and OpenGL.
 * This project is intended solely for **educational purposes**, focusing on **cross-platform porting techniques**, engine modernization, and learning how classic game logic can be adapted to various hardware architectures (e.g., Nintendo Switch, 3DS).
 * Non-Commercial: This project is not affiliated with, authorized, or endorsed by PopCap Games or Electronic Arts.
-* Most of the re-implementation code of the framework is contributed by [Patoke](https://github.com/Patoke/) and [Headshotnoby](https://github.com/headshot2017/).
+* Most of the previous re-implementation code of the framework is contributed by [Patoke](https://github.com/Patoke/) and [Headshotnoby](https://github.com/headshot2017/).
 * Project icons and platform-specific logos are carried over from the original fork by [Headshotnoby](https://github.com/headshot2017/).
 * To play the game using this project you **MUST** have access to the original game files by purchasing it on [EA's official website](https://www.ea.com/games/plants-vs-zombies/plants-vs-zombies) or [Steam](https://store.steampowered.com/app/3590/Plants_vs_Zombies_GOTY_Edition/).
 
@@ -106,11 +106,25 @@ brew install cmake dylibbundler glew jpeg-turbo libogg libopenmpt libpng libvorb
 Run the following commands (assuming you have CMake and other dependencies installed) where the `CMakeLists.txt` file is located:
 
 ```bash
-cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
+cmake -G Ninja -B build
 ```
 
 ```bash
 cmake --build build
+```
+
+### Performance Optimization
+
+It is recommended to use the **Release** build type for the best performance, as it usually implies compiler optimizations:
+
+```bash
+cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
+```
+
+For advanced users, you can also specify `CFLAGS` and `CXXFLAGS` to enable architecture-specific optimizations (e.g. `-march=native` to fully utilize your CPU's instruction set):
+
+```bash
+cmake -G Ninja -B build -DCMAKE_C_FLAGS="-march=native" -DCMAKE_CXX_FLAGS="-march=native" -DCMAKE_BUILD_TYPE=Release
 ```
 
 ### Configuration Options

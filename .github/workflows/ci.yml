@@ -180,6 +180,7 @@ jobs:
           cd build
           aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2
           make
+          aarch64-none-elf-strip pvz-portable.elf
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -220,6 +221,7 @@ jobs:
         mkdir -p dist
         mkdir -p dist/libs
         cp build/pvz-portable dist/
+        strip -x dist/pvz-portable
 
         echo "Bundling dependencies..."
         dylibbundler -of -b -x dist/pvz-portable -d dist/libs -p @executable_path/libs/
