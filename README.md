@@ -70,8 +70,10 @@ Examples:
 - macOS: `~/Library/Application Support/io.github.wszqkzqk/PvZPortable/`
 
 You can customize these paths via command-line parameters:
-- `-resdir <path>`: Set the **resource directory** (where `main.pak` and `properties/` are located). This only affects where the game looks for resources, not where it saves data. (The legacy `-changedir` is also accepted for backward compatibility.)
-- `-savedir <path>`: Set the **save data directory** (where settings, savegames, caches, and screenshots are stored). This overrides the default OS-recommended application data path.
+- `-resdir="<path>"`: Set the **resource directory** (where `main.pak` and `properties/` are located). This only affects where the game looks for resources, not where it saves data.
+- `-savedir="<path>"`: Set the **save data directory** (where settings, savegames, caches, and screenshots are stored). This overrides the default OS-recommended application data path.
+
+**Note:** You **MUST** use the format `-param="<Your Path>"`. Space-separated values (e.g. `-resdir path`) are **NOT** supported.
 
 ## Dependencies
 

@@ -142,7 +142,7 @@ public:
 	std::string				mProdName;	
 	SexyString				mTitle;	
 	std::string				mRegKey;
-	std::string				mChangeDirTo;
+	std::string				mResourceDir;
 	std::string				mCustomSaveDir;
 	
 	int						mRelaxUpdateBacklogCount; // app doesn't try to catch up for this many frames

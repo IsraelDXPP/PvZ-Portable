@@ -174,22 +174,22 @@ SexyAppBase::SexyAppBase()
 	//char aPath[_MAX_PATH];
 	//GetModuleFileNameA(nullptr, aPath, 256);
 	//mProductVersion = GetProductVersion(aPath);	
-	//mChangeDirTo = GetFileDir(aPath);
+	//mResourceDir = GetFileDir(aPath);
 
 #ifdef __SWITCH__
-	mChangeDirTo = "sdmc:/switch/PvZPortable/";
+	mResourceDir = "sdmc:/switch/PvZPortable/";
 #elif defined(__3DS__)
-	mChangeDirTo = "sdmc:/3ds/PvZPortable/";
+	mResourceDir = "sdmc:/3ds/PvZPortable/";
 #else
 	char* aBasePath = SDL_GetBasePath();
 	if (aBasePath)
 	{
-		mChangeDirTo = aBasePath;
+		mResourceDir = aBasePath;
 		SDL_free(aBasePath);
 	}
 	else
 	{
-		mChangeDirTo = "";
+		mResourceDir = "";
 	}
 #endif
 
@@ -5001,9 +5001,9 @@ void SexyAppBase::HandleCmdLineParam(const std::string& theParamName, const std:
 	{
 		mIsScreenSaver = true;
 	}
-	else if (theParamName == "-resdir" || theParamName == "-changedir")  // -changedir kept for backward compatibility
+	else if (theParamName == "-resdir")
 	{
-		mChangeDirTo = theParamValue;
+		mResourceDir = theParamValue;
 	}
 	else if (theParamName == "-savedir")
 	{
@@ -5121,9 +5121,9 @@ void SexyAppBase::Init()
 		//gHInstance = (HINSTANCE)GetModuleHandle(nullptr);
 
 	// Set resource directory (for main.pak, properties/, etc.)
-	if (!ChangeDirHook(mChangeDirTo.c_str()))
+	if (!ChangeDirHook(mResourceDir.c_str()))
 	{
-		SetResourceFolder(mChangeDirTo);
+		SetResourceFolder(mResourceDir);
 	}
 
 	// Handle custom save directory from -savedir parameter
