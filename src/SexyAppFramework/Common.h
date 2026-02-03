@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <ctime>
+#include <filesystem>
 
 #ifdef _WIN32
 #define NOMINMAX 1
@@ -225,6 +226,24 @@ inline void			inlineTrim(std::string &theData, const std::string& theChars = " \
 	inlineRTrim(theData, theChars);
 	inlineLTrim(theData, theChars);
 }
+
+// UTF-8 path conversion helpers for Windows Unicode path support
+#ifdef _WIN32
+inline std::filesystem::path PathFromU8(const std::string& s)
+{
+	const auto* u8 = reinterpret_cast<const char8_t*>(s.data());
+	return std::filesystem::path(std::u8string(u8, u8 + s.size()));
+}
+
+inline std::string PathToU8(const std::filesystem::path& p)
+{
+	auto u8 = p.generic_u8string();
+	return std::string(u8.begin(), u8.end());
+}
+#else
+inline std::filesystem::path PathFromU8(const std::string& s) { return std::filesystem::path(s); }
+inline std::string PathToU8(const std::filesystem::path& p) { return p.string(); }
+#endif
 
 struct StringLessNoCase { bool operator()(const std::string &s1, const std::string &s2) const { return _stricmp(s1.c_str(),s2.c_str())<0; } };
 

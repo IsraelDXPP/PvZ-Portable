@@ -68,17 +68,17 @@ void Sexy::SRand(ulong theSeed)
 
 std::string Sexy::GetAppDataFolder()
 {
-	return Sexy::gAppDataFolder.string();
+	return PathToU8(Sexy::gAppDataFolder);
 }
 
 void Sexy::SetAppDataFolder(const std::string& thePath)
 {
-	Sexy::gAppDataFolder = thePath;
+	Sexy::gAppDataFolder = PathFromU8(thePath);
 }
 
 std::string Sexy::GetAppDataPath(const std::string& theRelativePath)
 {
-	return (Sexy::gAppDataFolder / theRelativePath).string();
+	return PathToU8(Sexy::gAppDataFolder / PathFromU8(theRelativePath));
 }
 
 const std::string& Sexy::GetResourceFolder()

@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdexcept>
+#include <fstream>
 
 #ifdef __SWITCH__
 #include <switch.h>
@@ -10,6 +11,7 @@
 #include "TodDebug.h"
 #include "TodCommon.h"
 #include "misc/Debug.h"
+#include "../SexyAppFramework/Common.h"
 #include "../SexyAppFramework/SexyAppBase.h"
 
 using namespace Sexy;
@@ -113,19 +115,18 @@ void TodLog(const char* theFormat, ...)
 void TodLogString(const char* theMsg)
 {
 #ifdef _PVZ_DEBUG
-	FILE* f = fopen(gLogFileName, "a");
-	if (f == nullptr)
+	std::ofstream f(Sexy::PathFromU8(gLogFileName), std::ios::app | std::ios::binary);
+	if (!f)
 	{
 		fprintf(stderr, __S("Failed to open log file '%s'\n"), gLogFileName);
 		return;
 	}
 
-	if (fwrite(theMsg, strlen(theMsg), 1, f) != 1)
+	f.write(theMsg, (std::streamsize)strlen(theMsg));
+	if (!f)
 	{
 		fprintf(stderr, __S("Failed to write to log file\n"));
 	}
-
-	fclose(f);
 #endif
 }
 

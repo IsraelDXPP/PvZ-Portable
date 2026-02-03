@@ -5,6 +5,9 @@
 #include <cstring>
 #include <stddef.h>
 #include <sys/stat.h>
+#include <filesystem>
+#include <chrono>
+#include <fstream>
 #include "TodDebug.h"
 #include "Definition.h"
 #include "zlib.h"
@@ -580,6 +583,19 @@ static std::string DefinitionGetCompiledCacheFullPath(const std::string& theComp
     return GetAppDataPath(aCacheRoot + theCompiledFilePath);
 }
 
+static bool DefinitionGetFileModTime(const std::string& theFilePath, time_t& theTime)
+{
+    std::error_code ec;
+    auto ftime = std::filesystem::last_write_time(Sexy::PathFromU8(theFilePath), ec);
+    if (ec)
+        return false;
+
+    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+        ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+    theTime = std::chrono::system_clock::to_time_t(sctp);
+    return true;
+}
+
 //0x444560 : (void* def, *defMap, eax = string& compiledFilePath)  //esp -= 8
 bool DefinitionReadCompiledFile(const std::string& theCompiledFilePath, DefMap* theDefMap, void* theDefinition)
 {
@@ -587,21 +603,20 @@ bool DefinitionReadCompiledFile(const std::string& theCompiledFilePath, DefMap* 
     aTimer.Start();
 
     std::string aFullCompiledPath = DefinitionGetCompiledCacheFullPath(theCompiledFilePath);
-    FILE* pFile = fopen(aFullCompiledPath.c_str(), "rb");
-    if (!pFile)
+    std::ifstream aFileStream(Sexy::PathFromU8(aFullCompiledPath), std::ios::binary);
+    if (!aFileStream)
     {
-        pFile = fopen(theCompiledFilePath.c_str(), "rb");
+        aFileStream.open(Sexy::PathFromU8(theCompiledFilePath), std::ios::binary);
     }
 
-    if (!pFile) return false;
+    if (!aFileStream) return false;
 
-    fseek(pFile, 0, 2);  // 将读取位置的指针移动至文件末尾
-    size_t aCompressedSize = ftell(pFile);  // 此时获取到的偏移量即为整个文件的大小
-    fseek(pFile, 0, 0);  // 再把读取位置的指针移回文件开头
+    aFileStream.seekg(0, std::ios::end);
+    size_t aCompressedSize = (size_t)aFileStream.tellg();
+    aFileStream.seekg(0, std::ios::beg);
     void* aCompressedBuffer = DefinitionAlloc(aCompressedSize);
-    // 读取文件，并判断实际读取的大小是否为完整的文件大小，若不等则判断为读取失败
-    bool aReadCompressedFailed = fread(aCompressedBuffer, sizeof(char), aCompressedSize, pFile) != aCompressedSize;
-    fclose(pFile);  // 关闭资源文件流并释放 pFile 占用的内存
+    aFileStream.read(reinterpret_cast<char*>(aCompressedBuffer), (std::streamsize)aCompressedSize);
+    bool aReadCompressedFailed = !aFileStream || (size_t)aFileStream.gcount() != aCompressedSize;
     if (aReadCompressedFailed) { // 判断是否读取成功
         TodTrace(__S("Failed to read compiled file: %s\n"), theCompiledFilePath.c_str());
         free(aCompressedBuffer);
@@ -664,40 +679,22 @@ bool DefinitionIsCompiled(const std::string& theXMLFilePath)
     if (IsFileInPakFile(aCompiledFilePath))
         return true;
 
-    struct stat attr;
-
     std::string aFullCompiledPath = DefinitionGetCompiledCacheFullPath(aCompiledFilePath);
-    if (stat(aFullCompiledPath.c_str(), &attr) != 0)
+    time_t aCompiledFileTime = 0;
+    if (!DefinitionGetFileModTime(aFullCompiledPath, aCompiledFileTime))
     {
-        if (stat(aCompiledFilePath.c_str(), &attr) != 0)
+        if (!DefinitionGetFileModTime(aCompiledFilePath, aCompiledFileTime))
             return false;
     }
-    time_t aCompiledFileTime = attr.st_mtime;
 
-    if (stat(theXMLFilePath.c_str(), &attr) != 0)
+    time_t aXMLFileTime = 0;
+    if (!DefinitionGetFileModTime(theXMLFilePath, aXMLFileTime))
     {
         TodTrace(__S("Can't find source file to compile '%s'"), theXMLFilePath.c_str());
         return false;
     }
-    time_t aXMLFileTime = attr.st_mtime;
 
     return aXMLFileTime <= aCompiledFileTime;
-
-    /*
-    _WIN32_FILE_ATTRIBUTE_DATA lpFileData;
-    _FILETIME aCompiledFileTime;
-    bool aSucceed = GetFileAttributesEx(aCompiledFilePath.c_str(), _GET_FILEEX_INFO_LEVELS::GetFileExInfoStandard, &lpFileData);
-    if (aSucceed)
-        aCompiledFileTime = lpFileData.ftLastWriteTime;
-    
-    if (!GetFileAttributesEx(theXMLFilePath.c_str(), _GET_FILEEX_INFO_LEVELS::GetFileExInfoStandard, &lpFileData))
-    {
-        TodTrace(__S("Can't file source file to compile '%s'"), theXMLFilePath.c_str());
-        return false;
-    }
-    else
-        return aSucceed && CompareFileTime(&aCompiledFileTime, &lpFileData.ftLastWriteTime) == 1;
-    */
 }
 
 void DefinitionFillWithDefaults(DefMap* theDefMap, void* theDefinition)
@@ -1309,14 +1306,12 @@ bool DefinitionWriteCompiledFile(const std::string& theCompiledFilePath, DefMap*
     std::string aFilePath = GetFileDir(aFullCompiledPath);
     MkDir(aFilePath);
 
-    auto aFileStream = fopen(aFullCompiledPath.c_str(), "wb");
+    std::ofstream aFileStream(Sexy::PathFromU8(aFullCompiledPath), std::ios::binary);
     if (aFileStream) {
-        unsigned int aBytesWritten = fwrite(aCompressedDef, 1u, aCompressedSize, aFileStream);
+        aFileStream.write(reinterpret_cast<const char*>(aCompressedDef), (std::streamsize)aCompressedSize);
 
         delete[] (char *)aCompressedDef;
-
-        fclose(aFileStream);
-        return aBytesWritten == aCompressedSize;
+        return aFileStream.good();
     }
 
     delete[] (char *)aCompressedDef;

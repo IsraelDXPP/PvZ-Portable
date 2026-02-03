@@ -1,10 +1,12 @@
 // simple Windows Registry emulator
 
 #include "RegEmu.h"
+#include "Common.h"
 
 #include <map>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 
 #define REGEMU_VERSION 1
 
@@ -26,44 +28,42 @@ static void SaveToFile()
 		return;
 	}
 
-	FILE* f = fopen(currFile.c_str(), "wb");
+	std::ofstream f(Sexy::PathFromU8(currFile), std::ios::binary);
 	if (!f)
 	{
 		printf("RegEmu: Couldn't open '%s' for writing\n", currFile.c_str());
 		return;
 	}
 
-	fwrite("REGEMU", 6, 1, f);
+	f.write("REGEMU", 6);
 
 	uint16_t aVersion = REGEMU_VERSION;
-	fwrite(&aVersion, sizeof(uint16_t), 1, f);
+	f.write(reinterpret_cast<const char*>(&aVersion), sizeof(uint16_t));
 
 	uint32_t aNumKeys = registry.size();
-	fwrite(&aNumKeys, sizeof(uint32_t), 1, f);
+	f.write(reinterpret_cast<const char*>(&aNumKeys), sizeof(uint32_t));
 
 	for (auto& keyPair : registry)
 	{
 		uint32_t aKeyNameLen = keyPair.first.size()+1;
-		fwrite(&aKeyNameLen, sizeof(uint32_t), 1, f);
-		fwrite(keyPair.first.c_str(), aKeyNameLen, 1, f);
+		f.write(reinterpret_cast<const char*>(&aKeyNameLen), sizeof(uint32_t));
+		f.write(keyPair.first.c_str(), aKeyNameLen);
 
 		uint32_t aNumValues = keyPair.second.size();
-		fwrite(&aNumValues, sizeof(uint32_t), 1, f);
+		f.write(reinterpret_cast<const char*>(&aNumValues), sizeof(uint32_t));
 
 		for (auto& valuePair : registry[keyPair.first])
 		{
 			uint32_t aValueNameLen = valuePair.first.size()+1;
-			fwrite(&aValueNameLen, sizeof(uint32_t), 1, f);
-			fwrite(valuePair.first.c_str(), aValueNameLen, 1, f);
+			f.write(reinterpret_cast<const char*>(&aValueNameLen), sizeof(uint32_t));
+			f.write(valuePair.first.c_str(), aValueNameLen);
 
 			RegValue& value = valuePair.second;
-			fwrite(&value.mType, sizeof(uint32_t), 1, f);
-			fwrite(&value.mLength, sizeof(uint32_t), 1, f);
-			fwrite(value.mValue, value.mLength, 1, f);
+			f.write(reinterpret_cast<const char*>(&value.mType), sizeof(uint32_t));
+			f.write(reinterpret_cast<const char*>(&value.mLength), sizeof(uint32_t));
+			f.write(reinterpret_cast<const char*>(value.mValue), value.mLength);
 		}
 	}
-
-	fclose(f);
 }
 
 void regemu::SetRegFile(const std::string& fileName)
@@ -71,7 +71,7 @@ void regemu::SetRegFile(const std::string& fileName)
 	currFile = fileName;
 	registry.clear();
 
-	FILE* f = fopen(currFile.c_str(), "rb");
+	std::ifstream f(Sexy::PathFromU8(currFile), std::ios::binary);
 	if (!f)
 	{
 		printf("RegEmu: Can't read '%s': File does not exist\n", currFile.c_str());
@@ -79,32 +79,31 @@ void regemu::SetRegFile(const std::string& fileName)
 	}
 
 	char aHeader[6];
-	if (fread(aHeader, 6, 1, f) != 1 || strncmp(aHeader, "REGEMU", 6))
+	if (!f.read(aHeader, 6) || strncmp(aHeader, "REGEMU", 6))
 	{
 		printf("RegEmu: Can't read '%s': Invalid header\n", currFile.c_str());
-		fclose(f);
 		return;
 	}
 
 	uint16_t aVersion;
-	if (fread(&aVersion, sizeof(uint16_t), 1, f) != 1) { fclose(f); return; }
+	if (!f.read(reinterpret_cast<char*>(&aVersion), sizeof(uint16_t))) { return; }
 
 	uint32_t aNumKeys;
-	if (fread(&aNumKeys, sizeof(uint32_t), 1, f) != 1) { fclose(f); return; }
+	if (!f.read(reinterpret_cast<char*>(&aNumKeys), sizeof(uint32_t))) { return; }
 
 	for (uint32_t i=0; i<aNumKeys; i++)
 	{
 		uint32_t aKeyNameLen;
 		char* aKeyName;
 
-		if (fread(&aKeyNameLen, sizeof(uint32_t), 1, f) != 1) { fclose(f); return; }
+		if (!f.read(reinterpret_cast<char*>(&aKeyNameLen), sizeof(uint32_t))) { return; }
 		aKeyName = new char[aKeyNameLen];
-		if (fread(aKeyName, aKeyNameLen, 1, f) != 1) { delete[] aKeyName; fclose(f); return; }
+		if (!f.read(aKeyName, aKeyNameLen)) { delete[] aKeyName; return; }
 
 		registry[aKeyName] = {};
 
 		uint32_t aNumValues;
-		if (fread(&aNumValues, sizeof(uint32_t), 1, f) != 1) { delete[] aKeyName; fclose(f); return; }
+		if (!f.read(reinterpret_cast<char*>(&aNumValues), sizeof(uint32_t))) { delete[] aKeyName; return; }
 
 		for (uint32_t j=0; j<aNumValues; j++)
 		{
@@ -112,14 +111,14 @@ void regemu::SetRegFile(const std::string& fileName)
 			uint32_t aValueNameLen;
 			char* aValueName;
 
-			if (fread(&aValueNameLen, sizeof(uint32_t), 1, f) != 1) { delete[] aKeyName; fclose(f); return; }
+			if (!f.read(reinterpret_cast<char*>(&aValueNameLen), sizeof(uint32_t))) { delete[] aKeyName; return; }
 			aValueName = new char[aValueNameLen];
-			if (fread(aValueName, aValueNameLen, 1, f) != 1) { delete[] aKeyName; delete[] aValueName; fclose(f); return; }
+			if (!f.read(aValueName, aValueNameLen)) { delete[] aKeyName; delete[] aValueName; return; }
 
-			if (fread(&value.mType, sizeof(uint32_t), 1, f) != 1) { delete[] aKeyName; delete[] aValueName; fclose(f); return; }
-			if (fread(&value.mLength, sizeof(uint32_t), 1, f) != 1) { delete[] aKeyName; delete[] aValueName; fclose(f); return; }
+			if (!f.read(reinterpret_cast<char*>(&value.mType), sizeof(uint32_t))) { delete[] aKeyName; delete[] aValueName; return; }
+			if (!f.read(reinterpret_cast<char*>(&value.mLength), sizeof(uint32_t))) { delete[] aKeyName; delete[] aValueName; return; }
 			value.mValue = new uint8_t[value.mLength];
-			if (fread(value.mValue, value.mLength, 1, f) != 1) { delete[] aKeyName; delete[] aValueName; delete[] value.mValue; fclose(f); return; }
+			if (!f.read(reinterpret_cast<char*>(value.mValue), value.mLength)) { delete[] aKeyName; delete[] aValueName; delete[] value.mValue; return; }
 
 			registry[aKeyName][aValueName] = value;
 
@@ -129,7 +128,6 @@ void regemu::SetRegFile(const std::string& fileName)
 		delete[] aKeyName;
 	}
 
-	fclose(f);
 	printf("RegEmu: Loaded from '%s': %zu total key(s)\n", currFile.c_str(), static_cast<size_t>(registry.size()));
 }
 
