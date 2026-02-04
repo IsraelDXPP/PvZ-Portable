@@ -18,21 +18,21 @@ static inline void PottedPlantFromLE(PottedPlant& p)
 	if constexpr (std::endian::native == std::endian::little)
 		return;
 
-	p.mSeedType = (SeedType)FromLE32((uint32_t)p.mSeedType);
-	p.mWhichZenGarden = (GardenType)FromLE32((uint32_t)p.mWhichZenGarden);
-	p.mX = (int32_t)FromLE32((uint32_t)p.mX);
-	p.mY = (int32_t)FromLE32((uint32_t)p.mY);
-	p.mFacing = (PottedPlant::FacingDirection)FromLE32((uint32_t)p.mFacing);
-	p.mLastWateredTime = (int64_t)FromLE64((uint64_t)p.mLastWateredTime);
-	p.mDrawVariation = (DrawVariation)FromLE32((uint32_t)p.mDrawVariation);
-	p.mPlantAge = (PottedPlantAge)FromLE32((uint32_t)p.mPlantAge);
-	p.mTimesFed = (int32_t)FromLE32((uint32_t)p.mTimesFed);
-	p.mFeedingsPerGrow = (int32_t)FromLE32((uint32_t)p.mFeedingsPerGrow);
-	p.mPlantNeed = (PottedPlantNeed)FromLE32((uint32_t)p.mPlantNeed);
-	p.mLastNeedFulfilledTime = (int64_t)FromLE64((uint64_t)p.mLastNeedFulfilledTime);
-	p.mLastFertilizedTime = (int64_t)FromLE64((uint64_t)p.mLastFertilizedTime);
-	p.mLastChocolateTime = (int64_t)FromLE64((uint64_t)p.mLastChocolateTime);
-	p.mFutureAttribute[0] = (int64_t)FromLE64((uint64_t)p.mFutureAttribute[0]);
+	p.mSeedType = static_cast<SeedType>(FromLE32(static_cast<uint32_t>(p.mSeedType)));
+	p.mWhichZenGarden = static_cast<GardenType>(FromLE32(static_cast<uint32_t>(p.mWhichZenGarden)));
+	p.mX = static_cast<int32_t>(FromLE32(static_cast<uint32_t>(p.mX)));
+	p.mY = static_cast<int32_t>(FromLE32(static_cast<uint32_t>(p.mY)));
+	p.mFacing = static_cast<PottedPlant::FacingDirection>(FromLE32(static_cast<uint32_t>(p.mFacing)));
+	p.mLastWateredTime = static_cast<int64_t>(FromLE64(static_cast<uint64_t>(p.mLastWateredTime)));
+	p.mDrawVariation = static_cast<DrawVariation>(FromLE32(static_cast<uint32_t>(p.mDrawVariation)));
+	p.mPlantAge = static_cast<PottedPlantAge>(FromLE32(static_cast<uint32_t>(p.mPlantAge)));
+	p.mTimesFed = static_cast<int32_t>(FromLE32(static_cast<uint32_t>(p.mTimesFed)));
+	p.mFeedingsPerGrow = static_cast<int32_t>(FromLE32(static_cast<uint32_t>(p.mFeedingsPerGrow)));
+	p.mPlantNeed = static_cast<PottedPlantNeed>(FromLE32(static_cast<uint32_t>(p.mPlantNeed)));
+	p.mLastNeedFulfilledTime = static_cast<int64_t>(FromLE64(static_cast<uint64_t>(p.mLastNeedFulfilledTime)));
+	p.mLastFertilizedTime = static_cast<int64_t>(FromLE64(static_cast<uint64_t>(p.mLastFertilizedTime)));
+	p.mLastChocolateTime = static_cast<int64_t>(FromLE64(static_cast<uint64_t>(p.mLastChocolateTime)));
+	p.mFutureAttribute[0] = static_cast<int64_t>(FromLE64(static_cast<uint64_t>(p.mFutureAttribute[0])));
 }
 
 // ToLE is identical to FromLE for byte swapping (both swap on big-endian, no-op on little-endian)
@@ -247,7 +247,7 @@ void PlayerInfo::AddCoins(int theAmount)
 
 void PlayerInfo::ResetChallengeRecord(GameMode theGameMode)
 {
-	int aGameMode = (int)theGameMode - (int)GameMode::GAMEMODE_SURVIVAL_NORMAL_STAGE_1;
+	int aGameMode = static_cast<int>(theGameMode) - static_cast<int>(GameMode::GAMEMODE_SURVIVAL_NORMAL_STAGE_1);
 	TOD_ASSERT(aGameMode >= 0 && aGameMode <= NUM_CHALLENGE_MODES);
 	mChallengeRecords[aGameMode] = 0;
 }
@@ -259,7 +259,7 @@ void PottedPlant::InitializePottedPlant(SeedType theSeedType)
 	mSeedType = theSeedType;
 	mDrawVariation = DrawVariation::VARIATION_NORMAL;
 	mLastWateredTime = 0;
-	mFacing = (FacingDirection)RandRangeInt((int)FacingDirection::FACING_RIGHT, (int)FacingDirection::FACING_LEFT);
+	mFacing = static_cast<FacingDirection>(RandRangeInt(static_cast<int>(FacingDirection::FACING_RIGHT), static_cast<int>(FacingDirection::FACING_LEFT)));
 	mPlantAge = PottedPlantAge::PLANTAGE_SPROUT;
 	mTimesFed = 0;
 	mWhichZenGarden = GardenType::GARDEN_MAIN;

@@ -264,7 +264,7 @@ public:
 		uint64_t aValue = (uint64_t)theValue;
 		SyncUInt64(aValue);
 		if (mReading)
-			theValue = (int64_t)aValue;
+			theValue = static_cast<int64_t>(aValue);
 	}
 
 	template <typename TEnum>
@@ -1513,7 +1513,7 @@ static void SyncBoardBasePortable(PortableSaveContext& theContext, Board* theBoa
 			case 87U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mIntervalDrawCountStart); }); break;
 			case 88U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncFloat(theBoard->mMinFPS); }); break;
 			case 89U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPreloadTime); }); break;
-			case 90U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ int64_t aGameId = (int64_t)theBoard->mGameID; c.SyncInt64(aGameId); if (c.mReading) theBoard->mGameID = (intptr_t)aGameId; }); break;
+			case 90U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ int64_t aGameId = static_cast<int64_t>(theBoard->mGameID); c.SyncInt64(aGameId); if (c.mReading) theBoard->mGameID = (intptr_t)aGameId; }); break;
 			case 91U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mGravesCleared); }); break;
 			case 92U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPlantsEaten); }); break;
 			case 93U: ApplyFieldWithSync(aFieldData, aFieldSize, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPlantsShoveled); }); break;
@@ -1623,7 +1623,7 @@ static void SyncBoardBasePortable(PortableSaveContext& theContext, Board* theBoa
 		AppendFieldWithSync(aBlob, 87U, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mIntervalDrawCountStart); });
 		AppendFieldWithSync(aBlob, 88U, [&](PortableSaveContext& c){ c.SyncFloat(theBoard->mMinFPS); });
 		AppendFieldWithSync(aBlob, 89U, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPreloadTime); });
-		AppendFieldWithSync(aBlob, 90U, [&](PortableSaveContext& c){ int64_t aGameId = (int64_t)theBoard->mGameID; c.SyncInt64(aGameId); if (c.mReading) theBoard->mGameID = (intptr_t)aGameId; });
+		AppendFieldWithSync(aBlob, 90U, [&](PortableSaveContext& c){ int64_t aGameId = static_cast<int64_t>(theBoard->mGameID); c.SyncInt64(aGameId); if (c.mReading) theBoard->mGameID = (intptr_t)aGameId; });
 		AppendFieldWithSync(aBlob, 91U, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mGravesCleared); });
 		AppendFieldWithSync(aBlob, 92U, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPlantsEaten); });
 		AppendFieldWithSync(aBlob, 93U, [&](PortableSaveContext& c){ c.SyncInt32(theBoard->mPlantsShoveled); });
