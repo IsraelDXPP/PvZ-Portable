@@ -10,7 +10,7 @@
 #include "misc/Ratio.h"
 #include "misc/SexyMatrix.h"
 
-#include <GL/gl.h>
+#include "graphics/GLPlatform.h"
 
 namespace Sexy
 {
@@ -31,16 +31,12 @@ enum RenderImageFlags
 	RenderImageFlag_TextureMask				=			0x000F		// mask for flags that affect texture format/layout (excludes transient flags like sanding)
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 struct TextureDataPiece
 {
 	GLuint mTexture;
 	int mWidth,mHeight;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 enum PixelFormat
 {
 	PixelFormat_Unknown				=			0x0000,
@@ -50,8 +46,6 @@ enum PixelFormat
 	PixelFormat_Palette8			=			0x0008
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 struct GLVertex
 {
 	float sx;
@@ -62,8 +56,6 @@ struct GLVertex
 	float tv;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 struct VertexList
 {
 	enum { MAX_STACK_VERTS = 100 };
@@ -127,15 +119,12 @@ struct VertexList
 	void clear() { mSize = 0; }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 struct TextureData
 {
 public:
 	typedef std::vector<TextureDataPiece> TextureVector;
 
 	TextureVector mTextures;
-	//LPDIRECTDRAWPALETTE mPalette;
 	
 	int mWidth,mHeight;
 	int mTexVecWidth, mTexVecHeight;
@@ -196,7 +185,7 @@ public:
 public:
 	void					AddGLImage(GLImage* theDDImage);
 	void					RemoveGLImage(GLImage* theDDImage);
-	void					Remove3DData(MemoryImage* theImage); // for 3d texture cleanup
+	void					Remove3DData(MemoryImage* theImage);
 
 public:
 	GLInterface(SexyAppBase* theApp);

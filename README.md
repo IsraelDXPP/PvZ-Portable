@@ -10,12 +10,12 @@ A **cross-platform** community-driven reimplementation of Plants vs. Zombies: Ga
 
 | 🌿 Authentic | 🎮 Portable | 🛠️ Open |
 | :---: | :---: | :---: |
-| Almost 100% gameplay recreation | Support for 32/64 bit systems<br>Run on Linux, Windows, macOS, Switch... | OpenGL & SDL |
+| Almost 100% gameplay recreation | Support for 32/64 bit systems<br>Run on Linux, Windows, macOS, Switch... | OpenGL ES 2.0 & SDL |
 
 **⚠️ Notice:**
 
 * This repository does **NOT** contain any copyrighted game assets (such as images, music, or fonts) owned by PopCap Games or Electronic Arts. Users must provide their own `main.pak` and `properties/` folder from a **legally purchased copy** of Plants vs. Zombies: GOTY Edition.
-* The codebase is a manual reimplementation derived from publicly available reverse-engineering documentation and community research (such as [植物大战僵尸吧](https://tieba.baidu.com/f?ie=utf-8&kw=%E6%A4%8D%E7%89%A9%E5%A4%A7%E6%88%98%E5%83%B5%E5%B0%B8), [PVZ Wiki](https://wiki.pvz1.com/doku.php?id=home) and [PvZ Tools](https://pvz.tools/memory/)). It is written to utilize portable backends like SDL2 and OpenGL.
+* The codebase is a manual reimplementation derived from publicly available reverse-engineering documentation and community research (such as [植物大战僵尸吧](https://tieba.baidu.com/f?ie=utf-8&kw=%E6%A4%8D%E7%89%A9%E5%A4%A7%E6%88%98%E5%83%B5%E5%B0%B8), [PVZ Wiki](https://wiki.pvz1.com/doku.php?id=home) and [PvZ Tools](https://pvz.tools/memory/)). It is written to utilize portable backends like SDL2 and OpenGL ES 2.0 (with desktop OpenGL 2.1 fallback).
 * This project is intended solely for **educational purposes**, focusing on **cross-platform porting techniques**, engine modernization, and learning how classic game logic can be adapted to various hardware architectures (e.g., Nintendo Switch, 3DS).
 * Non-Commercial: This project is not affiliated with, authorized, or endorsed by PopCap Games or Electronic Arts.
 * Project icons and platform-specific logos are created by me (wszqkzqk) with the help of AI image generation tools and are not official assets of PopCap/EA.
@@ -24,8 +24,9 @@ A **cross-platform** community-driven reimplementation of Plants vs. Zombies: Ga
 ## Features
 
 This project is **based on** [Patoke](https://github.com/Patoke/re-plants-vs-zombies) and [Headshotnoby](https://github.com/headshot2017/re-plants-vs-zombies)'s PvZ GOTY implementation with the following objectives:
-- [x] Replace renderer with SDL + OpenGL
+- [x] Replace renderer with SDL + OpenGL ES 2.0 (desktop OpenGL 2.1 fallback)
   - Also enable to **resize the window**, which was not possible in the original game
+  - **Why OpenGL ES 2.0?** GLES 2.0 is the common subset of virtually all modern GPU APIs — every desktop OpenGL 2.1+ driver, mobile GPU, and game console inherently supports it. This means the game works **out of the box** everywhere without extra dependencies. [ANGLE](https://chromium.googlesource.com/angle/angle) can also be optionally used to translate calls to DirectX/Metal/Vulkan if needed.
 - [x] Replace Windows code with cross-platform code
 - [x] Replace DirectSound/BASS/FMod with [SDL Mixer X](https://github.com/WohlSoft/SDL-Mixer-X)
   - This project uses a fork of SDL Mixer X that adds compatibility with the MO3 format by using libopenmpt. This fork is located under SexyAppFramework/sound/SDL-Mixer-X
@@ -83,7 +84,7 @@ You can customize these paths via command-line parameters:
 Before building on PC, ensure you have the necessary dependencies installed:
 
 - **Build Tools**: `CMake`, `Ninja`, A C/C++ compiler (e.g., `gcc`, `clang`, `MSVC`)
-- **Graphics**: `GLEW`, `OpenGL`
+- **Graphics**: `OpenGL ES 2.0` or `OpenGL 2.1+` (auto-detected at runtime via SDL2)
 - **Audio**: `libopenmpt`, `libogg`, `libvorbis`, `mpg123`
 - **Image**: `libpng`, `libjpeg-turbo`
 - **Windowing/Input**: `SDL2`
@@ -93,7 +94,7 @@ Before building on PC, ensure you have the necessary dependencies installed:
 You can install the required dependencies using the following command:
 
 ```bash
-sudo pacman -S --needed base-devel cmake glew libjpeg-turbo libogg libopenmpt libpng libvorbis mpg123 ninja sdl2-compat
+sudo pacman -S --needed base-devel cmake libjpeg-turbo libogg libopenmpt libpng libvorbis mpg123 ninja sdl2-compat
 ```
 
 ### Debian/Ubuntu
@@ -101,7 +102,7 @@ sudo pacman -S --needed base-devel cmake glew libjpeg-turbo libogg libopenmpt li
 You can install the required dependencies using the following command:
 
 ```bash
-sudo apt install cmake ninja-build libogg-dev libglew-dev libjpeg-dev libopenmpt-dev libpng-dev libvorbis-dev libmpg123-dev libsdl2-dev
+sudo apt install cmake ninja-build libogg-dev libjpeg-dev libopenmpt-dev libpng-dev libvorbis-dev libmpg123-dev libsdl2-dev
 ```
 
 ### Windows (MSYS2 UCRT64)
@@ -109,7 +110,7 @@ sudo apt install cmake ninja-build libogg-dev libglew-dev libjpeg-dev libopenmpt
 You can install the required dependencies using the following command:
 
 ```bash
-pacman -S --needed base-devel mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-libjpeg-turbo mingw-w64-ucrt-x86_64-libopenmpt mingw-w64-ucrt-x86_64-libogg mingw-w64-ucrt-x86_64-libpng mingw-w64-ucrt-x86_64-libvorbis mingw-w64-ucrt-x86_64-mpg123 mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-SDL2
+pacman -S --needed base-devel mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-libjpeg-turbo mingw-w64-ucrt-x86_64-libopenmpt mingw-w64-ucrt-x86_64-libogg mingw-w64-ucrt-x86_64-libpng mingw-w64-ucrt-x86_64-libvorbis mingw-w64-ucrt-x86_64-mpg123 mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-SDL2
 ```
 
 ### macOS (Homebrew)
@@ -117,7 +118,7 @@ pacman -S --needed base-devel mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-
 You can install the required dependencies using [Homebrew](https://brew.sh/) with the following command:
 
 ```bash
-brew install cmake dylibbundler glew jpeg-turbo libogg libopenmpt libpng libvorbis mpg123 ninja sdl2
+brew install cmake dylibbundler jpeg-turbo libogg libopenmpt libpng libvorbis mpg123 ninja sdl2
 ```
 
 ## Build Instructions
@@ -270,7 +271,7 @@ Note that this code has been **heavily refactored**, **optimized** and **moderni
 
 ## Thanks
 
-- **[@Headshotnoby](https://www.github.com/headshot2017)**: For almost fully implementing the 64-bit support and OpenGL backend.
+- **[@Headshotnoby](https://www.github.com/headshot2017)**: For almost fully implementing the 64-bit support and the initial fixed-function OpenGL backend.
 - **[@Patoke](https://www.github.com/Patoke)**: For the incredible initial reimplementation of PvZ GOTY.
 - **[@rspforhp](https://www.github.com/octokatherine)**: For the 0.9.9 version's work.
 - **[@ruslan831](https://github.com/ruslan831)**: For archiving the 0.9.9 version's re-implementation.

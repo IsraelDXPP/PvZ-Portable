@@ -119,16 +119,13 @@ int Color::operator[](int theIdx) const
 	}
 }
 
-// Returns 0xAABBGGRR format; on BE, byteswap ensures [R,G,B,A] memory layout for GL
+// Returns standard ARGB format (0xAARRGGBB)
 uint32_t Color::ToInt() const
 {
-	uint32_t result = (static_cast<uint32_t>(mAlpha) << 24) |
-	                  (static_cast<uint32_t>(mBlue) << 16) |
-	                  (static_cast<uint32_t>(mGreen) << 8) |
-	                  static_cast<uint32_t>(mRed);
-	if constexpr (std::endian::native == std::endian::big)
-		result = ByteSwap32(result);
-	return result;
+	return (static_cast<uint32_t>(mAlpha) << 24) |
+	       (static_cast<uint32_t>(mRed) << 16) |
+	       (static_cast<uint32_t>(mGreen) << 8) |
+	       static_cast<uint32_t>(mBlue);
 }
 
 bool Sexy::operator==(const Color& theColor1, const Color& theColor2)

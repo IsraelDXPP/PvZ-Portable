@@ -20,8 +20,8 @@ void SexyAppBase::MakeWindow()
 	// Initialize the EGL display connection
 	eglInitialize(mWindow, nullptr, nullptr);
 
-	// Select OpenGL (Core) as the desired graphics API
-	if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE)
+	// Select OpenGL ES as the desired graphics API
+	if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
 	{
 		eglTerminate(mWindow);
 		return;
@@ -55,12 +55,10 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Create an EGL rendering context
+	// Create an EGL rendering context (OpenGL ES 2.0)
 	static const EGLint contextAttributeList[] =
 	{
-		EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
-		EGL_CONTEXT_MAJOR_VERSION_KHR, 4,
-		EGL_CONTEXT_MINOR_VERSION_KHR, 3,
+		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
 	mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
