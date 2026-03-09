@@ -26,15 +26,14 @@
 #include <SDL_stdinc.h>
 #define POLYNOMIAL 0x04c11db7L
 
-static bool 	     bCrcTableGenerated = false;
+static bool 	bCrcTableGenerated = false;
 static uint32_t crc_table[256];
 
 using namespace Sexy;
-//using namespace std;
 
-static char* gWebEncodeMap = (char *)".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+static constexpr char WEB_ENCODE_MAP[] = ".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-static int gWebDecodeMap[256] = 
+static constexpr int WEB_DECODE_MAP[256] = 
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 -1, -1, -1, 0, -1, 1, 0, -1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1, -1, -1, -1, -1
@@ -48,6 +47,14 @@ static int gWebDecodeMap[256] =
 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+// Windows-1252 bytes 0x80-0x9F to Unicode codepoints (SDL_iconv mishandles this under Wine)
+static constexpr char32_t WIN1252_TO_UNICODE[32] = {
+	0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
+	0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
+	0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
+	0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178
+};
 
 //----------------------------------------------------------------------------
 // Generate the table of CRC remainders for all possible bytes.
@@ -116,20 +123,12 @@ std::string Buffer::ToWebString() const
 
 	int aNumChars = (aSizeBits + 5) / 6;
 	for (int aCharNum = 0; aCharNum < aNumChars; aCharNum++)
-		aString += gWebEncodeMap[ReadNumBits(6, false)];
+		aString += WEB_ENCODE_MAP[ReadNumBits(6, false)];
 	
 	mReadBitPos = anOldReadBitPos;
 	
 	return aString;
 }
-
-// Windows-1252 bytes 0x80-0x9F to Unicode codepoints (SDL_iconv mishandles this under Wine)
-static constexpr char32_t gWin1252ToUnicode[32] = {
-	0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
-	0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
-	0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
-	0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178
-};
 
 static std::string Win1252ToUTF8(const char* theData, int theLen)
 {
@@ -142,7 +141,7 @@ static std::string Win1252ToUTF8(const char* theData, int theLen)
 		if (aByte < 0x80)
 			aCodepoint = aByte;
 		else if (aByte <= 0x9F)
-			aCodepoint = gWin1252ToUnicode[aByte - 0x80];
+			aCodepoint = WIN1252_TO_UNICODE[aByte - 0x80];
 		else
 			aCodepoint = aByte; // 0xA0-0xFF map directly to U+00A0-U+00FF
 
@@ -251,7 +250,7 @@ void Buffer::FromWebString(const std::string& theString)
 	while (aNumBitsLeft > 0)
 	{
 		uchar aChar = theString[aCharIdx++];
-		int aVal = gWebDecodeMap[aChar];
+		int aVal = WEB_DECODE_MAP[aChar];
 		int aNumBits = std::min(aNumBitsLeft, 6);
 		WriteNumBits(aVal, aNumBits);
 		aNumBitsLeft -= aNumBits;		
