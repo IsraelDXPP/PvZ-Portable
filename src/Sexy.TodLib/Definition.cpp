@@ -270,7 +270,7 @@ void* ReanimatorDefinitionConstructor(void* thePointer)
 }
 
 // @Patoke implement
-unsigned int DefGetSizeString(char** theValue) {
+unsigned int DefGetSizeString(const char** theValue) {
     return strlen(*theValue) + sizeof(unsigned int);
 }
 
@@ -306,7 +306,7 @@ unsigned int DefinitionGetDeepSize(DefMap* theDefMap, void* theDefinition) {
         void* aDest = (void*)((intptr_t)theDefinition + aField->mFieldOffset);
         switch (aField->mFieldType) {
         case DefFieldType::DT_STRING:
-            aResult += DefGetSizeString((char**)aDest);
+            aResult += DefGetSizeString((const char**)aDest);
             break;
         case DefFieldType::DT_ARRAY:
             aResult += DefinitionGetArraySize((DefinitionArrayDef*)aDest, (DefMap*)aField->mExtraData);
@@ -344,7 +344,7 @@ void* DefinitionAlloc(int theSize)
 bool DefinitionLoadImage(Image** theImage, const std::string& theName)
 {
     // 当贴图文件路径不存在时，无须获取贴图
-    if (theName.size() == 0)
+    if (theName.empty())
     {
         *theImage = nullptr;
         return true;
@@ -358,15 +358,12 @@ bool DefinitionLoadImage(Image** theImage, const std::string& theName)
         return true;
     }
 
-    // This for loop's performance is HORRIBLE
-    // 从可能的贴图路径中手动加载贴图
     for (const DefLoadResPath& aLoadResPath : gDefLoadResPaths)
     {
-        int aNameLen = theName.size();
-        int aPrefixLen = strlen(aLoadResPath.mPrefix);
-        if (aPrefixLen < aNameLen)
+        size_t aPrefixLen = strlen(aLoadResPath.mPrefix);
+        if (aPrefixLen < theName.size())
         {
-            std::string aPathToTry = aLoadResPath.mDirectory + theName.substr(aPrefixLen, aNameLen);
+            std::string aPathToTry = aLoadResPath.mDirectory + theName.substr(aPrefixLen);
             SharedImageRef aImageRef = gSexyAppBase->GetSharedImage(aPathToTry);
             if ((Image*)aImageRef != nullptr)
             {
@@ -432,16 +429,16 @@ inline bool DefReadFromCacheFloatTrack(void*& theReadPtr, FloatParameterTrack* t
 }
 
 //0x444110
-inline bool DefReadFromCacheString(void*& theReadPtr, char** theString)
+inline bool DefReadFromCacheString(void*& theReadPtr, const char** theString)
 {
     int aLen;
     SMemR(theReadPtr, &aLen, sizeof(int));
     TOD_ASSERT(aLen >= 0 && aLen <= 100000);
     if (aLen == 0)
-        *theString = (char*)"";
+        *theString = "";
     else
     {
-        char* aPtr = (char*)DefinitionAlloc(aLen + 1);
+        auto aPtr = static_cast<char*>(DefinitionAlloc(aLen + 1));
         *theString = aPtr;
         SMemR(theReadPtr, aPtr, aLen);
         aPtr[aLen] = '\0';
@@ -486,7 +483,7 @@ bool DefMapReadFromCache(void*& theReadPtr, DefMap* theDefMap, void* theDefiniti
         switch (aField->mFieldType)
         {
         case DefFieldType::DT_STRING:
-            aSucceed = DefReadFromCacheString(theReadPtr, (char**)aDest);
+            aSucceed = DefReadFromCacheString(theReadPtr, (const char**)aDest);
             break;
         case DefFieldType::DT_ARRAY:
             aSucceed = DefReadFromCacheArray(theReadPtr, (DefinitionArrayDef*)aDest, (DefMap*)aField->mExtraData);
@@ -599,7 +596,7 @@ std::string DefinitionGetCompiledFilePathFromXMLFilePath(const std::string& theX
 
 static std::string DefinitionGetCompiledCacheFullPath(const std::string& theCompiledFilePath)
 {
-    const std::string aCacheRoot = (sizeof(void*) == 8) ? "cache64/" : "cache32/";
+    std::string aCacheRoot = (sizeof(void*) == 8) ? "cache64/" : "cache32/";
     return GetAppDataPath(aCacheRoot + theCompiledFilePath);
 }
 
@@ -716,7 +713,7 @@ void DefinitionFillWithDefaults(DefMap* theDefMap, void* theDefinition)
     memset(theDefinition, 0, theDefMap->mDefSize);  // 将 theDefinition 初始化填充为 0
     for (DefField* aField = theDefMap->mMapFields; *aField->mFieldName != '\0'; aField++)  // 遍历 theDefinition 的每一个成员变量
         if (aField->mFieldType == DefFieldType::DT_STRING)
-            *(char**)((uintptr_t)theDefinition + aField->mFieldOffset) = (char *)"";  // 将所有 char* 类型的成员变量赋值为空字符数组的指针
+            *(const char**)((uintptr_t)theDefinition + aField->mFieldOffset) = "";  // 将所有 const char* 类型的成员变量赋值为空字符串的指针
 }
 
 void DefinitionXmlError(XMLParser* theXmlParser, const char* theFormat, ...)
@@ -802,21 +799,21 @@ bool DefinitionReadFloatField(XMLParser* theXmlParser, float* theValue)
     return false;
 }
 
-bool DefinitionReadStringField(XMLParser* theXmlParser, char** theValue)
+bool DefinitionReadStringField(XMLParser* theXmlParser, const char** theValue)
 {
     std::string aStringValue;
     if (!DefinitionReadXMLString(theXmlParser, aStringValue))
         return false;
 
-    if (aStringValue.size() == 0)
+    if (aStringValue.empty())
     {
-        *theValue = (char *)"";
+        *theValue = "";
     }
     else
     {
-        // copy the null terminator too
-        *theValue = (char*)DefinitionAlloc(aStringValue.size()+1);
-        strncpy(*theValue, aStringValue.c_str(), aStringValue.size()+1);
+        char* aPtr = static_cast<char*>(DefinitionAlloc(aStringValue.size() + 1));
+        memcpy(aPtr, aStringValue.c_str(), aStringValue.size() + 1);
+        *theValue = aPtr;
     }
     return true;
 }
@@ -1173,7 +1170,7 @@ bool DefinitionReadField(XMLParser* theXmlParser, DefMap* theDefMap, void* theDe
                 aSuccess = DefinitionReadFloatField(theXmlParser, (float*)pVar);
                 break;
             case DefFieldType::DT_STRING:
-                aSuccess = DefinitionReadStringField(theXmlParser, (char**)pVar);
+                aSuccess = DefinitionReadStringField(theXmlParser, (const char**)pVar);
                 break;
             case DefFieldType::DT_ENUM:
                 aSuccess = DefinitionReadEnumField(theXmlParser, (int*)pVar, (DefSymbol*)aField->mExtraData);
@@ -1224,7 +1221,7 @@ bool DefinitionLoadMap(XMLParser* theXmlParser, DefMap* theDefMap, void* theDefi
 }
 
 // @Patoke implemented
-void DefWriteToCacheString(void*& theWritePtr, char** theValue) {
+void DefWriteToCacheString(void*& theWritePtr, const char** theValue) {
     unsigned int aStringSize = strlen(*theValue);
     SMemW(theWritePtr, &aStringSize, sizeof(unsigned int));
     if (aStringSize > 0)
@@ -1272,7 +1269,7 @@ void DefMapWriteToCache(void*& theWritePtr, DefMap* theDefMap, void* theDefiniti
 		void* aDest = (void*)((intptr_t)theDefinition + aField->mFieldOffset);
 		switch (aField->mFieldType) {
 		case DefFieldType::DT_STRING:
-			DefWriteToCacheString(theWritePtr, (char**)aDest);
+			DefWriteToCacheString(theWritePtr, (const char**)aDest);
 			break;
 		case DefFieldType::DT_ARRAY:
 			DefWriteToCacheArray(theWritePtr, (DefinitionArrayDef*)aDest, (DefMap*)aField->mExtraData);
@@ -1462,9 +1459,9 @@ void DefinitionFreeMap(DefMap* theDefMap, void* theDefinition)
         {
         case DefFieldType::DT_STRING:
             // @Patoke todo: removed this, caused a heap problem when closing the game, add back properly (causes memory leak)
-            //if (**(char**)aVar != '\0')
-            //    delete[] *(char**)aVar;  // 释放字符数组
-            *(char**)aVar = nullptr;
+            //if (**(const char**)aVar != '\0')
+            //    delete[] *(const char**)aVar;  // 释放字符数组
+            *(const char**)aVar = nullptr;
             break;
         case DefFieldType::DT_ARRAY:
             DefinitionFreeArrayField((DefinitionArrayDef*)aVar, (DefMap*)aField->mExtraData);

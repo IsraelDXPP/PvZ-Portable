@@ -47,7 +47,7 @@ This project is **based on** [Patoke](https://github.com/Patoke/re-plants-vs-zom
   - [x] Save data compatibility across endianness
   - Theoretically supports big-endian platforms, but untested due to lack of hardware
 
-This project supports the following platforms:
+This project supports the following platforms (including but not limited to):
 
 | Platform        | Data path                    | Status                                                                                 |
 |-----------------|------------------------------|----------------------------------------------------------------------------------------|

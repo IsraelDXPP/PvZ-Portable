@@ -158,7 +158,7 @@ public:
 	void*					mContext;
 	void*					mSurface; // for EGL
 
-	uint32_t					mRandSeed;
+	uint32_t				mRandSeed;
 		
 	std::string				mCompanyName;
 	std::string				mFullCompanyName;
@@ -206,7 +206,7 @@ public:
 	bool					mForceWindowed;	
 	bool					mInitialized;	
 	bool					mProcessInTimer;
-	uint32_t					mTimeLoaded;
+	uint32_t				mTimeLoaded;
 	bool					mIsScreenSaver;
 	bool					mAllowMonitorPowersave;
 	bool					mNoDefer;	
@@ -222,9 +222,9 @@ public:
 	bool					mIsOpeningURL;
 	bool					mShutdownOnURLOpen;
 	std::string				mOpeningURL;
-	uint32_t					mOpeningURLTime;
-	uint32_t					mLastTimerTime;
-	uint32_t					mLastBigDelayTime;	
+	uint32_t				mOpeningURLTime;
+	uint32_t				mLastTimerTime;
+	uint32_t				mLastBigDelayTime;	
 	double					mUnmutedMusicVolume;
 	double					mUnmutedSfxVolume;	
 	int						mMuteCount;
@@ -233,7 +233,7 @@ public:
 	bool					mMuteOnLostFocus;
 	MemoryImageSet			mMemoryImageSet;
 	SharedImageMap			mSharedImageMap;
-	std::atomic<bool>			mCleanupSharedImages;
+	std::atomic<bool>		mCleanupSharedImages;
 	
 	int						mNonDrawCount;
 	int						mFrameTime;
@@ -245,7 +245,7 @@ public:
 	double					mUpdateFTimeAcc;
 	time_t					mLastTimeCheck;
 	time_t					mLastTime;
-	uint32_t					mLastUserInputTick;
+	uint32_t				mLastUserInputTick;
 
 	int						mSleepCount;
 	int						mDrawCount;
@@ -257,14 +257,14 @@ public:
 	int						mFastForwardToUpdateNum;
 	bool					mFastForwardToMarker;
 	bool					mFastForwardStep;
-	uint32_t					mLastDrawTick;
-	uint32_t					mNextDrawTick;
+	uint32_t				mLastDrawTick;
+	uint32_t				mNextDrawTick;
 	int						mStepMode;  // 0 = off, 1 = step, 2 = waiting for step
 
 	int						mCursorNum;
 	SoundManager*			mSoundManager;
-	//HCURSOR					mHandCursor;
-	//HCURSOR					mDraggingCursor;
+	//HCURSOR				mHandCursor;
+	//HCURSOR				mDraggingCursor;
 	WidgetSafeDeleteList	mSafeDeleteList;
 	bool					mMouseIn;	
 	bool					mRunning;
@@ -274,7 +274,7 @@ public:
 	bool					mIsDisabled;
 	bool					mHasFocus;
 	int						mDrawTime;
-	uint32_t					mFPSStartTick;
+	uint32_t				mFPSStartTick;
 	int						mFPSFlipCount;
 	int						mFPSDirtyCount;
 	int						mFPSTime;
@@ -332,15 +332,15 @@ public:
 	bool					mVSyncUpdates;
 	bool					mVSyncBroken;
 	int						mVSyncBrokenCount;
-	uint32_t					mVSyncBrokenTestStartTick;
-	uint32_t					mVSyncBrokenTestUpdates;
+	uint32_t				mVSyncBrokenTestStartTick;
+	uint32_t				mVSyncBrokenTestUpdates;
 	bool					mWaitForVSync;
 	bool					mSoftVSyncWait;
 	bool					mUserChanged3DSetting;
 	bool					mAutoEnable3D;
 	bool					mTest3D;
-	uint32_t					mMinVidMemory3D;
-	uint32_t					mRecommendedVidMemory3D;
+	uint32_t				mMinVidMemory3D;
+	uint32_t				mRecommendedVidMemory3D;
 
 	bool					mWidescreenAware;
 	Rect					mScreenBounds;
@@ -353,10 +353,6 @@ public:
 	StringDoubleMap			mDoubleProperties;
 	StringStringVectorMap	mStringVectorProperties;
 	ResourceManager*		mResourceManager;
-
-#ifdef ZYLOM
-	uint					mZylomGameId;
-#endif
 
 protected:	
 	void					RehupFocus();
@@ -483,8 +479,8 @@ public:
 	void					MirrorImage(Image* theImage);
 	void					FlipImage(Image* theImage);
 	void					RotateImageHue(Sexy::MemoryImage *theImage, int theDelta);
-	uint32_t					HSLToRGB(int h, int s, int l);
-	uint32_t					RGBToHSL(int r, int g, int b);
+	uint32_t				HSLToRGB(int h, int s, int l);
+	uint32_t				RGBToHSL(int r, int g, int b);
 	void					HSLToRGB(const uint32_t* theSource, uint32_t* theDest, int theSize);
 	void					RGBToHSL(const uint32_t* theSource, uint32_t* theDest, int theSize);
 
@@ -558,7 +554,7 @@ public:
 	bool					PrepareDemoCommand(bool required);
 	void					WriteDemoTimingBlock();
 	void					WriteDemoBuffer();
-	bool					ReadDemoBuffer(std::string &theError);//UNICODE
+	bool					ReadDemoBuffer(std::string &theError); //UNICODE
 	void					DemoSyncBuffer(Buffer* theBuffer);
 	void					DemoSyncString(std::string* theString);
 	void					DemoSyncInt(int* theInt);
