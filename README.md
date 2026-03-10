@@ -12,6 +12,8 @@ A **cross-platform** community-driven reimplementation of Plants vs. Zombies: Ga
 | :---: | :---: | :---: |
 | Almost 100% gameplay recreation | Support for 32/64 bit systems<br>Run on Linux, Windows, macOS, Android, iOS, WebAssembly, Switch... | OpenGL ES 2.0 & SDL |
 
+🌐 **No install wanted?** [Try directly in your browser!](https://wszqkzqk.github.io/pvz-portable-wasm/pvz-portable.html) (You still need your own game data files.)
+
 **⚠️ Notice:**
 
 * This repository does **NOT** contain any copyrighted game assets (such as images, music, or fonts) owned by PopCap Games or Electronic Arts. Users must provide their own `main.pak` and `properties/` folder from a **legally purchased copy** of Plants vs. Zombies: GOTY Edition.
@@ -122,18 +124,11 @@ The app's Documents folder is exposed via iTunes/Finder file sharing and the iOS
 - Free Apple ID signatures expire after 7 days; TrollStore installs are permanent.
 - Same touch-to-mouse mapping and aspect ratio behavior as the Android port.
 
-### Special Instructions for WebAssembly (Web Browser)
+### Play in Your Browser (WebAssembly)
 
-Download the WASM build from the [Releases](https://github.com/wszqkzqk/PvZ-Portable/releases) page or build it yourself with `wasm/build-wasm.sh`. The archive contains `pvz-portable.html`, `pvz-portable.js`, and `pvz-portable.wasm` — **keep all three files in the same directory**.
+**[▶ Play Online](https://wszqkzqk.github.io/pvz-portable-wasm/pvz-portable.html)** — open the link, upload your own `main.pak` and `properties/` folder, then click **Start Game**. All files stay in your browser locally and are **never uploaded to any server** (the hosting site is purely static). Save data is stored in your browser's IndexedDB and can be exported or imported via the on-screen buttons.
 
-Due to browser security restrictions, you should **NOT** open the HTML file directly. Serve it over HTTP instead:
-
-```bash
-cd <directory-containing-the-files>
-python3 -m http.server 8080 --bind 127.0.0.1
-```
-
-Then open http://localhost:8080/pvz-portable.html, upload your `main.pak` and `properties/` folder, and click **Start Game**. Save data is persisted in IndexedDB; use the on-screen buttons to export or import saves.
+You can also [download the WASM build](https://github.com/wszqkzqk/PvZ-Portable/releases) and self-host it. Note that the HTML file must be served over HTTP (e.g. `python3 -m http.server`) — opening it directly as a local file will not work due to browser security restrictions.
 
 ## Game Version Compatibility
 
