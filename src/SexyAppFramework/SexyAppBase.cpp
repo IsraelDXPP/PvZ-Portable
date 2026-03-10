@@ -2579,7 +2579,7 @@ bool SexyAppBase::Process(bool allowSleep)
 }
 
 #ifdef __EMSCRIPTEN__
-static void EmscriptenMainLoopCallback()
+void SexyAppBase::EmscriptenMainLoopCallback()
 {
 	SexyAppBase* app = Sexy::gSexyAppBase;
 	if (app->mShutdown)
@@ -2605,7 +2605,7 @@ static void EmscriptenMainLoopCallback()
 void SexyAppBase::DoMainLoop()
 {
 #ifdef __EMSCRIPTEN__
-	emscripten_set_main_loop(EmscriptenMainLoopCallback, 0, 1);
+	emscripten_set_main_loop(SexyAppBase::EmscriptenMainLoopCallback, 0, 1);
 #else
 	while (!mShutdown)
 	{
