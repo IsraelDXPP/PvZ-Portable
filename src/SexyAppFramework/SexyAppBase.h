@@ -38,14 +38,6 @@
 #include "misc/Ratio.h"
 #include <atomic>
 
-/*
-extern HMODULE gDDrawDLL;
-extern HMODULE gDSoundDLL;
-extern HMODULE gVersionDLL;
-
-extern bool gRenderInterfacePreDrawError;
-*/
-
 namespace ImageLib
 {
 	class Image;
@@ -379,7 +371,10 @@ protected:
 	void					StartCursorThread();
 	
 	void					WaitForLoadingThread();				
-	void					ProcessSafeDeleteList();	
+	void					ProcessSafeDeleteList();
+#ifdef __EMSCRIPTEN__
+	static void				EmscriptenMainLoopCallback();
+#endif
 	void					RestoreScreenResolution();
 	void					DoExit(int theCode);
 
