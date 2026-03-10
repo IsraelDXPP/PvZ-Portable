@@ -214,6 +214,9 @@ endif()
 target_compile_definitions(pvz-portable PRIVATE IMG_DOWNSCALE=${DOWNSCALE_COUNT})
 
 if(EMSCRIPTEN)
+	set_property(TARGET pvz-portable APPEND PROPERTY LINK_DEPENDS
+		"${CMAKE_CURRENT_SOURCE_DIR}/wasm/shell.html"
+	)
 	target_link_libraries(pvz-portable PRIVATE
 		SDL2_mixer_ext_Static
 		${OPENMPT_LIB}

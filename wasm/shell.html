@@ -37,6 +37,16 @@ body {
 }
 #start-btn:disabled { opacity: 0.4; cursor: default; }
 #start-btn:not(:disabled):hover { opacity: 0.85; }
+#upload-save-actions {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6em;
+    margin-top: 0.75em;
+}
+#upload-save-actions button {
+    background: #2b2b40; color: #4ecca3; border: 1px solid #4ecca3;
+    border-radius: 8px; padding: 0.6em 1em; cursor: pointer;
+}
+#upload-save-actions button:hover { background: rgba(78,204,163,0.12); }
+#upload-save-actions button:disabled { opacity: 0.4; cursor: default; }
 #loading-status { margin-top: 1em; color: #4ecca3; display: none; }
 #canvas-container { display: none; width: 100vw; height: 100vh; position: relative;
     display: none; justify-content: center; align-items: center; background: #000; }
@@ -46,6 +56,7 @@ canvas#canvas {
 }
 #save-toolbar {
     position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 10;
+    flex-wrap: wrap; justify-content: flex-end; max-width: calc(100vw - 16px);
 }
 #save-toolbar button {
     background: rgba(30,30,50,0.75); color: #4ecca3; border: 1px solid #4ecca3;
@@ -54,7 +65,6 @@ canvas#canvas {
 }
 #save-toolbar button:hover { background: rgba(78,204,163,0.2); }
 #save-toolbar button:disabled { opacity: 0.4; cursor: default; }
-input#save-import-input { display: none; }
 </style>
 </head>
 <body>
@@ -70,6 +80,11 @@ input#save-import-input { display: none; }
     </div>
     <button id="browse-files-btn" style="background:#333;color:#eee;border:1px solid #555;border-radius:6px;padding:0.5em 1.2em;cursor:pointer;margin-bottom:0.5em;">Browse individual files…</button>
     <input type="file" id="file-input-flat" multiple style="display:none">
+    <div id="upload-save-actions">
+        <button id="upload-save-import-btn" title="Import saves from ZIP before starting">Optional: Import Saves</button>
+        <button id="upload-save-clear-btn" title="Delete all saved data stored in this browser">Clear Browser Saves</button>
+    </div>
+    <input type="file" id="upload-save-import-input" accept=".zip" style="display:none">
 
     <div id="file-list"></div>
     <button id="start-btn">▶ Start Game</button>
@@ -80,9 +95,7 @@ input#save-import-input { display: none; }
 <div id="canvas-container">
     <div id="save-toolbar">
         <button id="save-export-btn" title="Export saves as ZIP">💾 Export Saves</button>
-        <button id="save-import-btn" title="Import saves from ZIP">📂 Import Saves</button>
     </div>
-    <input type="file" id="save-import-input" accept=".zip">
     <canvas id="canvas" width="800" height="600" tabindex="0"></canvas>
 </div>
 
@@ -119,6 +132,7 @@ let saveSyncIntervalId = null;
 let saveSyncInFlight = null;
 let saveSyncQueued = false;
 let lastSaveSyncAt = 0;
+let saveFsReadyPromise = null;
 
 const SAVE_SYNC_INTERVAL_MS = 5000;
 const SAVE_CLOSE_WARNING_MS = 7000;
@@ -130,6 +144,9 @@ const browseBtn   = document.getElementById('browse-files-btn');
 const fileListDiv = document.getElementById('file-list');
 const startBtn    = document.getElementById('start-btn');
 const loadStatus  = document.getElementById('loading-status');
+const uploadSaveImportBtn = document.getElementById('upload-save-import-btn');
+const uploadSaveClearBtn = document.getElementById('upload-save-clear-btn');
+const uploadSaveImportInput = document.getElementById('upload-save-import-input');
 
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -216,6 +233,26 @@ function canSyncSaves() {
     return savesMounted && Module.FS && typeof Module.FS.syncfs === 'function';
 }
 
+async function ensureSaveFsReady() {
+    if (saveFsReadyPromise) return saveFsReadyPromise;
+
+    saveFsReadyPromise = (async () => {
+        await window.moduleReadyPromise;
+        try { Module.FS.mkdir('/saves'); } catch (e) {}
+        try { Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves'); } catch (e) {}
+        savesMounted = true;
+
+        await new Promise(r => Module.FS.syncfs(true, err => {
+            if (err) console.warn('IDBFS initial sync error:', err);
+            r();
+        }));
+
+        lastSaveSyncAt = Date.now();
+    })();
+
+    return saveFsReadyPromise;
+}
+
 async function syncSaves() {
     if (!canSyncSaves()) return;
 
@@ -279,15 +316,8 @@ async function startGame() {
             if ((i + 1) % 4 === 0) await new Promise(r => setTimeout(r, 0));
         }
 
-        try { Module.FS.mkdir('/saves'); } catch (e) {}
-        Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves');
-        savesMounted = true;
-
         loadStatus.textContent = 'Restoring saved data…';
-        await new Promise(r => Module.FS.syncfs(true, err => {
-            if (err) console.warn('IDBFS initial sync error:', err);
-            r();
-        }));
+        await ensureSaveFsReady();
 
         document.getElementById('upload-screen').style.display = 'none';
         document.getElementById('canvas-container').style.display = 'flex';
@@ -326,6 +356,7 @@ async function exportSaves() {
     btn.disabled = true;
     btn.textContent = '⏳ Exporting…';
     try {
+        await ensureSaveFsReady();
         await syncSaves();
 
         const files = collectSaveFiles('/saves/userdata');
@@ -351,9 +382,10 @@ async function exportSaves() {
     }
 }
 
-async function importSaves(file) {
-    const btn = document.getElementById('save-import-btn');
+async function importSaves(file, btn) {
+    await ensureSaveFsReady();
     btn.disabled = true;
+    const oldText = btn.textContent;
     btn.textContent = '⏳ Importing…';
     try {
         const zip = await JSZip.loadAsync(file);
@@ -383,18 +415,61 @@ async function importSaves(file) {
         alert('Import failed: ' + e.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = '📂 Import Saves';
+        btn.textContent = oldText;
+    }
+}
+
+async function clearSaves(btn) {
+    await ensureSaveFsReady();
+    if (!confirm('This will permanently delete ALL save data from your browser.\nThis cannot be undone. Continue?')) return;
+    btn.disabled = true;
+    const oldText = btn.textContent;
+    btn.textContent = '⏳ Clearing…';
+    try {
+        const files = collectSaveFiles('/saves');
+        for (const f of files) {
+            try { Module.FS.unlink(f); } catch (e) {}
+        }
+        // Remove empty directories under /saves (bottom-up)
+        function rmdirsRecursive(dir) {
+            let entries;
+            try { entries = Module.FS.readdir(dir); } catch (e) { return; }
+            for (const name of entries) {
+                if (name === '.' || name === '..') continue;
+                const full = dir + '/' + name;
+                try {
+                    const stat = Module.FS.stat(full);
+                    if (Module.FS.isDir(stat.mode)) rmdirsRecursive(full);
+                } catch (e) {}
+            }
+            if (dir !== '/saves') {
+                try { Module.FS.rmdir(dir); } catch (e) {}
+            }
+        }
+        rmdirsRecursive('/saves');
+
+        await syncSaves();
+        alert('All save data has been cleared.');
+    } catch (e) {
+        console.error('Clear failed:', e);
+        alert('Clear failed: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
     }
 }
 
 document.getElementById('save-export-btn').addEventListener('click', exportSaves);
-document.getElementById('save-import-btn').addEventListener('click', () => {
-    document.getElementById('save-import-input').click();
+uploadSaveImportBtn.addEventListener('click', () => {
+    uploadSaveImportInput.click();
 });
-document.getElementById('save-import-input').addEventListener('change', e => {
+uploadSaveImportInput.addEventListener('change', e => {
     const file = e.target.files[0];
-    if (file) importSaves(file);
+    if (file) importSaves(file, uploadSaveImportBtn);
     e.target.value = '';
+});
+uploadSaveClearBtn.addEventListener('click', () => {
+    void clearSaves(uploadSaveClearBtn);
 });
 
 document.addEventListener('visibilitychange', () => {
