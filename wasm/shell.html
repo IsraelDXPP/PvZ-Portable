@@ -25,7 +25,14 @@ body.game-mode {
     min-height: 100vh; margin: 0 auto;
     display: flex; flex-direction: column; justify-content: center;
 }
-#upload-screen h1 { font-size: 1.8em; margin-bottom: 0.5em; color: #4ecca3; }
+#upload-screen h1 { font-size: 1.8em; margin-bottom: 0.35em; color: #4ecca3; }
+#upload-screen h1 a { color: inherit; text-decoration: none; }
+#upload-screen h1 a:hover { text-decoration: underline; }
+#project-links {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 0.9em;
+    font-size: 0.9em; margin-bottom: 0.75em;
+}
+#project-links a { color: #4ecca3; text-decoration: underline; }
 #upload-screen p  { margin: 0.5em 0; line-height: 1.5; color: #bbb; }
 #upload-screen .note { font-size: 0.85em; color: #888; margin-top: 1em; }
 #drop-zone {
@@ -104,7 +111,12 @@ canvas#canvas {
 </head>
 <body class="upload-mode">
 <div id="upload-screen">
-    <h1>PvZ Portable — Web Edition</h1>
+    <h1><a href="https://github.com/wszqkzqk/PvZ-Portable" target="_blank" rel="noopener noreferrer">PvZ Portable — Web Edition</a></h1>
+    <p id="project-links">
+        <a href="https://github.com/wszqkzqk/PvZ-Portable" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/wszqkzqk/PvZ-Portable/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://github.com/wszqkzqk/PvZ-Portable/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+    </p>
     <p>This is a community-driven re-implementation. <strong>No game resources are included.</strong></p>
     <p>To use this engine, you <strong>MUST</strong> legally purchase the original game on <a href="https://store.steampowered.com/app/3590/Plants_vs_Zombies_GOTY_Edition/" target="_blank" style="color:#4ecca3;text-decoration:underline;">Steam</a> or <a href="https://www.ea.com/games/plants-vs-zombies/plants-vs-zombies" target="_blank" style="color:#4ecca3;text-decoration:underline;">EA's official website</a>.<br>
     Please provide your own <code>main.pak</code> and <code>properties/</code> folder from your legally purchased copy of Plants&nbsp;vs.&nbsp;Zombies GOTY Edition.</p>
