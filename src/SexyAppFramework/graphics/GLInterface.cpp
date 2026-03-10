@@ -1220,8 +1220,10 @@ void GLInterface::Flush()
 #else
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
 #endif
-	// New back buffer content is undefined after swap; clear to black
+#ifndef __EMSCRIPTEN__
+	// Clear back buffer after swap (content undefined)
 	glClear(GL_COLOR_BUFFER_BIT);
+#endif // Emscripten: browser composites after rAF, no clear needed
 }
 
 bool GLInterface::CreateImageTexture(MemoryImage *theImage)

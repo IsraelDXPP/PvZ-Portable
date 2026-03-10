@@ -42,11 +42,14 @@ void SexyAppBase::MakeWindow()
 	{
 		SDL_Init(SDL_INIT_VIDEO);
 
-		Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;
+		Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
 		mWindow = (void*)SDL_CreateWindow(
 			mTitle.c_str(),

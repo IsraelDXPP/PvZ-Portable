@@ -17,7 +17,7 @@
 #   build-wasm/pvz-portable.wasm  — WebAssembly binary
 #
 # To serve locally:
-#   cd build-wasm && python3 -m http.server 8080
+#   cd build-wasm && python3 -m http.server 8080 --bind 127.0.0.1
 #   Then open http://localhost:8080/pvz-portable.html
 
 set -euo pipefail
@@ -34,12 +34,14 @@ fi
 
 NPROC="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 
+# Local prefix for libraries built from source (avoids polluting the sysroot)
+OPENMPT_PREFIX="${BUILD_DIR}/openmpt-prefix"
+
 # Build libopenmpt if --deps is passed
 if [[ "${1:-}" == "--deps" ]]; then
-    SYSROOT="$(em-config EMSCRIPTEN_ROOT)/cache/sysroot"
     OPENMPT_SRC="${BUILD_DIR}/libopenmpt-src"
 
-    if [ ! -f "${SYSROOT}/lib/libopenmpt.a" ]; then
+    if [ ! -f "${OPENMPT_PREFIX}/lib/libopenmpt.a" ]; then
         echo "Building libopenmpt for Emscripten..."
         OPENMPT_TAG=$(git ls-remote --tags https://github.com/OpenMPT/openmpt.git 'refs/tags/libopenmpt-*' \
             | grep -v '\^{}' | sed 's|.*refs/tags/libopenmpt-||' \
@@ -48,7 +50,9 @@ if [[ "${1:-}" == "--deps" ]]; then
             OPENMPT_TAG="0.8.4" # Fallback to a known stable version if tag retrieval fails
         fi
         echo "Using libopenmpt version: $OPENMPT_TAG"
-        git clone --depth=1 --branch "libopenmpt-${OPENMPT_TAG}" https://github.com/OpenMPT/openmpt.git "${OPENMPT_SRC}"
+        if [ ! -d "${OPENMPT_SRC}" ]; then
+            git clone --depth=1 --branch "libopenmpt-${OPENMPT_TAG}" https://github.com/OpenMPT/openmpt.git "${OPENMPT_SRC}"
+        fi
         cd "${OPENMPT_SRC}"
         emmake make CONFIG=emscripten \
             STATIC_LIB=1 SHARED_LIB=0 \
@@ -60,10 +64,10 @@ if [[ "${1:-}" == "--deps" ]]; then
         emmake make CONFIG=emscripten \
             STATIC_LIB=1 SHARED_LIB=0 \
             EXAMPLES=0 OPENMPT123=0 TEST=0 \
-            PREFIX="${SYSROOT}" install
-        echo "libopenmpt installed to ${SYSROOT}"
+            PREFIX="${OPENMPT_PREFIX}" install
+        echo "libopenmpt installed to ${OPENMPT_PREFIX}"
     else
-        echo "libopenmpt already installed, skipping."
+        echo "libopenmpt already built, skipping."
     fi
 fi
 
@@ -73,6 +77,7 @@ cd "${BUILD_DIR}"
 emcmake cmake "${PROJECT_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DLIMBO_PAGE=OFF \
+    -DCMAKE_FIND_ROOT_PATH="${OPENMPT_PREFIX}" \
     -G Ninja
 
 cmake --build . -j"${NPROC}"
