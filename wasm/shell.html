@@ -410,8 +410,6 @@ async function importSaves(file, btn) {
         }
 
         await syncSaves();
-
-        alert('Save data imported successfully. You may need to restart the game for changes to take effect.');
     } catch (e) {
         console.error('Import failed:', e);
         alert('Import failed: ' + e.message);
