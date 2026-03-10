@@ -406,8 +406,19 @@ int Dialog::WaitForResult(bool autoKill)
 #ifdef __EMSCRIPTEN__
 	while ((mWidgetManager != nullptr) && (mResult == 0x7FFFFFFF))
 	{
-		if (!gSexyAppBase->UpdateAppStep(nullptr))
+		bool updated = false;
+		if (!gSexyAppBase->UpdateAppStep(&updated))
 			break;
+
+		while (updated || gSexyAppBase->mUpdateAppState == UPDATESTATE_PROCESS_2 || gSexyAppBase->mHasPendingDraw)
+		{
+			if (!gSexyAppBase->UpdateAppStep(&updated))
+				break;
+
+			if (!updated && gSexyAppBase->mUpdateAppState == UPDATESTATE_PROCESS_DONE && !gSexyAppBase->mHasPendingDraw)
+				break;
+		}
+
 		emscripten_sleep(0);
 	}
 #else
