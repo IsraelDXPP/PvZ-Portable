@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PvZ Portable — Web</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: #1a1a2e; color: #eee;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; overflow: hidden;
+}
+#upload-screen {
+    text-align: center; padding: 2em;
+    max-width: 600px;
+}
+#upload-screen h1 { font-size: 1.8em; margin-bottom: 0.5em; color: #4ecca3; }
+#upload-screen p  { margin: 0.5em 0; line-height: 1.5; color: #bbb; }
+#upload-screen .note { font-size: 0.85em; color: #888; margin-top: 1em; }
+#drop-zone {
+    border: 2px dashed #4ecca3; border-radius: 12px;
+    padding: 2em; margin: 1.5em 0; cursor: pointer;
+    transition: background 0.2s;
+}
+#drop-zone:hover, #drop-zone.dragover { background: rgba(78,204,163,0.1); }
+#drop-zone input { display: none; }
+#file-list { text-align: left; margin: 1em 0; max-height: 200px; overflow-y: auto; font-size: 0.9em; }
+#file-list div { padding: 2px 0; color: #aaa; }
+#file-list div.ok { color: #4ecca3; }
+#start-btn {
+    background: #4ecca3; color: #1a1a2e; border: none; border-radius: 8px;
+    padding: 0.8em 2em; font-size: 1.1em; font-weight: bold; cursor: pointer;
+    display: none; margin-top: 1em; transition: opacity 0.2s;
+}
+#start-btn:disabled { opacity: 0.4; cursor: default; }
+#start-btn:not(:disabled):hover { opacity: 0.85; }
+#loading-status { margin-top: 1em; color: #4ecca3; display: none; }
+#canvas-container { display: none; width: 100vw; height: 100vh; position: relative; }
+canvas#canvas {
+    display: block; width: 100%; height: 100%;
+    background: #000; outline: none;
+}
+#save-toolbar {
+    position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 10;
+}
+#save-toolbar button {
+    background: rgba(30,30,50,0.75); color: #4ecca3; border: 1px solid #4ecca3;
+    border-radius: 6px; padding: 0.35em 0.8em; font-size: 0.85em; cursor: pointer;
+    backdrop-filter: blur(4px); transition: background 0.2s;
+}
+#save-toolbar button:hover { background: rgba(78,204,163,0.2); }
+#save-toolbar button:disabled { opacity: 0.4; cursor: default; }
+input#save-import-input { display: none; }
+</style>
+</head>
+<body>
+<div id="upload-screen">
+    <h1>PvZ Portable — Web Edition</h1>
+    <p>This is a community-driven re-implementation. <strong>No game resources are included.</strong></p>
+    <p>Please provide your own <code>main.pak</code> and <code>properties/</code> folder from a legitimate copy of Plants&nbsp;vs.&nbsp;Zombies GOTY Edition.</p>
+
+    <div id="drop-zone">
+        <p>📂 Drag & drop files here, or click to browse</p>
+        <p style="font-size:0.85em;color:#888">Select <code>main.pak</code> and the entire <code>properties/</code> folder</p>
+        <input type="file" id="file-input" multiple webkitdirectory>
+    </div>
+    <button id="browse-files-btn" style="background:#333;color:#eee;border:1px solid #555;border-radius:6px;padding:0.5em 1.2em;cursor:pointer;margin-bottom:0.5em;">Browse individual files…</button>
+    <input type="file" id="file-input-flat" multiple style="display:none">
+
+    <div id="file-list"></div>
+    <button id="start-btn">▶ Start Game</button>
+    <div id="loading-status">Loading…</div>
+    <p class="note">Your files stay in your browser and are never uploaded to any server.<br>Saves are stored locally in your browser via IndexedDB.</p>
+</div>
+
+<div id="canvas-container">
+    <div id="save-toolbar">
+        <button id="save-export-btn" title="Export saves as ZIP">💾 Export Saves</button>
+        <button id="save-import-btn" title="Import saves from ZIP">📂 Import Saves</button>
+    </div>
+    <input type="file" id="save-import-input" accept=".zip">
+    <canvas id="canvas" tabindex="0"></canvas>
+</div>
+
+<script>
+'use strict';
+
+// --- File collection state ---
+const collectedFiles = new Map(); // path -> File
+let hasPak = false;
+let hasProperties = false;
+
+const dropZone    = document.getElementById('drop-zone');
+const fileInput   = document.getElementById('file-input');
+const flatInput   = document.getElementById('file-input-flat');
+const browseBtn   = document.getElementById('browse-files-btn');
+const fileListDiv = document.getElementById('file-list');
+const startBtn    = document.getElementById('start-btn');
+const loadStatus  = document.getElementById('loading-status');
+
+// --- Drag & drop ---
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', async e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const items = e.dataTransfer.items;
+    if (!items) return;
+    const entries = [];
+    for (const item of items) {
+        const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+        if (entry) entries.push(entry);
+    }
+    for (const entry of entries) await traverseEntry(entry, '');
+    refreshUI();
+});
+fileInput.addEventListener('change', () => { handleFileList(fileInput.files); refreshUI(); });
+browseBtn.addEventListener('click', () => flatInput.click());
+flatInput.addEventListener('change', () => { handleFileList(flatInput.files); refreshUI(); });
+
+async function traverseEntry(entry, basePath) {
+    if (entry.isFile) {
+        const file = await new Promise(r => entry.file(r));
+        const path = basePath ? basePath + '/' + entry.name : entry.name;
+        collectedFiles.set(path, file);
+    } else if (entry.isDirectory) {
+        const dirPath = basePath ? basePath + '/' + entry.name : entry.name;
+        const reader = entry.createReader();
+        let batch;
+        do {
+            batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+            for (const child of batch) await traverseEntry(child, dirPath);
+        } while (batch.length > 0);
+    }
+}
+
+function handleFileList(files) {
+    for (const f of files) {
+        let path = f.webkitRelativePath || f.name;
+        // Strip leading folder if the user selected a parent directory
+        const parts = path.split('/');
+        // If the first component is not "properties" or "main.pak", check if second level matches
+        if (parts.length > 1 && parts[0] !== 'properties' && parts[0] !== 'main.pak') {
+            path = parts.slice(1).join('/');
+        }
+        collectedFiles.set(path, f);
+    }
+}
+
+function refreshUI() {
+    hasPak = collectedFiles.has('main.pak');
+    hasProperties = false;
+    for (const key of collectedFiles.keys()) {
+        if (key.startsWith('properties/')) { hasProperties = true; break; }
+    }
+
+    fileListDiv.innerHTML = '';
+    const show = (label, ok) => {
+        const d = document.createElement('div');
+        d.textContent = (ok ? '✓ ' : '✗ ') + label;
+        if (ok) d.className = 'ok';
+        fileListDiv.appendChild(d);
+    };
+    show('main.pak', hasPak);
+    show('properties/', hasProperties);
+
+    const ready = hasPak && hasProperties;
+    startBtn.style.display = 'inline-block';
+    startBtn.disabled = !ready;
+}
+
+// --- Start game ---
+startBtn.addEventListener('click', startGame);
+
+async function startGame() {
+    startBtn.disabled = true;
+    loadStatus.style.display = 'block';
+    loadStatus.textContent = 'Writing resources to virtual filesystem…';
+
+    // Write all collected files into Emscripten's MEMFS
+    for (const [path, file] of collectedFiles) {
+        const data = new Uint8Array(await file.arrayBuffer());
+        // Ensure parent directories exist
+        const parts = path.split('/');
+        let dir = '/';
+        for (let i = 0; i < parts.length - 1; i++) {
+            dir += (dir === '/' ? '' : '/') + parts[i];
+            try { Module.FS.mkdir(dir); } catch (e) { /* already exists */ }
+        }
+        Module.FS.writeFile('/' + path, data);
+    }
+
+    // Set up IDBFS for saves persistence
+    try { Module.FS.mkdir('/saves'); } catch (e) {}
+    Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves');
+
+    // Sync from IndexedDB → MEMFS (load existing saves)
+    loadStatus.textContent = 'Restoring saved data…';
+    await new Promise((resolve, reject) => {
+        Module.FS.syncfs(true, err => {
+            if (err) console.warn('IDBFS initial sync error:', err);
+            resolve();
+        });
+    });
+
+    // Switch to game canvas
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('canvas-container').style.display = 'block';
+
+    loadStatus.style.display = 'none';
+
+    // Call the C++ main(); INVOKE_RUN=0 means it hasn't been called yet.
+    Module.callMain([]);
+}
+
+// --- Save data import / export ---
+// Format compatible with Android's pvz-portable-savedata.zip (userdata/ prefix)
+
+function collectSaveFiles(dir) {
+    const results = [];
+    let entries;
+    try { entries = Module.FS.readdir(dir); } catch (e) { return results; }
+    for (const name of entries) {
+        if (name === '.' || name === '..') continue;
+        const full = dir + '/' + name;
+        const stat = Module.FS.stat(full);
+        if (Module.FS.isDir(stat.mode)) {
+            results.push(...collectSaveFiles(full));
+        } else {
+            results.push(full);
+        }
+    }
+    return results;
+}
+
+async function exportSaves() {
+    const btn = document.getElementById('save-export-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Exporting…';
+    try {
+        // Sync IDBFS → MEMFS first to get latest data
+        await new Promise((resolve, reject) => {
+            Module.FS.syncfs(true, err => {
+                if (err) console.warn('IDBFS sync error:', err);
+                resolve();
+            });
+        });
+
+        const files = collectSaveFiles('/saves/userdata');
+        if (files.length === 0) {
+            alert('No save data found.');
+            return;
+        }
+
+        const zip = new JSZip();
+        for (const fullPath of files) {
+            // Convert /saves/userdata/foo.dat → userdata/foo.dat
+            const zipPath = fullPath.replace(/^\/saves\//, '');
+            const data = Module.FS.readFile(fullPath);
+            zip.file(zipPath, data);
+        }
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'pvz-portable-savedata.zip';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch (e) {
+        console.error('Export failed:', e);
+        alert('Export failed: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Export Saves';
+    }
+}
+
+async function importSaves(file) {
+    const btn = document.getElementById('save-import-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Importing…';
+    try {
+        const zip = await JSZip.loadAsync(file);
+        const entries = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+
+        for (const name of entries) {
+            // Ensure userdata/ prefix; compatible with Android format
+            let destPath = name;
+            if (!destPath.startsWith('userdata/')) {
+                destPath = 'userdata/' + destPath;
+            }
+            const fullPath = '/saves/' + destPath;
+
+            // Create parent directories
+            const parts = fullPath.split('/');
+            let dir = '';
+            for (let i = 1; i < parts.length - 1; i++) {
+                dir += '/' + parts[i];
+                try { Module.FS.mkdir(dir); } catch (e) { /* exists */ }
+            }
+
+            const data = await zip.files[name].async('uint8array');
+            Module.FS.writeFile(fullPath, data);
+        }
+
+        // Persist to IndexedDB
+        await new Promise((resolve, reject) => {
+            Module.FS.syncfs(false, err => {
+                if (err) console.warn('IDBFS persist error:', err);
+                resolve();
+            });
+        });
+
+        alert('Save data imported successfully. You may need to restart the game for changes to take effect.');
+    } catch (e) {
+        console.error('Import failed:', e);
+        alert('Import failed: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '📂 Import Saves';
+    }
+}
+
+document.getElementById('save-export-btn').addEventListener('click', exportSaves);
+document.getElementById('save-import-btn').addEventListener('click', () => {
+    document.getElementById('save-import-input').click();
+});
+document.getElementById('save-import-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) importSaves(file);
+    e.target.value = '';
+});
+</script>
+
+<!-- Emscripten-generated JS will be included here -->
+<script>
+var Module = {
+    canvas: (function() { return document.getElementById('canvas'); })(),
+    noInitialRun: true,
+    print: function(text) { console.log(text); },
+    printErr: function(text) { console.warn(text); },
+    setStatus: function(text) {
+        if (text) {
+            var ls = document.getElementById('loading-status');
+            if (ls) { ls.style.display = 'block'; ls.textContent = text; }
+        }
+    },
+    monitorRunDependencies: function(left) {
+        if (left === 0) Module.setStatus('');
+    }
+};
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

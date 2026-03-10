@@ -44,6 +44,10 @@ extern "C" {
 #include <SDL.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 bool (*gAppCloseRequest)();				//[0x69E6A0]
 bool (*gAppHasUsedCheatKeys)();			//[0x69E6A4]
 std::string (*gGetCurrentLevelName)();
@@ -137,9 +141,11 @@ int main(int argc, char** argv)
 	gLawnApp->SetArgs(argc, argv);
 	gLawnApp->Init();
 	gLawnApp->Start();
+#ifndef __EMSCRIPTEN__
 	gLawnApp->Shutdown();
 	if (gLawnApp)
 		delete gLawnApp;
+#endif
 
 	return 0;
 };

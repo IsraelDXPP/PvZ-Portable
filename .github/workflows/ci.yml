@@ -396,9 +396,64 @@ jobs:
         name: pvz-portable-ios
         path: dist/
 
+  build-wasm:
+    name: Build for WebAssembly (Emscripten)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@v14
+
+    - name: Install Build Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+
+    - name: Build libopenmpt for Emscripten
+      run: |
+        SYSROOT="$(em-config EMSCRIPTEN_ROOT)/cache/sysroot"
+        OPENMPT_TAG=$(git ls-remote --tags https://github.com/OpenMPT/openmpt.git 'refs/tags/libopenmpt-*' \
+          | grep -v '\^{}' | sed 's|.*refs/tags/libopenmpt-||' \
+          | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+        if [ -z "$OPENMPT_TAG" ]; then
+          OPENMPT_TAG="0.8.4" # Fallback to a known stable version if tag retrieval fails
+        fi
+        echo "Using libopenmpt version: $OPENMPT_TAG"
+        git clone --depth=1 --branch "libopenmpt-${OPENMPT_TAG}" https://github.com/OpenMPT/openmpt.git /tmp/libopenmpt-src
+        cd /tmp/libopenmpt-src
+        emmake make CONFIG=emscripten \
+          STATIC_LIB=1 SHARED_LIB=0 \
+          EXAMPLES=0 OPENMPT123=0 TEST=0 \
+          NO_ZLIB=1 NO_MPG123=1 NO_OGG=1 NO_VORBIS=1 NO_VORBISFILE=1 \
+          NO_PORTAUDIO=1 NO_PORTAUDIOCPP=1 NO_PULSEAUDIO=1 \
+          NO_SDL2=1 NO_FLAC=1 NO_SNDFILE=1 \
+          -j$(nproc)
+        emmake make CONFIG=emscripten \
+          STATIC_LIB=1 SHARED_LIB=0 \
+          EXAMPLES=0 OPENMPT123=0 TEST=0 \
+          PREFIX="${SYSROOT}" install
+
+    - name: Build PvZ-Portable for WebAssembly
+      run: |
+        mkdir build-wasm
+        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF
+        cmake --build build-wasm -j$(nproc)
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pvz-portable-wasm
+        path: |
+          build-wasm/pvz-portable.html
+          build-wasm/pvz-portable.js
+          build-wasm/pvz-portable.wasm
+
   release:
     name: Release
-    needs: ['build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-macos', 'build-android', 'build-ios']
+    needs: ['build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
@@ -434,6 +489,11 @@ jobs:
 
         echo "Preparing iOS file..."
         mv artifacts/pvz-portable-ios/pvz-portable-ios-arm64.ipa release_files/pvz-portable-ios-arm64.ipa
+
+        echo "Preparing WebAssembly file..."
+        cd artifacts/pvz-portable-wasm
+        zip -r ../../release_files/pvz-portable-wasm.zip .
+        cd ../..
 
         echo "Final files:"
         ls -lh release_files/

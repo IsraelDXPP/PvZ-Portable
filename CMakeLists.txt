@@ -77,6 +77,18 @@ elseif(NINTENDO_3DS)
 	list(APPEND PLAT_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/3ds
 	)
+elseif(EMSCRIPTEN)
+	# libopenmpt has no Emscripten port; must be pre-built with emmake.
+	find_library(OPENMPT_LIBRARY NAMES openmpt libopenmpt REQUIRED)
+	set(OPENMPT_LIB ${OPENMPT_LIBRARY})
+
+	list(APPEND SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/emscripten/Window.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/default/Input.cpp
+	)
+	list(APPEND PLAT_INCLUDES
+		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/emscripten
+	)
 else()
 	if(VCPKG_TOOLCHAIN)
 		find_package(Vorbis CONFIG REQUIRED)
@@ -121,11 +133,16 @@ option(LIMBO_PAGE "Enable limbo page to access hidden levels" ON)
 option(CONSOLE "Show console on Windows" ${WIN_CONSOLE_DEFAULT})
 option(DO_FIX_BUGS "Define DO_FIX_BUGS macro (Community fixes for original game bugs of 1.2.0.1073 GOTY Edition)" OFF)
 
-find_package(Threads REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(JPEG REQUIRED)
-find_package(PNG REQUIRED)
-find_package(SDL2 REQUIRED)
+if(EMSCRIPTEN)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -sUSE_ZLIB=1 -sUSE_LIBPNG=1 -sUSE_LIBJPEG=1 -sUSE_OGG=1 -sUSE_VORBIS=1 -sUSE_MPG123=1")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_SDL=2 -sUSE_ZLIB=1 -sUSE_LIBPNG=1 -sUSE_LIBJPEG=1 -sUSE_OGG=1 -sUSE_VORBIS=1 -sUSE_MPG123=1")
+else()
+	find_package(Threads REQUIRED)
+	find_package(ZLIB REQUIRED)
+	find_package(JPEG REQUIRED)
+	find_package(PNG REQUIRED)
+	find_package(SDL2 REQUIRED)
+endif()
 
 function(_pvz_patch_sdl2_iface_libs target)
 	get_target_property(_libs ${target} INTERFACE_LINK_LIBRARIES)
@@ -195,19 +212,43 @@ if (LOW_MEMORY)
 endif()
 target_compile_definitions(pvz-portable PRIVATE IMG_DOWNSCALE=${DOWNSCALE_COUNT})
 
-target_link_libraries(pvz-portable PRIVATE
-	SDL2_mixer_ext_Static 
-	${OPENMPT_LIB} 
-	${MPG123_LIB} 
-	${VORBIS_LIB} 
-	${OGG_LIB} 
-	PNG::PNG
-	JPEG::JPEG
-	ZLIB::ZLIB
-	SDL2::SDL2main
-	${SDL2_LINK_TARGET}
-	Threads::Threads
-)
+if(EMSCRIPTEN)
+	target_link_libraries(pvz-portable PRIVATE
+		SDL2_mixer_ext_Static
+		${OPENMPT_LIB}
+	)
+	target_link_options(pvz-portable PRIVATE
+		"SHELL:-sUSE_SDL=2"
+		"SHELL:-sUSE_ZLIB=1"
+		"SHELL:-sUSE_LIBPNG=1"
+		"SHELL:-sUSE_LIBJPEG=1"
+		"SHELL:-sUSE_OGG=1"
+		"SHELL:-sUSE_VORBIS=1"
+		"SHELL:-sUSE_MPG123=1"
+		"SHELL:-sALLOW_MEMORY_GROWTH=1"
+		"SHELL:-sMAXIMUM_MEMORY=1073741824"
+		"SHELL:-sFORCE_FILESYSTEM=1"
+		"SHELL:-sEXPORTED_RUNTIME_METHODS=[\"FS\",\"callMain\"]"
+		"SHELL:-sINVOKE_RUN=0"
+		"SHELL:-lidbfs.js"
+		"SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/wasm/shell.html"
+	)
+	set_target_properties(pvz-portable PROPERTIES SUFFIX ".html")
+else()
+	target_link_libraries(pvz-portable PRIVATE
+		SDL2_mixer_ext_Static 
+		${OPENMPT_LIB} 
+		${MPG123_LIB} 
+		${VORBIS_LIB} 
+		${OGG_LIB} 
+		PNG::PNG
+		JPEG::JPEG
+		ZLIB::ZLIB
+		SDL2::SDL2main
+		${SDL2_LINK_TARGET}
+		Threads::Threads
+	)
+endif()
 
 if (WIN32)
 	if(MSVC)

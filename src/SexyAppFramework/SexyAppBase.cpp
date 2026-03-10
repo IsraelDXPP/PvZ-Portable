@@ -43,6 +43,8 @@
 #include <codecvt>
 #elif defined(__3DS__)
 #include <3ds.h>
+#elif defined(__EMSCRIPTEN__)
+#include <emscripten.h>
 #endif
 
 #include "SexyAppBase.h"
@@ -131,6 +133,8 @@ SexyAppBase::SexyAppBase()
 			mResourceDir = "";
 		}
 	}
+#elif defined(__EMSCRIPTEN__)
+	mResourceDir = "/";
 #else
 	char* aBasePath = SDL_GetBasePath();
 	if (aBasePath)
@@ -828,6 +832,9 @@ std::string SexyAppBase::GetProductVersion(const std::string& thePath)
 
 void SexyAppBase::WaitForLoadingThread()
 {
+#ifdef __EMSCRIPTEN__
+	return;
+#endif
 	int ms = 20;
 
 	timespec ts;
@@ -1183,7 +1190,7 @@ void SexyAppBase::ReadFromRegistry()
 	if (RegistryReadInteger("Muted", &anInt))
 		mMuteCount = anInt;
 
-#if !defined(__IPHONEOS__) && (!defined(__ANDROID__) || defined(__TERMUX__)) && !defined(__SWITCH__) && !defined(__3DS__)
+#if !defined(__IPHONEOS__) && (!defined(__ANDROID__) || defined(__TERMUX__)) && !defined(__SWITCH__) && !defined(__3DS__) && !defined(__EMSCRIPTEN__)
 	if (RegistryReadInteger("ScreenMode", &anInt))
 		mIsWindowed = anInt == 0;
 #endif
@@ -1446,7 +1453,15 @@ void SexyAppBase::Shutdown()
 		if (mReadFromRegistry)
 			WriteToRegistry();
 
-		//ImageLib::CloseJPEG2000();
+#ifdef __EMSCRIPTEN__
+		EM_ASM(
+			if (typeof FS !== 'undefined' && FS.syncfs) {
+				FS.syncfs(false, function(err) {
+					if (err) console.warn('IDBFS sync error on shutdown:', err);
+				});
+			}
+		);
+#endif
 	}
 }
 
@@ -2153,8 +2168,12 @@ void SexyAppBase::StartLoadingThread()
 		mYieldMainThread = true; 
 		//::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);		
 		mLoadingThreadStarted = true;
+#ifdef __EMSCRIPTEN__
+		LoadingThreadProcStub(this);
+#else
 		//_beginthread(LoadingThreadProcStub, 0, this);
 		std::thread(LoadingThreadProcStub, this).detach();
+#endif
 	}
 }
 void SexyAppBase::CursorThreadProc()
@@ -2174,8 +2193,8 @@ void SexyAppBase::StartCursorThread()
 
 void SexyAppBase::SwitchScreenMode(bool wantWindowed, bool is3d, bool force)
 {
-#if defined(__IPHONEOS__) || (defined(__ANDROID__) && !defined(__TERMUX__)) || defined(__SWITCH__) || defined(__3DS__)
-	// Mobile/console platforms are always fullscreen; skip mode switching entirely.
+#if defined(__IPHONEOS__) || (defined(__ANDROID__) && !defined(__TERMUX__)) || defined(__SWITCH__) || defined(__3DS__) || defined(__EMSCRIPTEN__)
+	// Mobile/console/web platforms are always fullscreen; skip mode switching entirely.
 	Set3DAcclerated(is3d);
 	return;
 #endif
@@ -2519,10 +2538,12 @@ bool SexyAppBase::Process(bool allowSleep)
 					// Wait till next processing cycle
 					++mSleepCount;
 
+#ifndef __EMSCRIPTEN__
 					timespec ts;
 					ts.tv_sec = aTimeToNextFrame / 1000;
 					ts.tv_nsec = (aTimeToNextFrame % 1000) * 1000000;
 					nanosleep(&ts, &ts);
+#endif
 
 					aCumSleepTime += aTimeToNextFrame;					
 				}
@@ -2543,10 +2564,12 @@ bool SexyAppBase::Process(bool allowSleep)
 				if (!allowSleep)
 					return false;
 
+#ifndef __EMSCRIPTEN__
 				timespec ts;
 				ts.tv_sec = aLoadingYieldSleepTime / 1000;
 				ts.tv_nsec = (aLoadingYieldSleepTime % 1000) * 1000000;
 				nanosleep(&ts, &ts);
+#endif
 			}
 		}
 	}
@@ -2555,14 +2578,42 @@ bool SexyAppBase::Process(bool allowSleep)
 	return true;
 }
 
+#ifdef __EMSCRIPTEN__
+static void EmscriptenMainLoopCallback()
+{
+	SexyAppBase* app = Sexy::gSexyAppBase;
+	if (app->mShutdown)
+	{
+		emscripten_cancel_main_loop();
+		app->ProcessSafeDeleteList();
+		app->mRunning = false;
+		EM_ASM(
+			if (typeof FS !== 'undefined' && FS.syncfs) {
+				FS.syncfs(false, function(err) {
+					if (err) console.warn('IDBFS sync error:', err);
+				});
+			}
+		);
+		return;
+	}
+	if (app->mExitToTop)
+		app->mExitToTop = false;
+	app->UpdateApp();
+}
+#endif
+
 void SexyAppBase::DoMainLoop()
 {
+#ifdef __EMSCRIPTEN__
+	emscripten_set_main_loop(EmscriptenMainLoopCallback, 0, 1);
+#else
 	while (!mShutdown)
 	{
 		if (mExitToTop)
 			mExitToTop = false;
 		UpdateApp();
 	}
+#endif
 }
 
 bool SexyAppBase::UpdateAppStep(bool* updated)
@@ -2595,10 +2646,12 @@ bool SexyAppBase::UpdateAppStep(bool* updated)
 		{
 			if (mStepMode==2)
 			{
+#ifndef __EMSCRIPTEN__
 				timespec ts;
 				ts.tv_sec = mFrameTime / 1000;
 				ts.tv_nsec = (mFrameTime % 1000) * 1000000;
 				nanosleep(&ts, &ts);
+#endif
 
 				mUpdateAppState = UPDATESTATE_PROCESS_DONE; // skip actual update until next step
 			}
@@ -2684,6 +2737,7 @@ void SexyAppBase::Start()
 	mLastTimerTime = aStartTime;
 
 	DoMainLoop();
+#ifndef __EMSCRIPTEN__
 	ProcessSafeDeleteList();
 
 	mRunning = false;
@@ -2707,6 +2761,7 @@ void SexyAppBase::Start()
 	PreTerminate();
 
 	WriteToRegistry();
+#endif
 }
 
 bool SexyAppBase::LoadProperties(const std::string& theFileName, bool required, bool checkSig)
@@ -3106,6 +3161,10 @@ void SexyAppBase::Init()
 		{
 			SetAppDataFolder((std::filesystem::path(aHome) / "Documents").generic_string() + "/");
 		}
+	}
+#elif defined(__EMSCRIPTEN__)
+	{
+		SetAppDataFolder("/saves/");
 	}
 #elif !defined(__SWITCH__) && !defined(__3DS__)
 	{
