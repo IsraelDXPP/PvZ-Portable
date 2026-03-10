@@ -89,9 +89,41 @@ input#save-import-input { display: none; }
 'use strict';
 
 let resolveModuleReady;
+let moduleReadyResolved = false;
 const moduleReady = new Promise(resolve => {
-    resolveModuleReady = resolve;
+    resolveModuleReady = () => {
+        if (moduleReadyResolved) return;
+        moduleReadyResolved = true;
+        resolve();
+    };
 });
+
+function isModuleRuntimeReady() {
+    return typeof Module !== 'undefined'
+        && !!Module
+        && !!Module.FS
+        && !!Module.HEAP8
+        && !!Module.HEAP8.buffer
+        && typeof Module.callMain === 'function';
+}
+
+async function waitForModuleRuntimeReady(timeoutMs = 20000) {
+    if (isModuleRuntimeReady()) {
+        resolveModuleReady();
+        return;
+    }
+
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+        if (moduleReadyResolved || isModuleRuntimeReady()) {
+            resolveModuleReady();
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    throw new Error('WebAssembly runtime initialization timed out');
+}
 
 // --- File collection state ---
 const collectedFiles = new Map(); // path -> File
@@ -186,7 +218,7 @@ async function startGame() {
     loadStatus.style.display = 'block';
     try {
         loadStatus.textContent = 'Preparing WebAssembly runtime…';
-        await moduleReady;
+        await waitForModuleRuntimeReady();
 
         const files = Array.from(collectedFiles.entries());
         let processedBytes = 0;
