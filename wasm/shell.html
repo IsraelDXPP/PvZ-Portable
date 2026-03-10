@@ -113,6 +113,15 @@ var Module = {
 const collectedFiles = new Map();
 let hasPak = false;
 let hasProperties = false;
+let savesMounted = false;
+let gameStarted = false;
+let saveSyncIntervalId = null;
+let saveSyncInFlight = null;
+let saveSyncQueued = false;
+let lastSaveSyncAt = 0;
+
+const SAVE_SYNC_INTERVAL_MS = 5000;
+const SAVE_CLOSE_WARNING_MS = 7000;
 
 const dropZone    = document.getElementById('drop-zone');
 const fileInput   = document.getElementById('file-input');
@@ -203,6 +212,42 @@ function resizeCanvas() {
     canvas.style.height = Math.floor(canvas.height * scale) + 'px';
 }
 
+function canSyncSaves() {
+    return savesMounted && Module.FS && typeof Module.FS.syncfs === 'function';
+}
+
+async function syncSaves() {
+    if (!canSyncSaves()) return;
+
+    if (saveSyncInFlight) {
+        saveSyncQueued = true;
+        return saveSyncInFlight;
+    }
+
+    saveSyncInFlight = new Promise(resolve => Module.FS.syncfs(false, err => {
+        if (err) console.warn('IDBFS persist error:', err);
+        else lastSaveSyncAt = Date.now();
+        resolve();
+    }));
+
+    try {
+        await saveSyncInFlight;
+    } finally {
+        saveSyncInFlight = null;
+        if (saveSyncQueued) {
+            saveSyncQueued = false;
+            void syncSaves();
+        }
+    }
+}
+
+function startSaveAutosync() {
+    if (saveSyncIntervalId !== null) return;
+    saveSyncIntervalId = window.setInterval(() => {
+        void syncSaves();
+    }, SAVE_SYNC_INTERVAL_MS);
+}
+
 async function startGame() {
     startBtn.disabled = true;
     loadStatus.style.display = 'block';
@@ -236,6 +281,7 @@ async function startGame() {
 
         try { Module.FS.mkdir('/saves'); } catch (e) {}
         Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves');
+        savesMounted = true;
 
         loadStatus.textContent = 'Restoring saved data…';
         await new Promise(r => Module.FS.syncfs(true, err => {
@@ -250,6 +296,9 @@ async function startGame() {
         window.addEventListener('resize', resizeCanvas);
 
         loadStatus.style.display = 'none';
+        gameStarted = true;
+        lastSaveSyncAt = Date.now();
+        startSaveAutosync();
         Module.callMain([]);
     } catch (e) {
         console.error('Failed to start game:', e);
@@ -277,10 +326,7 @@ async function exportSaves() {
     btn.disabled = true;
     btn.textContent = '⏳ Exporting…';
     try {
-        await new Promise(r => Module.FS.syncfs(true, err => {
-            if (err) console.warn('IDBFS sync error:', err);
-            r();
-        }));
+        await syncSaves();
 
         const files = collectSaveFiles('/saves/userdata');
         if (files.length === 0) { alert('No save data found.'); return; }
@@ -329,10 +375,7 @@ async function importSaves(file) {
             Module.FS.writeFile(fullPath, data);
         }
 
-        await new Promise(r => Module.FS.syncfs(false, err => {
-            if (err) console.warn('IDBFS persist error:', err);
-            r();
-        }));
+        await syncSaves();
 
         alert('Save data imported successfully. You may need to restart the game for changes to take effect.');
     } catch (e) {
@@ -352,6 +395,24 @@ document.getElementById('save-import-input').addEventListener('change', e => {
     const file = e.target.files[0];
     if (file) importSaves(file);
     e.target.value = '';
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') void syncSaves();
+});
+
+window.addEventListener('pagehide', () => {
+    void syncSaves();
+});
+
+window.addEventListener('beforeunload', e => {
+    if (!gameStarted) return;
+
+    void syncSaves();
+    if (Date.now() - lastSaveSyncAt >= SAVE_CLOSE_WARNING_MS) {
+        e.preventDefault();
+        e.returnValue = 'Recent save data may still be syncing. Wait a moment or export saves before leaving.';
+    }
 });
 </script>
 </body>
