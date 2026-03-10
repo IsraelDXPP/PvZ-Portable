@@ -2598,7 +2598,20 @@ void SexyAppBase::EmscriptenMainLoopCallback()
 	}
 	if (app->mExitToTop)
 		app->mExitToTop = false;
-	app->UpdateApp();
+
+	bool updated = false;
+	if (!app->UpdateAppStep(&updated))
+		return;
+
+	// Prevent web FPS drop: complete all pending stages in one rAF instead of spreading across frames.
+	while (updated || app->mUpdateAppState == UPDATESTATE_PROCESS_2 || app->mHasPendingDraw)
+	{
+		if (!app->UpdateAppStep(&updated))
+			break;
+
+		if (!updated && app->mUpdateAppState == UPDATESTATE_PROCESS_DONE && !app->mHasPendingDraw)
+			break;
+	}
 }
 #endif
 
