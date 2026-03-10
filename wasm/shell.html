@@ -38,10 +38,10 @@ body {
 #start-btn:disabled { opacity: 0.4; cursor: default; }
 #start-btn:not(:disabled):hover { opacity: 0.85; }
 #loading-status { margin-top: 1em; color: #4ecca3; display: none; }
-#canvas-container { display: none; width: 100vw; height: 100vh; position: relative; }
+#canvas-container { display: none; width: 100vw; height: 100vh; position: relative;
+    display: none; justify-content: center; align-items: center; background: #000; }
 canvas#canvas {
-    display: block; width: 100%; height: 100%;
-    object-fit: contain;
+    display: block;
     background: #000; outline: none;
 }
 #save-toolbar {
@@ -192,6 +192,17 @@ function refreshUI() {
 
 startBtn.addEventListener('click', startGame);
 
+function resizeCanvas() {
+    var canvas = document.getElementById('canvas');
+    var container = document.getElementById('canvas-container');
+    var vw = container.clientWidth;
+    var vh = container.clientHeight;
+    // Fit 4:3 aspect ratio inside the viewport
+    var scale = Math.min(vw / canvas.width, vh / canvas.height);
+    canvas.style.width  = Math.floor(canvas.width  * scale) + 'px';
+    canvas.style.height = Math.floor(canvas.height * scale) + 'px';
+}
+
 async function startGame() {
     startBtn.disabled = true;
     loadStatus.style.display = 'block';
@@ -233,7 +244,10 @@ async function startGame() {
         }));
 
         document.getElementById('upload-screen').style.display = 'none';
-        document.getElementById('canvas-container').style.display = 'block';
+        document.getElementById('canvas-container').style.display = 'flex';
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         loadStatus.style.display = 'none';
         Module.callMain([]);
