@@ -470,7 +470,7 @@ jobs:
 
         echo "Preparing Arch Linux file..."
         chmod +x artifacts/pvz-portable-archlinux/pvz-portable
-        mv artifacts/pvz-portable-archlinux/pvz-portable release_files/pvz-portable-linux-x86_64
+        mv artifacts/pvz-portable-archlinux/pvz-portable release_files/pvz-portable-archlinux-x86_64
 
         echo "Preparing Windows MSVC file..."
         mv artifacts/pvz-portable-windows-msvc-x64/pvz-portable.exe release_files/pvz-portable-windows-msvc-x64-static.exe
