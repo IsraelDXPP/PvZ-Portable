@@ -88,6 +88,11 @@ input#save-import-input { display: none; }
 <script>
 'use strict';
 
+let resolveModuleReady;
+const moduleReady = new Promise(resolve => {
+    resolveModuleReady = resolve;
+});
+
 // --- File collection state ---
 const collectedFiles = new Map(); // path -> File
 let hasPak = false;
@@ -179,42 +184,62 @@ startBtn.addEventListener('click', startGame);
 async function startGame() {
     startBtn.disabled = true;
     loadStatus.style.display = 'block';
-    loadStatus.textContent = 'Writing resources to virtual filesystem…';
+    try {
+        loadStatus.textContent = 'Preparing WebAssembly runtime…';
+        await moduleReady;
 
-    // Write all collected files into Emscripten's MEMFS
-    for (const [path, file] of collectedFiles) {
-        const data = new Uint8Array(await file.arrayBuffer());
-        // Ensure parent directories exist
-        const parts = path.split('/');
-        let dir = '/';
-        for (let i = 0; i < parts.length - 1; i++) {
-            dir += (dir === '/' ? '' : '/') + parts[i];
-            try { Module.FS.mkdir(dir); } catch (e) { /* already exists */ }
+        const files = Array.from(collectedFiles.entries());
+        let processedBytes = 0;
+        const totalBytes = files.reduce((sum, [, file]) => sum + file.size, 0);
+
+        // Write all collected files into Emscripten's MEMFS
+        for (let index = 0; index < files.length; index++) {
+            const [path, file] = files[index];
+            const sizeMiB = (processedBytes / (1024 * 1024)).toFixed(1);
+            const totalMiB = (totalBytes / (1024 * 1024)).toFixed(1);
+            loadStatus.textContent = `Writing resources to virtual filesystem… (${index + 1}/${files.length}, ${sizeMiB}/${totalMiB} MiB)`;
+
+            const data = new Uint8Array(await file.arrayBuffer());
+            const parts = path.split('/');
+            let dir = '/';
+            for (let i = 0; i < parts.length - 1; i++) {
+                dir += (dir === '/' ? '' : '/') + parts[i];
+                try { Module.FS.mkdir(dir); } catch (e) { /* already exists */ }
+            }
+            Module.FS.writeFile('/' + path, data);
+            processedBytes += file.size;
+
+            if ((index + 1) % 4 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
         }
-        Module.FS.writeFile('/' + path, data);
-    }
 
-    // Set up IDBFS for saves persistence
-    try { Module.FS.mkdir('/saves'); } catch (e) {}
-    Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves');
+        // Set up IDBFS for saves persistence
+        try { Module.FS.mkdir('/saves'); } catch (e) {}
+        try { Module.FS.mount(Module.FS.filesystems.IDBFS, {}, '/saves'); } catch (e) {
+            if (!/already mounted/i.test(String(e && e.message ? e.message : e))) throw e;
+        }
 
-    // Sync from IndexedDB → MEMFS (load existing saves)
-    loadStatus.textContent = 'Restoring saved data…';
-    await new Promise((resolve, reject) => {
-        Module.FS.syncfs(true, err => {
-            if (err) console.warn('IDBFS initial sync error:', err);
-            resolve();
+        // Sync from IndexedDB → MEMFS (load existing saves)
+        loadStatus.textContent = 'Restoring saved data…';
+        await new Promise(resolve => {
+            Module.FS.syncfs(true, err => {
+                if (err) console.warn('IDBFS initial sync error:', err);
+                resolve();
+            });
         });
-    });
 
-    // Switch to game canvas
-    document.getElementById('upload-screen').style.display = 'none';
-    document.getElementById('canvas-container').style.display = 'block';
+        document.getElementById('upload-screen').style.display = 'none';
+        document.getElementById('canvas-container').style.display = 'block';
+        loadStatus.style.display = 'none';
 
-    loadStatus.style.display = 'none';
-
-    // Call the C++ main(); INVOKE_RUN=0 means it hasn't been called yet.
-    Module.callMain([]);
+        // Call the C++ main(); INVOKE_RUN=0 means it hasn't been called yet.
+        Module.callMain([]);
+    } catch (e) {
+        console.error('Failed to start game:', e);
+        loadStatus.textContent = 'Failed to load resources: ' + (e && e.message ? e.message : e);
+        startBtn.disabled = false;
+    }
 }
 
 // --- Save data import / export ---
@@ -341,6 +366,7 @@ document.getElementById('save-import-input').addEventListener('change', e => {
 var Module = {
     canvas: (function() { return document.getElementById('canvas'); })(),
     noInitialRun: true,
+    onRuntimeInitialized: function() { resolveModuleReady(); },
     print: function(text) { console.log(text); },
     printErr: function(text) { console.warn(text); },
     setStatus: function(text) {
