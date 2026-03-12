@@ -289,6 +289,9 @@ PottedPlant* ZenGarden::PottedPlantFromIndex(intptr_t thePottedPlantIndex)
 void ZenGarden::ZenGardenInitLevel()
 {
     mBoard = mApp->mBoard;
+    mNowTime = time(0);
+    mNowTM = *localtime(&mNowTime);
+
     for (int i = 0; i < mApp->mPlayerInfo->mNumPottedPlants; i++)
     {
         PottedPlant* aPottedPlant = PottedPlantFromIndex(i);
@@ -2444,6 +2447,9 @@ void ZenGarden::OpenStore()
     }
     else
     {
+        mNowTime = time(0);
+        mNowTM = *localtime(&mNowTime);
+
         mApp->mMusic->MakeSureMusicIsPlaying(MusicTune::MUSIC_TUNE_ZEN_GARDEN);
         if (mBoard->mTutorialState == TutorialState::TUTORIAL_ZEN_GARDEN_VISIT_STORE)
         {
