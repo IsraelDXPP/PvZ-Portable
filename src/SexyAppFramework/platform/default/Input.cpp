@@ -24,6 +24,12 @@
 
 #include <SDL.h>
 
+#include "SexyAppBase.h"
+#include "graphics/GLInterface.h"
+#include "graphics/GLImage.h"
+#include "widget/WidgetManager.h"
+#include "misc/KeyCodes.h"
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 
@@ -159,12 +165,6 @@ EM_JS(int, WasmHasSoftKeyboardEvents, (), {
 });
 #endif
 
-#include "SexyAppBase.h"
-#include "graphics/GLInterface.h"
-#include "graphics/GLImage.h"
-#include "widget/WidgetManager.h"
-#include "misc/KeyCodes.h"
-
 using namespace Sexy;
 
 // Map SDL_Keycode to internal KeyCode (Windows VK-compatible).
@@ -297,6 +297,17 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 				CloseRequestAsync();
 				break;
 
+			case SDL_APP_WILLENTERBACKGROUND:
+				mMinimized = true;
+				RehupFocus();
+				break;
+
+			case SDL_APP_DIDENTERFOREGROUND:
+				mMinimized = false;
+				RehupFocus();
+				mWidgetManager->MarkAllDirty();
+				break;
+
 			case SDL_WINDOWEVENT:
 				switch(event.window.event)
 				{
@@ -307,6 +318,17 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 					case SDL_WINDOWEVENT_RESIZED:
 						mGLInterface->UpdateViewport();
 						mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
+						break;
+
+					case SDL_WINDOWEVENT_MINIMIZED:
+						mMinimized = true;
+						RehupFocus();
+						break;
+
+					case SDL_WINDOWEVENT_RESTORED:
+						mMinimized = false;
+						RehupFocus();
+						mWidgetManager->MarkAllDirty();
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
