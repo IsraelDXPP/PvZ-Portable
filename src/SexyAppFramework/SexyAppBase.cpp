@@ -1473,7 +1473,12 @@ void SexyAppBase::RestoreScreenResolution()
 void SexyAppBase::DoExit(int theCode)
 {
 	RestoreScreenResolution();
+
+#if (defined(__ANDROID__) && !defined(__TERMUX__)) || defined(__IPHONEOS__)
+	Shutdown();
+#else
 	exit(theCode);
+#endif
 }
 
 void SexyAppBase::UpdateFrames()
