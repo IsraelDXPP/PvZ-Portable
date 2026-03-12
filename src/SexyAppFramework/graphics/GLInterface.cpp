@@ -228,7 +228,12 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		printf("Shader error: %s\n%s%s%s\n", log, strings[0], strings[1], strings[2]);
 		fflush(stdout);
 		free(log);
-		exit(1);
+		glDeleteShader(shader);
+		if (gSexyAppBase != nullptr)
+			gSexyAppBase->Shutdown();
+		else
+			exit(1);
+		return 0;
 	}
 	return shader;
 }
@@ -237,6 +242,14 @@ static GLuint shaderLoad(const char *src)
 {
 	GLuint vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
 	GLuint frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
+	if (vert == 0 || frag == 0)
+	{
+		if (vert != 0)
+			glDeleteShader(vert);
+		if (frag != 0)
+			glDeleteShader(frag);
+		return 0;
+	}
 
 	GLuint prog = glCreateProgram();
 	glAttachShader(prog, vert);
@@ -1136,6 +1149,8 @@ int GLInterface::Init(bool IsWindowed)
 		PlatformGLInit();
 
 		gProgram = shaderLoad(SHADER_CODE);
+		if (gProgram == 0)
+			return 0;
 		gUfViewProjMtx = glGetUniformLocation(gProgram, "u_viewProj");
 		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
 		gUfUseTexture  = glGetUniformLocation(gProgram, "u_useTexture");

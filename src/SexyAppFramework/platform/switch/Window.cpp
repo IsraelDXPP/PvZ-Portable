@@ -101,7 +101,12 @@ void SexyAppBase::MakeWindow()
 	if (mGLInterface == nullptr)
 	{
 		mGLInterface = new GLInterface(this);
-		InitGLInterface();
+		if (!InitGLInterface())
+		{
+			delete mGLInterface;
+			mGLInterface = nullptr;
+			return;
+		}
 
 		mGLInterface->UpdateViewport();
 		mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);

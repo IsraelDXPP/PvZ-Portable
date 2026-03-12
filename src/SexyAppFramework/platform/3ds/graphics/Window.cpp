@@ -41,7 +41,12 @@ void SexyAppBase::MakeWindow()
 		consoleInit(GFX_TOP, nullptr);
 
 		mGLInterface = new GLInterface(this);
-		InitGLInterface();
+		if (!InitGLInterface())
+		{
+			delete mGLInterface;
+			mGLInterface = nullptr;
+			return;
+		}
 
 		mGLInterface->UpdateViewport();
 		mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
