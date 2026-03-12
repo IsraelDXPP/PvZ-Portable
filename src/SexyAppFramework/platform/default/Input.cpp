@@ -24,6 +24,141 @@
 
 #include <SDL.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+EM_JS(void, WasmStartSoftKeyboard, (), {
+	var input = document.getElementById('pvz-soft-keyboard');
+	if (!input) return;
+
+	if (!Module.wasmSoftKeyboardState) {
+		var state = {
+			active: false,
+			pendingChars: [],
+			pendingKeys: [],
+			lastValue: ""
+		};
+
+		function syncInputValue() {
+			if (!state.active) return;
+
+			var nextValue = input.value || "";
+			var prefixLen = 0;
+			while (prefixLen < state.lastValue.length && prefixLen < nextValue.length
+				&& state.lastValue.charCodeAt(prefixLen) === nextValue.charCodeAt(prefixLen)) {
+				prefixLen++;
+			}
+
+			for (var i = state.lastValue.length; i > prefixLen; --i) {
+				state.pendingKeys.push(8);
+			}
+
+			for (var j = prefixLen; j < nextValue.length; ++j) {
+				var charCode = nextValue.charCodeAt(j);
+				if (charCode > 0 && charCode <= 0x7f) {
+					state.pendingChars.push(charCode);
+				}
+			}
+
+			state.lastValue = nextValue;
+		}
+
+		input.addEventListener('input', syncInputValue);
+		input.addEventListener('keydown', function(event) {
+			if (!state.active) return;
+
+			switch (event.key) {
+				case 'Enter':
+					state.pendingKeys.push(13);
+					event.preventDefault();
+					break;
+				case 'Escape':
+					state.pendingKeys.push(27);
+					event.preventDefault();
+					break;
+				case 'Tab':
+					state.pendingKeys.push(9);
+					event.preventDefault();
+					break;
+				case 'Delete':
+					state.pendingKeys.push(46);
+					event.preventDefault();
+					break;
+				case 'ArrowLeft':
+					state.pendingKeys.push(37);
+					event.preventDefault();
+					break;
+				case 'ArrowRight':
+					state.pendingKeys.push(39);
+					event.preventDefault();
+					break;
+				case 'Home':
+					state.pendingKeys.push(36);
+					event.preventDefault();
+					break;
+				case 'End':
+					state.pendingKeys.push(35);
+					event.preventDefault();
+					break;
+			}
+		});
+
+		Module.wasmSoftKeyboardState = state;
+	}
+
+	var state = Module.wasmSoftKeyboardState;
+	state.active = true;
+	state.pendingChars.length = 0;
+	state.pendingKeys.length = 0;
+	state.lastValue = "";
+	input.value = "";
+	if (typeof input.focus === 'function') {
+		input.focus();
+	}
+	if (typeof input.setSelectionRange === 'function') {
+		input.setSelectionRange(0, 0);
+	}
+});
+
+EM_JS(void, WasmStopSoftKeyboard, (), {
+	var input = document.getElementById('pvz-soft-keyboard');
+	var state = Module.wasmSoftKeyboardState;
+	if (state) {
+		state.active = false;
+		state.pendingChars.length = 0;
+		state.pendingKeys.length = 0;
+		state.lastValue = "";
+	}
+	if (input) {
+		input.value = "";
+		if (typeof input.blur === 'function') {
+			input.blur();
+		}
+	}
+	if (Module.canvas && typeof Module.canvas.focus === 'function') {
+		Module.canvas.focus();
+	}
+});
+
+EM_JS(int, WasmPopSoftKeyboardChar, (), {
+	var state = Module.wasmSoftKeyboardState;
+	if (!state || state.pendingChars.length === 0) return 0;
+	return state.pendingChars.shift();
+});
+
+EM_JS(int, WasmPopSoftKeyboardKey, (), {
+	var state = Module.wasmSoftKeyboardState;
+	if (!state || state.pendingKeys.length === 0) return 0;
+	return state.pendingKeys.shift();
+});
+
+EM_JS(int, WasmHasSoftKeyboardEvents, (), {
+	var state = Module.wasmSoftKeyboardState;
+	if (!state) return 0;
+	return (state.pendingChars.length + state.pendingKeys.length) > 0 ? 1 : 0;
+});
+#endif
+
 #include "SexyAppBase.h"
 #include "graphics/GLInterface.h"
 #include "graphics/GLImage.h"
@@ -114,17 +249,45 @@ void SexyAppBase::InitInput()
 
 bool SexyAppBase::StartTextInput(std::string& theInput)
 {
+	(void)theInput;
 	SDL_StartTextInput();
+
+#ifdef __EMSCRIPTEN__
+	WasmStartSoftKeyboard();
+#endif
+
 	return false;
 }
 
 void SexyAppBase::StopTextInput()
 {
 	SDL_StopTextInput();
+
+#ifdef __EMSCRIPTEN__
+	WasmStopSoftKeyboard();
+#endif
 }
 
 bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 {
+#ifdef __EMSCRIPTEN__
+	int aPendingKey = WasmPopSoftKeyboardKey();
+	if (aPendingKey != 0)
+	{
+		mLastUserInputTick = mLastTimerTime;
+		mWidgetManager->KeyDown(static_cast<KeyCode>(aPendingKey));
+		return WasmHasSoftKeyboardEvents() || SDL_HasEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+	}
+
+	int aPendingChar = WasmPopSoftKeyboardChar();
+	if (aPendingChar != 0)
+	{
+		mLastUserInputTick = mLastTimerTime;
+		mWidgetManager->KeyChar(static_cast<char>(aPendingChar));
+		return WasmHasSoftKeyboardEvents() || SDL_HasEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+	}
+#endif
+
 	SDL_Event event;
 	if (SDL_PollEvent(&event))
 	{

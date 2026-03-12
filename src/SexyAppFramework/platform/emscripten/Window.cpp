@@ -27,7 +27,6 @@
 #include "SexyAppBase.h"
 #include "graphics/GLInterface.h"
 #include "graphics/GLImage.h"
-#include "graphics/GLPlatform.h"
 #include "widget/WidgetManager.h"
 
 using namespace Sexy;
