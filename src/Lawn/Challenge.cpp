@@ -4182,7 +4182,7 @@ void Challenge::PuzzlePhaseComplete(int theGridX, int theGridY)
 		}
 		else if (aHit < 30)
 		{
-			aCoinType = mApp->mZenGarden->CanDropChocolate() ? COIN_CHOCOLATE : COIN_AWARD_MONEY_BAG;
+			aCoinType = mApp->mZenGarden->CanDropChocolate() ? COIN_AWARD_CHOCOLATE : COIN_AWARD_MONEY_BAG;
 		}
 		else
 		{
