@@ -30,6 +30,24 @@
 
 using namespace Sexy;
 
+static constexpr const char CLI_LICENSE_SUMMARY[] = "License: LGPL-3.0-or-later";
+
+static constexpr const char CLI_LICENSE_NOTICE[] = R"DELIMITER(PvZ-Portable
+
+Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
+
+SPDX-License-Identifier: LGPL-3.0-or-later
+Some source files also include:
+SPDX-License-Identifier: LGPL-3.0-or-later AND LicenseRef-PopCap
+
+PvZ-Portable is distributed under the GNU Lesser General Public
+License v3.0 or later. It is distributed in the hope that it will
+be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+See LICENSE and COPYING for full terms.
+)DELIMITER";
+
 SexyApp* Sexy::gSexyApp = nullptr;
 
 SexyApp::SexyApp()
@@ -64,12 +82,18 @@ void SexyApp::HandleCmdLineParam(const std::string& theParamName, const std::str
 		// Just print version info and then quit
 		
 		std::string aVersionString = 
-			"Product: " + mProdName + "\r\n" +
-			"Version: " + mProductVersion + "\r\n" +
-			"Build Num: " + StrFormat("%d", mBuildNum) + "\r\n" +
-			"Build Date: " + mBuildDate;
+			"Product: " + mProdName + "\n" +
+			"Version: " + mProductVersion + "\n" +
+			"Build Num: " + StrFormat("%d", mBuildNum) + "\n" +
+			"Build Date: " + mBuildDate + "\n" +
+			CLI_LICENSE_SUMMARY;
 
 		printf("%s\n", aVersionString.c_str());
+		DoExit(0);
+	}
+	else if (theParamName == "-license" || theParamName == "-copyright")
+	{
+		printf("%s", CLI_LICENSE_NOTICE);
 		DoExit(0);
 	}
 	else
