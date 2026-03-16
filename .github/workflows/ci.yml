@@ -26,9 +26,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Determine next tag
-        id: next_tag
         run: |
-          LAST_TAG=$(git tag --sort=-v:refname | head -n1)
+          LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
           if [ -z "$LAST_TAG" ]; then
             NEXT_TAG="v1.0.0"
           else
@@ -36,10 +35,9 @@ jobs:
             PATCH=$((PATCH + 1))
             NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
           fi
-          echo "Next tag: $NEXT_TAG"
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
 
-      - name: Create and Push Tag
+      - name: Create and push tag
         run: |
           git tag $NEXT_TAG
           git push origin $NEXT_TAG
