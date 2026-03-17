@@ -324,13 +324,19 @@ bool ResourceManager::ParseImageResource(XMLElement &theElement)
 
 	anItr = theElement.mAttributes.find("rows");
 	if (anItr != theElement.mAttributes.end())
+	{
 		aRes->mRows = atoi(anItr->second.c_str());
+		TOD_ASSERT(aRes->mRows > 0);  // Resource contract: sprite sheet rows must be positive.
+	}
 	else
 		aRes->mRows = 1;
 
 	anItr = theElement.mAttributes.find("cols");
 	if (anItr != theElement.mAttributes.end())
+	{
 		aRes->mCols = atoi(anItr->second.c_str());
+		TOD_ASSERT(aRes->mCols > 0);  // Resource contract: sprite sheet cols must be positive.
+	}
 	else
 		aRes->mCols = 1;
 

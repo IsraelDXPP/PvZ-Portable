@@ -27,13 +27,14 @@
 
 using namespace Sexy;
 
-SDLSoundInstance::SDLSoundInstance(SDLSoundManager* theSoundManager, Mix_Chunk* theSourceSound)
+SDLSoundInstance::SDLSoundInstance(SDLSoundManager* theSoundManager, Mix_Chunk* theSourceSound, int theReservedChannel)
 {
 	mSoundManagerP = theSoundManager;
 	mMixChunk = theSourceSound;
 	mReleased = false;
 	mAutoRelease = false;
 	mHasPlayed = false;
+	mReservedChannel = theReservedChannel;
 	mChannel = -1;
 
 	mBaseVolume = 1.0;
@@ -50,7 +51,7 @@ SDLSoundInstance::SDLSoundInstance(SDLSoundManager* theSoundManager, Mix_Chunk* 
 
 SDLSoundInstance::~SDLSoundInstance()
 {
-	
+	Stop();
 }
 
 void SDLSoundInstance::RehupVolume()
@@ -211,28 +212,34 @@ bool SDLSoundInstance::Play(bool looping, bool autoRelease)
 	if (!mMixChunk)
 		return false;
 
-	mChannel = Mix_PlayChannel(-1, mMixChunk, (looping) ? -1 : 0);
+	const int aTargetChannel = (mReservedChannel >= 0 && mReservedChannel < MAX_CHANNELS) ? mReservedChannel : -1;
+	mChannel = Mix_PlayChannel(aTargetChannel, mMixChunk, (looping) ? -1 : 0);
 	if (mChannel != -1)
 	{
 		CreateSoundPitchHandler(mMixChunk, &mPitch, looping, 0);
 		Mix_RegisterEffect(mChannel, PitchHandlerFuncCallback, 0, &mPitchHandler);
 		return true;
 	}
+
+	mChannel = -1;
 	return false;
 }
 
 void SDLSoundInstance::Stop()
 {
-	if (mChannel != -1)
+	if (mChannel >= 0 && mChannel < MAX_CHANNELS)
 	{
+		// Detach pitch effect before halting to avoid callbacks touching a dying object.
+		Mix_UnregisterAllEffects(mChannel);
 		Mix_HaltChannel(mChannel);
-		mAutoRelease = false;
+		mChannel = -1;
 	}
+	mAutoRelease = false;
 }
 
 bool SDLSoundInstance::IsPlaying()
 {
-	if (!mMixChunk || !mHasPlayed || mChannel == -1)
+	if (!mMixChunk || !mHasPlayed || mChannel < 0 || mChannel >= MAX_CHANNELS)
 		return false;
 	return Mix_Playing(mChannel);
 }
