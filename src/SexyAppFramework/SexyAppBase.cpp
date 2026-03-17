@@ -287,6 +287,11 @@ SexyAppBase::SexyAppBase()
 	mRecommendedVidMemory3D = 14;
 	mRelaxUpdateBacklogCount = 0;
 	mWidescreenAware = false;
+#if defined(__IPHONEOS__) || (defined(__ANDROID__) && !defined(__TERMUX__)) || defined(__SWITCH__) || defined(__3DS__)
+	mStretchToFit = true;
+#else
+	mStretchToFit = false;
+#endif
 	mEnableWindowAspect = false;
 	mWindowAspect.Set(4, 3);
 	mIsWideWindow = false;
@@ -963,6 +968,7 @@ void SexyAppBase::WriteToRegistry()
 	RegistryWriteInteger("PreferredX", mPreferredX);
 	RegistryWriteInteger("PreferredY", mPreferredY);
 	RegistryWriteInteger("CustomCursors", mCustomCursorsEnabled ? 1 : 0);		
+	RegistryWriteBoolean("StretchToFit", mStretchToFit);
 	RegistryWriteInteger("InProgress", 0);
 	RegistryWriteBoolean("WaitForVSync", mWaitForVSync);	
 }
@@ -1210,7 +1216,10 @@ void SexyAppBase::ReadFromRegistry()
 	if (RegistryReadInteger("CustomCursors", &anInt))
 		EnableCustomCursors(anInt != 0);	
 			
-	RegistryReadBoolean("WaitForVSync", &mWaitForVSync);	
+	RegistryReadBoolean("WaitForVSync", &mWaitForVSync);
+#if !defined(__IPHONEOS__) && !(defined(__ANDROID__) && !defined(__TERMUX__)) && !defined(__SWITCH__) && !defined(__3DS__)
+	RegistryReadBoolean("StretchToFit", &mStretchToFit);
+#endif
 
 	if (RegistryReadInteger("InProgress", &anInt))
 		mLastShutdownWasGraceful = anInt == 0;

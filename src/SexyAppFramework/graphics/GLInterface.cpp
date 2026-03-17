@@ -1130,17 +1130,21 @@ void GLInterface::UpdateViewport()
 #endif
 
 	vw = width; vh = height;
+	mDisplayWidth = width; mDisplayHeight = height;
 
 	// Letterbox to 4:3
-	if (width * 3 > height * 4)
+	if (!mApp->mStretchToFit)
 	{
-		vw = height * 4 / 3;
-		vx = (width - vw) / 2;
-	}
-	else if (width * 3 < height * 4)
-	{
-		vh = width * 3 / 4;
-		vy = (height - vh) / 2;
+		if (width * 3 > height * 4)
+		{
+			vw = height * 4 / 3;
+			vx = (width - vw) / 2;
+		}
+		else if (width * 3 < height * 4)
+		{
+			vh = width * 3 / 4;
+			vy = (height - vh) / 2;
+		}
 	}
 
 	glViewport(vx, vy, vw, vh);

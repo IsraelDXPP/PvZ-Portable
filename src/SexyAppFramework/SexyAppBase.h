@@ -335,6 +335,7 @@ public:
 	uint32_t				mRecommendedVidMemory3D;
 
 	bool					mWidescreenAware;
+	bool					mStretchToFit;
 	Rect					mScreenBounds;
 	bool					mEnableWindowAspect;
 	Ratio					mWindowAspect;
