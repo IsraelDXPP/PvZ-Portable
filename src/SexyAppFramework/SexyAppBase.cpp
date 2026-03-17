@@ -1515,7 +1515,8 @@ void SexyAppBase::UpdateFrames()
 			++mFPSDirtyCount;
 	}
 
-	mMusicInterface->Update();	
+	if (mMusicInterface != nullptr)
+		mMusicInterface->Update();	
 	CleanSharedImages();
 }
 

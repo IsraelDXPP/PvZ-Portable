@@ -1,4 +1,4 @@
-﻿name: CI build
+name: CI build
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -48,15 +48,15 @@ jobs:
 
       - name: Create and push tag
         run: |
-          git tag ${{ steps.tag.outputs.tag }}
-          git push origin ${{ steps.tag.outputs.tag }}
+          git tag -f ${{ steps.tag.outputs.tag }}
+          git push origin ${{ steps.tag.outputs.tag }} --force
 
   build-archlinux:
     name: Build for Arch Linux (x86_64)
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -95,11 +95,13 @@ jobs:
 
           mkdir -p dist
           cp build/pvz-portable dist/
-          strip dist/pvz-portable
+          if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
+            strip dist/pvz-portable
+          fi
         '
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-archlinux
         path: dist/
@@ -108,7 +110,7 @@ jobs:
     name: Build for Windows (MSYS2 UCRT64)
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -138,10 +140,12 @@ jobs:
         
         mkdir -p dist
         cp build/pvz-portable.exe dist/
-        strip dist/pvz-portable.exe
+        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
+          strip dist/pvz-portable.exe
+        fi
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-windows-msys2-ucrt64
         path: dist/
@@ -150,7 +154,7 @@ jobs:
     name: Build for Windows (MSVC x64)
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -174,7 +178,7 @@ jobs:
         Copy-Item build/pvz-portable.exe dist/
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-windows-msvc-x64
         path: dist/
@@ -185,41 +189,43 @@ jobs:
      container:
        image: devkitpro/devkita64:latest
      steps:
-       - uses: actions/checkout@v6
+       - uses: actions/checkout@v4
          with:
            fetch-depth: 0
 
-       - name: Compile libopenmpt for Switch
-         shell: bash
+       - name: Install dependencies
          run: |
-           source $DEVKITPRO/switchvars.sh
-           git clone https://github.com/OpenMPT/openmpt
-           cd openmpt
-           make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
-
-       - name: Compile PvZ-Portable for Switch
-         shell: bash
+           sudo dkp-pacman -Syu --noconfirm
+           sudo dkp-pacman -S --noconfirm \
+             switch-sdl2 \
+             switch-libopenmpt \
+             switch-libogg \
+             switch-libvorbis \
+             switch-mpg123 \
+             switch-libpng \
+             switch-libjpeg-turbo \
+             switch-zlib \
+             switch-cmake \
+             ninja
+       - name: Build PvZ-Portable for Switch
          run: |
-           source $DEVKITPRO/switchvars.sh
            mkdir build
-           cd build
-           aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2 -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
-           make
-           aarch64-none-elf-strip pvz-portable.elf
+           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+           cmake --build build
 
        - name: Upload Artifact
-         uses: actions/upload-artifact@v7
+         uses: actions/upload-artifact@v4
          with:
            name: pvz-portable-switch
            path: |
-             ./build/pvz-portable.nro
-             ./build/pvz-portable.elf
+             build/pvz-portable.nro
+             build/pvz-portable.elf
 
   build-macos:
     name: Build for macOS (aarch64)
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -246,7 +252,9 @@ jobs:
         mkdir -p dist
         mkdir -p dist/libs
         cp build/pvz-portable dist/
-        strip -x dist/pvz-portable
+        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
+          strip -x dist/pvz-portable
+        fi
 
         echo "Bundling dependencies..."
         dylibbundler -of -b -x dist/pvz-portable -d dist/libs -p @executable_path/libs/
@@ -254,7 +262,7 @@ jobs:
         codesign --force --deep -s - dist/pvz-portable
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-macos
         path: dist/
@@ -263,7 +271,7 @@ jobs:
     name: Build for Android (arm64-v8a)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -358,11 +366,12 @@ jobs:
           [ -f "$so" ] && cp -L "$so" $JNILIBS/
         done
 
-        # Strip debug symbols to reduce APK size
-        STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-        for so in "$JNILIBS"/*.so; do
-          "$STRIP" --strip-unneeded "$so"
-        done
+        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
+          STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+          for so in "$JNILIBS"/*.so; do
+            "$STRIP" --strip-unneeded "$so"
+          done
+        fi
 
         echo "Collected .so files:"
         ls -lh $JNILIBS/
@@ -382,7 +391,7 @@ jobs:
         find android -name "*.apk" -path "*/release/*" -exec cp {} dist/pvz-portable-android-arm64-v8a.apk \;
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-android
         path: dist/
@@ -393,7 +402,7 @@ jobs:
     env:
       IOS_DEPLOY_TARGET: "15.0"
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -432,7 +441,7 @@ jobs:
         rm -rf Payload
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-ios
         path: dist/
@@ -441,7 +450,7 @@ jobs:
     name: Build for WebAssembly (Emscripten)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -484,7 +493,7 @@ jobs:
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: pvz-portable-wasm
         path: |
@@ -534,6 +543,10 @@ jobs:
           cd artifacts/pvz-portable-wasm
           zip -r ../../release_files/pvz-portable-wasm.zip .
           cd ../..
+
+          echo "Preparing Switch files..."
+          mv artifacts/pvz-portable-switch/pvz-portable.nro release_files/pvz-portable.nro
+          mv artifacts/pvz-portable-switch/pvz-portable.elf release_files/pvz-portable.elf
 
           echo "Final files:"
           ls -lh release_files/

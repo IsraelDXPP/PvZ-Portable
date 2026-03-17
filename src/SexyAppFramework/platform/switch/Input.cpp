@@ -117,7 +117,7 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 
 		for (auto& k : keyMaps)
 		{
-			if (kDown & k.first)
+			if (kUp & k.first)
 				mWidgetManager->KeyUp(k.second);
 		}
 	}
