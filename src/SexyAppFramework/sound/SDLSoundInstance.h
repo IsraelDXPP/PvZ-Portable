@@ -62,6 +62,7 @@ protected:
 	bool					mAutoRelease;
 	bool					mHasPlayed;
 	bool					mReleased;
+	int						mReservedChannel;
 	int						mChannel;
 
 	int						mBasePan;
@@ -83,7 +84,7 @@ protected:
 	static void				PitchHandlerFuncCallback(int mix_channel, void* stream, int length, void* user_data);
 
 public:
-	SDLSoundInstance(SDLSoundManager* theSoundManager, Mix_Chunk* theSourceSound);
+	SDLSoundInstance(SDLSoundManager* theSoundManager, Mix_Chunk* theSourceSound, int theReservedChannel = -1);
 	virtual ~SDLSoundInstance();
 	virtual void			Release();
 		

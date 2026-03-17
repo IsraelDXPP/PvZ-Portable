@@ -695,26 +695,36 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 
 	Image* aImage = aTransform.mImage;
 	ReanimAtlasImage* aAtlasImage = nullptr;
-	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)  // 如果 atlas 存在且当前变换存在图像（aTransform.mImage 实际为整数型的图集编号）
+	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
-		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // 取得相应的图集数据
-		if (aAtlasImage != nullptr)  // 如果是合法的图集编号，成功取得对应指针
+		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
+		if (aTrackInstance->mImageOverride != nullptr)
 		{
-			aImage = aAtlasImage->mOriginalImage;  // 将真正的 Sexy::Image* 类型的贴图赋值给 aImage
+			aImage = aTrackInstance->mImageOverride;
+			aAtlasImage = nullptr;
 		}
-		if (aTrackInstance->mImageOverride != nullptr)  // 如果目标轨道存在覆写贴图
+		else if (aAtlasImage == nullptr)
 		{
-			aAtlasImage = nullptr;  // 不使用图集
+			aImage = nullptr;  // Invalid encoded handle; never treat it as a raw Image*.
 		}
+	}
+	else if (aTrackInstance->mImageOverride != nullptr)
+	{
+		aImage = aTrackInstance->mImageOverride;
 	}
 	SexyMatrix3 aMatrix;
 	bool aFullScreen = false;
-	if (aImage != nullptr)  // 如果存在贴图。此处若上一步中图集编号非法，则可能导致崩溃
+	if (aAtlasImage != nullptr)
+	{
+		aMatrix.LoadIdentity();
+		SexyMatrix3Translation(aMatrix, aAtlasImage->mWidth * 0.5f, aAtlasImage->mHeight * 0.5f);  // Use atlas metadata for pivot sizing.
+	}
+	else if (aImage != nullptr)
 	{
 		int aCelWidth = aImage->GetCelWidth();
 		int aCelHeight = aImage->GetCelHeight();
 		aMatrix.LoadIdentity();
-		SexyMatrix3Translation(aMatrix, aCelWidth * 0.5f, aCelHeight * 0.5f);  // 将矩阵变换的坐标设定在贴图的中心位置
+		SexyMatrix3Translation(aMatrix, aCelWidth * 0.5f, aCelHeight * 0.5f);
 	}
 	else if (aTransform.mFont != nullptr && *aTransform.mText != '\0')  // 如果存在字体且文本不为空
 	{
@@ -757,19 +767,16 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 				g, FilterEffectGetImage(aImage, FilterEffect::FILTER_EFFECT_WHITE), aMatrix, aClipRect, aExtraOverlayColor, Graphics::DRAWMODE_NORMAL, aSrcRect);
 		}
 	}
-	else if (aImage != nullptr)  // 如果不存在 atlas 但轨道变换存在图像
+	else if (aImage != nullptr)
 	{
-		if (aTrackInstance->mImageOverride != nullptr)  // 如果轨道存在覆写贴图
+		if (mFilterEffect != FilterEffect::FILTER_EFFECT_NONE)
 		{
-			aImage = aTrackInstance->mImageOverride;  // 将贴图替换为覆写贴图
+			aImage = FilterEffectGetImage(aImage, mFilterEffect);
 		}
-		if (mFilterEffect != FilterEffect::FILTER_EFFECT_NONE)  // 如果动画存在滤镜
-		{
-			aImage = FilterEffectGetImage(aImage, mFilterEffect);  // 将贴图替换为滤镜后的贴图
-		}
+
 		while (aImageFrame >= aImage->mNumCols)
 		{
-			aImageFrame -= aImage->mNumCols;  // 确保绘制的列数不会超过贴图最后一列
+			aImageFrame -= aImage->mNumCols;
 		}
 
 		int aCelWidth = aImage->GetCelWidth();
@@ -810,15 +817,18 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 Image* Reanimation::GetCurrentTrackImage(const char* theTrackName)
 {
 	int aTrackIndex = FindTrackIndex(theTrackName);
+	ReanimatorTrackInstance* aTrackInstance = &mTrackInstances[aTrackIndex];
+	if (aTrackInstance->mImageOverride != nullptr)
+		return aTrackInstance->mImageOverride;
+
 	ReanimatorTransform aTransform;
 	GetCurrentTransform(aTrackIndex, &aTransform);
 
 	Image* aImage = aTransform.mImage;
-	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)  // 如果存在图集且存在图像（否则返回的 aImage 为 nullptr）
+	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr && mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage) != nullptr)
 	{
-		ReanimAtlasImage* aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // 取得相应的图集数据
-		if (aAtlasImage != nullptr)
-			aImage = aAtlasImage->mOriginalImage;  // 返回图集对应的原贴图
+		// Encoded atlas handles do not map to stable source-image pointers at runtime.
+		aImage = nullptr;
 	}
 	return aImage;
 }
@@ -831,19 +841,29 @@ void Reanimation::GetTrackMatrix(int theTrackIndex, SexyTransform2D& theMatrix)
 	GetCurrentTransform(theTrackIndex, &aTransform);
 	int aImageFrame = FloatRoundToInt(aTransform.mFrame);
 	Image* aImage = aTransform.mImage;
-	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)  // 如果存在图集且存在图像（否则返回的 aImage 为 nullptr）
+	ReanimAtlasImage* aAtlasImage = nullptr;
+	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
-		ReanimAtlasImage* aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // 取得相应的图集数据
-		if (aAtlasImage != nullptr)
-			aImage = aAtlasImage->mOriginalImage;  // 返回图集对应的原贴图
+		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
+		if (aAtlasImage == nullptr)
+			aImage = nullptr;  // Invalid encoded handle; keep non-atlas path safe.
+	}
+	if (aTrackInstance->mImageOverride != nullptr)
+	{
+		aImage = aTrackInstance->mImageOverride;
+		aAtlasImage = nullptr;
 	}
 
 	theMatrix.LoadIdentity();
-	if (aImage != nullptr && aImageFrame >= 0)
+	if (aAtlasImage != nullptr && aImageFrame >= 0)
+	{
+		SexyMatrix3Translation(theMatrix, aAtlasImage->mWidth * 0.5f, aAtlasImage->mHeight * 0.5f);
+	}
+	else if (aImage != nullptr && aImageFrame >= 0)
 	{
 		int aCelWidth = aImage->GetCelWidth();
 		int aCelHeight = aImage->GetCelHeight();
-		SexyMatrix3Translation(theMatrix, aCelWidth * 0.5f, aCelHeight * 0.5f);  // 将矩阵变换的坐标设定在贴图的中心位置
+		SexyMatrix3Translation(theMatrix, aCelWidth * 0.5f, aCelHeight * 0.5f);
 	}
 	else if (aTransform.mFont != nullptr && *aTransform.mText != '\0')
 		SexyMatrix3Translation(theMatrix, 0.0f, aTransform.mFont->mAscent);
