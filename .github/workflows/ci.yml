@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,6 +18,8 @@ jobs:
   auto-tag:
     name: Generate Auto Tag
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -25,9 +30,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Determine next tag
+      - id: tag
+        name: Determine next tag
         run: |
           LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+
           if [ -z "$LAST_TAG" ]; then
             NEXT_TAG="v1.0.0"
           else
@@ -35,12 +42,13 @@ jobs:
             PATCH=$((PATCH + 1))
             NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
           fi
-          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+
+          echo "tag=$NEXT_TAG" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
         run: |
-          git tag $NEXT_TAG
-          git push origin $NEXT_TAG
+          git tag ${{ steps.tag.outputs.tag }}
+          git push origin ${{ steps.tag.outputs.tag }}
 
   build-archlinux:
     name: Build for Arch Linux (x86_64)
@@ -81,7 +89,7 @@ jobs:
       run: |
         sudo -u builder bash -lc '
           mkdir build
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
           cmake --build build
 
           mkdir -p dist
@@ -124,7 +132,7 @@ jobs:
       shell: msys2 {0}
       run: |
         mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
         
         mkdir -p dist
@@ -158,7 +166,7 @@ jobs:
     - name: Compile PvZ-Portable for Windows (MSVC)
       shell: pwsh
       run: |
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
         New-Item -ItemType Directory -Force -Path dist | Out-Null
@@ -194,7 +202,7 @@ jobs:
            source $DEVKITPRO/switchvars.sh
            mkdir build
            cd build
-           aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2
+           aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2 -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
            make
            aarch64-none-elf-strip pvz-portable.elf
 
@@ -231,7 +239,7 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
         mkdir -p dist
@@ -330,7 +338,8 @@ jobs:
           -DANDROID_ABI=$ABI \
           -DANDROID_PLATFORM=android-$ANDROID_API \
           -DSDL2_DIR=$SDL2_PREFIX/lib/cmake/SDL2 \
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=Release \
+          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
 
         cmake --build $BUILD_DIR -j$(nproc)
 
@@ -404,6 +413,7 @@ jobs:
           -DCMAKE_OSX_DEPLOYMENT_TARGET=$IOS_DEPLOY_TARGET \
           -DCMAKE_OSX_ARCHITECTURES=arm64 \
           -DCMAKE_BUILD_TYPE=Release \
+          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} \
           -G Xcode
 
         cmake --build $BUILD_DIR --config Release -- \
@@ -469,7 +479,7 @@ jobs:
     - name: Build PvZ-Portable for WebAssembly
       run: |
         mkdir build-wasm
-        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF
+        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact
@@ -483,7 +493,7 @@ jobs:
 
   release:
     name: Release
-    needs: ['auto-tag','build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-switch', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
+    needs: ['auto-tag', 'build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-switch', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -530,7 +540,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.NEXT_TAG }}
+          tag_name: ${{ needs.auto-tag.outputs.tag }}
           files: release_files/*
           generate_release_notes: true
           draft: false
