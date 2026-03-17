@@ -5253,8 +5253,7 @@ void Zombie::UpdateReanim()
         if (GetBodyDamageIndex() == 2 || mZombiePhase == ZombiePhase::PHASE_ZOMBIE_DYING)
         {
             Reanimation* aReanim = mApp->ReanimationGet(mBodyReanimID);
-            Image* aPoleImage = aReanim->GetCurrentTrackImage("Zombie_catapult_pole");
-            if (aPoleImage == IMAGE_REANIM_ZOMBIE_CATAPULT_POLE_WITHBALL && mSummonCounter != 0)
+            if (mSummonCounter != 0)  // Non-zero means the catapult still carries balls.
             {
                 aReanim->SetImageOverride("Zombie_catapult_pole", IMAGE_REANIM_ZOMBIE_CATAPULT_POLE_DAMAGE_WITHBALL);
             }
