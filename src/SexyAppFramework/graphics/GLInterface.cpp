@@ -22,7 +22,9 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef NINTENDO_SWITCH
 #define GLAD_GLES2_IMPLEMENTATION
+#endif
 #include "graphics/GLPlatform.h"
 
 #ifndef NINTENDO_SWITCH
