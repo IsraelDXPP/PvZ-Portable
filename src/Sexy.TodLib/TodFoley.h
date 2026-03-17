@@ -27,7 +27,7 @@
 #include "sound/SDLSoundInstance.h"
 using namespace Sexy;
 
-#define MAX_FOLEY_TYPES 110
+#define MAX_FOLEY_TYPES 160
 #define MAX_FOLEY_INSTANCES 8
 
 // ######################################################################################################################################################
