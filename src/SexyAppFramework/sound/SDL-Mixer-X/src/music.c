@@ -877,7 +877,9 @@ void SDLCALL multi_music_mixer(void *udata, Uint8 *stream, int len)
             _Mix_MultiMusic_Remove(m);
             if (m && m->free_on_stop) {
                 _Mix_remove_all_mus_effects(m, &m->effects);
-                m->interface->Delete(m->context);
+                if (m->interface->Delete) {
+                    m->interface->Delete(m->context);
+                }
                 SDL_free(m);
             }
             i--;
@@ -2140,7 +2142,12 @@ static int music_internal_play(Mix_Music *music, int play_count, double position
     music_internal_initialize_volume();
 
     /* Set up for playback */
-    retval = music->interface->Play(music->context, play_count);
+    if (music->interface->Play) {
+        retval = music->interface->Play(music->context, play_count);
+    } else {
+        Mix_SetError("Play not implemented for music type");
+        retval = -1;
+    }
 
     /* Set the playback position, note any errors if an offset is used */
     if (retval == 0) {
@@ -2257,7 +2264,12 @@ static int music_internal_play_stream(Mix_Music *music, int play_count, double p
     music_internal_initialize_volume_stream(music);
 
     /* Set up for playback */
-    retval = music->interface->Play(music->context, play_count);
+    if (music->interface->Play) {
+        retval = music->interface->Play(music->context, play_count);
+    } else {
+        Mix_SetError("Play not implemented for music type");
+        retval = -1;
+    }
 
     /* Set the playback position, note any errors if an offset is used */
     if (retval == 0) {
