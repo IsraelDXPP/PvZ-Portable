@@ -32,6 +32,8 @@
 #include "../../Sexy.TodLib/TodFoley.h"
 #include "widget/Slider.h"
 #include "widget/Checkbox.h"
+#include "graphics/GLInterface.h"
+#include "widget/WidgetManager.h"
 #include "../../Sexy.TodLib/TodStringFile.h"
 
 using namespace Sexy;
