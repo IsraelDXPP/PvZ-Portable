@@ -25,9 +25,10 @@ on:
           - ON
           - OFF
 
+# Variables globales - Cambia aquí para controlar todos los builds
 env:
-  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
-  PVZ_DEBUG: ${{ github.event.inputs.pvz_debug || 'OFF' }}
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}  # Release (optimizado) o Debug (con símbolos)
+  PVZ_DEBUG: ${{ github.event.inputs.pvz_debug || 'OFF' }}        # ON para logs en runtime, OFF para silencio
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -649,7 +650,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && env.BUILD_TYPE == 'Release' && env.PVZ_DEBUG == 'OFF'
+    # CORREGIDO: No se puede usar env en if, usamos github.event.inputs
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.event.inputs.build_type == 'Release' && github.event.inputs.pvz_debug == 'OFF'
     steps:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
