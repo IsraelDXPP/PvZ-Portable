@@ -194,8 +194,6 @@ jobs:
 
        - name: Install dependencies
          run: |
-           sudo sed -i 's/https/http/g' /etc/pacman.d/devkitpro-mirrors || true
-           sudo dkp-pacman -Sy --noconfirm
            sudo dkp-pacman -S --noconfirm \
              switch-sdl2 \
              switch-libopenmpt \
