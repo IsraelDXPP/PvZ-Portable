@@ -6,9 +6,28 @@ on:
     tags: [ "*" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Tipo de build (Release/Debug)'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+      pvz_debug:
+        description: 'PVZ_DEBUG (ON/OFF)'
+        required: true
+        default: 'OFF'
+        type: choice
+        options:
+          - ON
+          - OFF
 
 env:
-  PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+  PVZ_DEBUG: ${{ github.event.inputs.pvz_debug || 'OFF' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -59,6 +78,18 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Cache para Arch Linux
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          ~/.cache/pacman
+        key: archlinux-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          archlinux-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          archlinux-
+
     - name: Install Base Dependencies
       run: |
         pacman -Syu --noconfirm
@@ -88,19 +119,23 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         sudo -u builder bash -lc '
-          mkdir build
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          mkdir -p build
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
           cmake --build build
 
           mkdir -p dist
           cp build/pvz-portable dist/
-          strip dist/pvz-portable
+          
+          # Solo strip en Release (en Debug queremos mantener símbolos)
+          if [ "${{ env.BUILD_TYPE }}" = "Release" ]; then
+            strip dist/pvz-portable
+          fi
         '
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-archlinux
+        name: pvz-portable-archlinux-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-windows-msys2-ucrt64:
@@ -110,6 +145,18 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para MSYS2
+    - name: Cache MSYS2 packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          C:\tools\msys64\var\cache\pacman\pkg
+          build
+        key: msys2-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          msys2-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          msys2-
 
     - uses: msys2/setup-msys2@v2
       with:
@@ -131,18 +178,22 @@ jobs:
     - name: Compile PvZ-Portable for Windows
       shell: msys2 {0}
       run: |
-        mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        mkdir -p build
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
         
         mkdir -p dist
         cp build/pvz-portable.exe dist/
-        strip dist/pvz-portable.exe
+        
+        # Solo strip en Release
+        if [ "${{ env.BUILD_TYPE }}" = "Release" ]; then
+          strip dist/pvz-portable.exe
+        fi
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-windows-msys2-ucrt64
+        name: pvz-portable-windows-msys2-ucrt64-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-windows-msvc-x64:
@@ -152,6 +203,18 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para MSVC
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          ~\.cache\vcpkg
+        key: msvc-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'vcpkg.json') }}
+        restore-keys: |
+          msvc-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          msvc-
 
     - uses: ilammy/msvc-dev-cmd@v1
 
@@ -166,7 +229,7 @@ jobs:
     - name: Compile PvZ-Portable for Windows (MSVC)
       shell: pwsh
       run: |
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
         New-Item -ItemType Directory -Force -Path dist | Out-Null
@@ -175,44 +238,63 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-windows-msvc-x64
+        name: pvz-portable-windows-msvc-x64-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-switch:
-     name: Build for Switch
-     runs-on: ubuntu-latest
-     container:
-       image: devkitpro/devkita64:latest
-     steps:
-       - uses: actions/checkout@v6
-         with:
-           fetch-depth: 0
+    name: Build for Switch
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
 
-       - name: Compile libopenmpt for Switch
-         shell: bash
-         run: |
-           source $DEVKITPRO/switchvars.sh
-           git clone https://github.com/OpenMPT/openmpt
-           cd openmpt
-           make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
+    # Cache para Switch
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          openmpt
+        key: switch-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          switch-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          switch-
 
-       - name: Compile PvZ-Portable for Switch
-         shell: bash
-         run: |
-           source $DEVKITPRO/switchvars.sh
-           mkdir build
-           cd build
-           aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2 -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
-           make
-           aarch64-none-elf-strip pvz-portable.elf
+    - name: Compile libopenmpt for Switch
+      shell: bash
+      run: |
+        source $DEVKITPRO/switchvars.sh
+        if [ ! -d "openmpt" ]; then
+          git clone https://github.com/OpenMPT/openmpt
+          cd openmpt
+          make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install
+        else
+          echo "libopenmpt ya existe, saltando compilación"
+        fi
 
-       - name: Upload Artifact
-         uses: actions/upload-artifact@v7
-         with:
-           name: pvz-portable-switch
-           path: |
-             ./build/pvz-portable.nro
-             ./build/pvz-portable.elf
+    - name: Compile PvZ-Portable for Switch
+      shell: bash
+      run: |
+        source $DEVKITPRO/switchvars.sh
+        mkdir -p build
+        cd build
+        aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        make
+        # Solo strip en Release
+        if [ "${{ env.BUILD_TYPE }}" = "Release" ]; then
+          aarch64-none-elf-strip pvz-portable.elf
+        fi
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: pvz-portable-switch-${{ env.BUILD_TYPE }}
+        path: |
+          ./build/pvz-portable.nro
+          ./build/pvz-portable.elf
 
   build-macos:
     name: Build for macOS (aarch64)
@@ -221,6 +303,18 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para macOS
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          ~/Library/Caches/Homebrew
+        key: macos-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          macos-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          macos-
 
     - name: Install Dependencies
       run: |
@@ -238,14 +332,18 @@ jobs:
 
     - name: Build PvZ-Portable
       run: |
-        mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        mkdir -p build
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
         mkdir -p dist
         mkdir -p dist/libs
         cp build/pvz-portable dist/
-        strip -x dist/pvz-portable
+        
+        # Solo strip en Release
+        if [ "${{ env.BUILD_TYPE }}" = "Release" ]; then
+          strip -x dist/pvz-portable
+        fi
 
         echo "Bundling dependencies..."
         dylibbundler -of -b -x dist/pvz-portable -d dist/libs -p @executable_path/libs/
@@ -255,7 +353,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-macos
+        name: pvz-portable-macos-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-android:
@@ -265,6 +363,20 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para Android
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build-android-*
+          sdl2-src
+          sdl2-android
+          ~/.gradle/caches
+        key: android-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'vcpkg.json', 'android/**') }}
+        restore-keys: |
+          android-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          android-
 
     - name: Set up JDK
       uses: actions/setup-java@v5
@@ -292,15 +404,19 @@ jobs:
 
     - name: Download SDL2 Source
       run: |
-        SDL2_TAG=$(git ls-remote --tags https://github.com/libsdl-org/SDL.git 'refs/tags/release-2.*' \
-          | sed 's|.*refs/tags/release-||' | sort -V | tail -1)
-        if [ -z "$SDL2_TAG" ]; then
-          SDL2_TAG="2.32.10" # Fallback to a known stable version if tag retrieval fails
+        if [ ! -d "sdl2-src" ]; then
+          SDL2_TAG=$(git ls-remote --tags https://github.com/libsdl-org/SDL.git 'refs/tags/release-2.*' \
+            | sed 's|.*refs/tags/release-||' | sort -V | tail -1)
+          if [ -z "$SDL2_TAG" ]; then
+            SDL2_TAG="2.32.10" # Fallback to a known stable version if tag retrieval fails
+          fi
+          echo "Using SDL2 version: $SDL2_TAG"
+          wget -q "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_TAG}/SDL2-${SDL2_TAG}.tar.gz"
+          tar xf "SDL2-${SDL2_TAG}.tar.gz"
+          mv "SDL2-${SDL2_TAG}" sdl2-src
+        else
+          echo "SDL2 source ya existe, saltando descarga"
         fi
-        echo "Using SDL2 version: $SDL2_TAG"
-        wget -q "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_TAG}/SDL2-${SDL2_TAG}.tar.gz"
-        tar xf "SDL2-${SDL2_TAG}.tar.gz"
-        mv "SDL2-${SDL2_TAG}" sdl2-src
 
     - name: Setup vcpkg
       uses: lukka/run-vcpkg@v11
@@ -309,19 +425,23 @@ jobs:
 
     - name: Build SDL2 Shared Library
       run: |
-        # On Android, SDL2 MUST be a shared library because the Java-side
-        # SDLActivity loads it via System.loadLibrary("SDL2").
-        cmake -B build-sdl2 \
-          -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-          -DANDROID_ABI=arm64-v8a \
-          -DANDROID_PLATFORM=android-28 \
-          -DSDL_SHARED=ON \
-          -DSDL_STATIC=OFF \
-          -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/sdl2-android \
-          -DCMAKE_BUILD_TYPE=Release \
-          sdl2-src
-        cmake --build build-sdl2 -j$(nproc)
-        cmake --install build-sdl2
+        if [ ! -d "sdl2-android" ]; then
+          # On Android, SDL2 MUST be a shared library because the Java-side
+          # SDLActivity loads it via System.loadLibrary("SDL2").
+          cmake -B build-sdl2 \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-28 \
+            -DSDL_SHARED=ON \
+            -DSDL_STATIC=OFF \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/sdl2-android \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            sdl2-src
+          cmake --build build-sdl2 -j$(nproc)
+          cmake --install build-sdl2
+        else
+          echo "SDL2 ya compilada, saltando"
+        fi
 
     - name: Build Native Library with CMake
       run: |
@@ -338,7 +458,7 @@ jobs:
           -DANDROID_ABI=$ABI \
           -DANDROID_PLATFORM=android-$ANDROID_API \
           -DSDL2_DIR=$SDL2_PREFIX/lib/cmake/SDL2 \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
 
         cmake --build $BUILD_DIR -j$(nproc)
@@ -357,11 +477,13 @@ jobs:
           [ -f "$so" ] && cp -L "$so" $JNILIBS/
         done
 
-        # Strip debug symbols to reduce APK size
-        STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-        for so in "$JNILIBS"/*.so; do
-          "$STRIP" --strip-unneeded "$so"
-        done
+        # Strip debug symbols solo en Release
+        if [ "${{ env.BUILD_TYPE }}" = "Release" ]; then
+          STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+          for so in "$JNILIBS"/*.so; do
+            "$STRIP" --strip-unneeded "$so"
+          done
+        fi
 
         echo "Collected .so files:"
         ls -lh $JNILIBS/
@@ -373,17 +495,18 @@ jobs:
 
         # Use gradle wrapper; package pre-built native libraries into a release APK (debug-signed)
         gradle wrapper
-        ./gradlew assembleRelease -PusePrebuiltLibs=true --no-daemon
+        ./gradlew assemble${{ env.BUILD_TYPE }} -PusePrebuiltLibs=true --no-daemon
 
     - name: Copy APK
       run: |
         mkdir -p dist
-        find android -name "*.apk" -path "*/release/*" -exec cp {} dist/pvz-portable-android-arm64-v8a.apk \;
+        BUILD_TYPE_LOWER=$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')
+        find android -name "*.apk" -path "*/$BUILD_TYPE_LOWER/*" -exec cp {} dist/pvz-portable-android-arm64-v8a-${{ env.BUILD_TYPE }}.apk \;
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-android
+        name: pvz-portable-android-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-ios:
@@ -395,6 +518,18 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para iOS
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build-ios
+          ~/Library/Caches/Homebrew
+        key: ios-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'vcpkg.json', 'ios/**') }}
+        restore-keys: |
+          ios-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          ios-
 
     - name: Setup vcpkg
       uses: lukka/run-vcpkg@v11
@@ -412,28 +547,28 @@ jobs:
           -DCMAKE_SYSTEM_NAME=iOS \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=$IOS_DEPLOY_TARGET \
           -DCMAKE_OSX_ARCHITECTURES=arm64 \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} \
           -G Xcode
 
-        cmake --build $BUILD_DIR --config Release -- \
+        cmake --build $BUILD_DIR --config ${{ env.BUILD_TYPE }} -- \
           -sdk iphoneos \
           CODE_SIGN_IDENTITY="-" \
           CODE_SIGNING_ALLOWED=NO
 
     - name: Create unsigned IPA
       run: |
-        APP_PATH=$(find build-ios -name "pvz-portable.app" -path "*Release*" | head -1)
+        APP_PATH=$(find build-ios -name "pvz-portable.app" -path "*${{ env.BUILD_TYPE }}*" | head -1)
         mkdir -p dist/Payload
         cp -R "$APP_PATH" dist/Payload/
         cd dist
-        zip -r -y pvz-portable-ios-arm64.ipa Payload/
+        zip -r -y pvz-portable-ios-arm64-${{ env.BUILD_TYPE }}.ipa Payload/
         rm -rf Payload
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-ios
+        name: pvz-portable-ios-${{ env.BUILD_TYPE }}
         path: dist/
 
   build-wasm:
@@ -443,6 +578,19 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
+
+    # Cache para WASM
+    - name: Cache build files
+      uses: actions/cache@v4
+      with:
+        path: |
+          build-wasm
+          /tmp/libopenmpt-src
+          ~/.emscripten_cache
+        key: wasm-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          wasm-${{ env.BUILD_TYPE }}-${{ env.PVZ_DEBUG }}-
+          wasm-
 
     - name: Setup Emscripten
       uses: mymindstorm/setup-emsdk@v14
@@ -455,37 +603,41 @@ jobs:
     - name: Build libopenmpt for Emscripten
       run: |
         SYSROOT="$(em-config EMSCRIPTEN_ROOT)/cache/sysroot"
-        OPENMPT_TAG=$(git ls-remote --tags https://github.com/OpenMPT/openmpt.git 'refs/tags/libopenmpt-*' \
-          | grep -v '\^{}' | sed 's|.*refs/tags/libopenmpt-||' \
-          | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
-        if [ -z "$OPENMPT_TAG" ]; then
-          OPENMPT_TAG="0.8.4" # Fallback to a known stable version if tag retrieval fails
+        if [ ! -d "/tmp/libopenmpt-src" ]; then
+          OPENMPT_TAG=$(git ls-remote --tags https://github.com/OpenMPT/openmpt.git 'refs/tags/libopenmpt-*' \
+            | grep -v '\^{}' | sed 's|.*refs/tags/libopenmpt-||' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$OPENMPT_TAG" ]; then
+            OPENMPT_TAG="0.8.4" # Fallback to a known stable version if tag retrieval fails
+          fi
+          echo "Using libopenmpt version: $OPENMPT_TAG"
+          git clone --depth=1 --branch "libopenmpt-${OPENMPT_TAG}" https://github.com/OpenMPT/openmpt.git /tmp/libopenmpt-src
+          cd /tmp/libopenmpt-src
+          emmake make CONFIG=emscripten \
+            STATIC_LIB=1 SHARED_LIB=0 \
+            EXAMPLES=0 OPENMPT123=0 TEST=0 \
+            NO_ZLIB=1 NO_MPG123=1 NO_OGG=1 NO_VORBIS=1 NO_VORBISFILE=1 \
+            NO_PORTAUDIO=1 NO_PORTAUDIOCPP=1 NO_PULSEAUDIO=1 \
+            NO_SDL2=1 NO_FLAC=1 NO_SNDFILE=1 \
+            -j$(nproc)
+          emmake make CONFIG=emscripten \
+            STATIC_LIB=1 SHARED_LIB=0 \
+            EXAMPLES=0 OPENMPT123=0 TEST=0 \
+            PREFIX="${SYSROOT}" install
+        else
+          echo "libopenmpt ya compilado, saltando"
         fi
-        echo "Using libopenmpt version: $OPENMPT_TAG"
-        git clone --depth=1 --branch "libopenmpt-${OPENMPT_TAG}" https://github.com/OpenMPT/openmpt.git /tmp/libopenmpt-src
-        cd /tmp/libopenmpt-src
-        emmake make CONFIG=emscripten \
-          STATIC_LIB=1 SHARED_LIB=0 \
-          EXAMPLES=0 OPENMPT123=0 TEST=0 \
-          NO_ZLIB=1 NO_MPG123=1 NO_OGG=1 NO_VORBIS=1 NO_VORBISFILE=1 \
-          NO_PORTAUDIO=1 NO_PORTAUDIOCPP=1 NO_PULSEAUDIO=1 \
-          NO_SDL2=1 NO_FLAC=1 NO_SNDFILE=1 \
-          -j$(nproc)
-        emmake make CONFIG=emscripten \
-          STATIC_LIB=1 SHARED_LIB=0 \
-          EXAMPLES=0 OPENMPT123=0 TEST=0 \
-          PREFIX="${SYSROOT}" install
 
     - name: Build PvZ-Portable for WebAssembly
       run: |
-        mkdir build-wasm
-        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        mkdir -p build-wasm
+        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: pvz-portable-wasm
+        name: pvz-portable-wasm-${{ env.BUILD_TYPE }}
         path: |
           build-wasm/pvz-portable.html
           build-wasm/pvz-portable.js
@@ -497,6 +649,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && env.BUILD_TYPE == 'Release' && env.PVZ_DEBUG == 'OFF'
     steps:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
@@ -508,29 +661,29 @@ jobs:
           mkdir -p release_files
 
           echo "Preparing Arch Linux file..."
-          chmod +x artifacts/pvz-portable-archlinux/pvz-portable
-          mv artifacts/pvz-portable-archlinux/pvz-portable release_files/pvz-portable-archlinux-x86_64
+          chmod +x artifacts/pvz-portable-archlinux-Release/pvz-portable
+          mv artifacts/pvz-portable-archlinux-Release/pvz-portable release_files/pvz-portable-archlinux-x86_64
 
           echo "Preparing Windows MSVC file..."
-          mv artifacts/pvz-portable-windows-msvc-x64/pvz-portable.exe release_files/pvz-portable-windows-msvc-x64-static.exe
+          mv artifacts/pvz-portable-windows-msvc-x64-Release/pvz-portable.exe release_files/pvz-portable-windows-msvc-x64-static.exe
 
           echo "Preparing Windows MSYS2 file..."
-          mv artifacts/pvz-portable-windows-msys2-ucrt64/pvz-portable.exe release_files/pvz-portable-windows-ucrt64-static.exe
+          mv artifacts/pvz-portable-windows-msys2-ucrt64-Release/pvz-portable.exe release_files/pvz-portable-windows-ucrt64-static.exe
 
           echo "Preparing macOS file..."
-          cd artifacts/pvz-portable-macos
+          cd artifacts/pvz-portable-macos-Release
           chmod +x pvz-portable
           zip -r -y ../../release_files/pvz-portable-macos-aarch64.zip .
           cd ../..
 
           echo "Preparing Android file..."
-          mv artifacts/pvz-portable-android/pvz-portable-android-arm64-v8a.apk release_files/pvz-portable-android-arm64-v8a.apk
+          mv artifacts/pvz-portable-android-Release/pvz-portable-android-arm64-v8a-Release.apk release_files/pvz-portable-android-arm64-v8a.apk
 
           echo "Preparing iOS file..."
-          mv artifacts/pvz-portable-ios/pvz-portable-ios-arm64.ipa release_files/pvz-portable-ios-arm64.ipa
+          mv artifacts/pvz-portable-ios-Release/pvz-portable-ios-arm64-Release.ipa release_files/pvz-portable-ios-arm64.ipa
 
           echo "Preparing WebAssembly file..."
-          cd artifacts/pvz-portable-wasm
+          cd artifacts/pvz-portable-wasm-Release
           zip -r ../../release_files/pvz-portable-wasm.zip .
           cd ../..
 
