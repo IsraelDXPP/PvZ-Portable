@@ -27,6 +27,65 @@
 #include "EffectSystem.h"
 #include "graphics/Graphics.h"
 
+static void PruneDeadEffects(Attachment* theAttachment)
+{
+	TOD_ASSERT(gEffectSystem);
+	TOD_ASSERT(theAttachment);
+
+	for (int i = 0; i < theAttachment->mNumEffects;)
+	{
+		AttachEffect* aAttachEffect = &theAttachment->mEffectArray[i];
+		bool aStillAlive = false;
+		switch (aAttachEffect->mEffectType)
+		{
+		case EffectType::EFFECT_PARTICLE:
+		{
+			TodParticleSystem* aParticleSystem = gEffectSystem->mParticleHolder->mParticleSystems.DataArrayTryToGet(aAttachEffect->mEffectID);
+			aStillAlive = (aParticleSystem != nullptr && !aParticleSystem->mDead);
+			break;
+		}
+		case EffectType::EFFECT_TRAIL:
+		{
+			Trail* aTrail = gEffectSystem->mTrailHolder->mTrails.DataArrayTryToGet(aAttachEffect->mEffectID);
+			aStillAlive = (aTrail != nullptr && !aTrail->mDead);
+			break;
+		}
+		case EffectType::EFFECT_REANIM:
+		{
+			Reanimation* aReanimation = gEffectSystem->mReanimationHolder->mReanimations.DataArrayTryToGet(aAttachEffect->mEffectID);
+			aStillAlive = (aReanimation != nullptr && !aReanimation->mDead);
+			break;
+		}
+		case EffectType::EFFECT_ATTACHMENT:
+		{
+			Attachment* aAttachment = gEffectSystem->mAttachmentHolder->mAttachments.DataArrayTryToGet(aAttachEffect->mEffectID);
+			aStillAlive = (aAttachment != nullptr && !aAttachment->mDead);
+			break;
+		}
+		case EffectType::EFFECT_OTHER:
+			aStillAlive = true;
+			break;
+		default:
+			TOD_ASSERT(false);
+			break;
+		}
+
+		if (!aStillAlive)
+		{
+			int aNumEffectsRemaining = theAttachment->mNumEffects - i - 1;
+			if (aNumEffectsRemaining > 0)
+				memmove(aAttachEffect, aAttachEffect + 1, aNumEffectsRemaining * sizeof(AttachEffect));
+			theAttachment->mNumEffects--;
+			continue;
+		}
+
+		i++;
+	}
+
+	if (theAttachment->mNumEffects == 0)
+		theAttachment->mDead = true;
+}
+
 Attachment::Attachment()
 {
 	mNumEffects = 0;
@@ -630,6 +689,28 @@ void AttachmentHolder::DisposeHolder()
 
 Attachment* AttachmentHolder::AllocAttachment()
 {
+	if (mAttachments.mSize + 1 >= mAttachments.mMaxSize)
+	{
+		unsigned int aDeadIds[1024];
+		int aDeadCount = 0;
+		Attachment* aAttachment = nullptr;
+		while (mAttachments.IterateNext(aAttachment))
+		{
+			PruneDeadEffects(aAttachment);
+			if (aAttachment->mDead && aDeadCount < 1024)
+			{
+				aDeadIds[aDeadCount++] = mAttachments.DataArrayGetID(aAttachment);
+			}
+		}
+
+		for (int i = 0; i < aDeadCount; i++)
+		{
+			Attachment* aDeadAttachment = mAttachments.DataArrayTryToGet(aDeadIds[i]);
+			if (aDeadAttachment)
+				mAttachments.DataArrayFree(aDeadAttachment);
+		}
+	}
+
 	return mAttachments.DataArrayAlloc();
 }
 
@@ -732,26 +813,45 @@ void AttachmentDetachCrossFadeParticleType(AttachmentID& theAttachmentID, Partic
 	TOD_ASSERT(theParticleEffect >= 0 && theParticleEffect < gParticleDefCount);
 	TodParticleDefinition* aDefinition = &gParticleDefArray[(int)theParticleEffect];
 
-	for (int i = 0; i < aAttachment->mNumEffects; i++)
+	for (int i = 0; i < aAttachment->mNumEffects;)
 	{
 		AttachEffect* aAttachEffect = &aAttachment->mEffectArray[i];
-		if (aAttachEffect->mEffectType == EffectType::EFFECT_PARTICLE)
+		if (aAttachEffect->mEffectType != EffectType::EFFECT_PARTICLE)
 		{
-			TodParticleSystem* aParticleSystem = gEffectSystem->mParticleHolder->mParticleSystems.DataArrayTryToGet(aAttachEffect->mEffectID);
-			if (aParticleSystem && aParticleSystem->mParticleDef == aDefinition)
-			{
-				if (theCrossFadeName)
-				{
-					aParticleSystem->mIsAttachment = false;
-					aParticleSystem->CrossFade(theCrossFadeName);
-				}
-				else
-				{
-					aParticleSystem->ParticleSystemDie();
-				}
-				theAttachmentID = AttachmentID::ATTACHMENTID_NULL;
-			}
+			i++;
+			continue;
 		}
+
+		TodParticleSystem* aParticleSystem = gEffectSystem->mParticleHolder->mParticleSystems.DataArrayTryToGet(aAttachEffect->mEffectID);
+		if (aParticleSystem && aParticleSystem->mParticleDef == aDefinition)
+		{
+			if (theCrossFadeName)
+			{
+				aParticleSystem->mIsAttachment = false;
+				aParticleSystem->CrossFade(theCrossFadeName);
+			}
+			else
+			{
+				aParticleSystem->ParticleSystemDie();
+			}
+
+			// Remove the effect entry immediately so the parent attachment ownership remains consistent.
+			int aNumEffectsRemaining = aAttachment->mNumEffects - i - 1;
+			if (aNumEffectsRemaining > 0)
+			{
+				memmove(aAttachEffect, aAttachEffect + 1, aNumEffectsRemaining * sizeof(AttachEffect));
+			}
+			aAttachment->mNumEffects--;
+			continue;
+		}
+
+		i++;
+	}
+
+	if (aAttachment->mNumEffects == 0)
+	{
+		aAttachment->mDead = true;
+		theAttachmentID = AttachmentID::ATTACHMENTID_NULL;
 	}
 }
 
