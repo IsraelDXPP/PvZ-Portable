@@ -183,41 +183,50 @@ jobs:
         path: dist/
 
   build-switch:
-     name: Build for Switch
-     runs-on: ubuntu-latest
-     container:
-       image: devkitpro/devkita64:latest
-     steps:
-       - uses: actions/checkout@v4
-         with:
-           fetch-depth: 0
+    name: Build for Switch
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-       - name: Install dependencies
-         run: |
-           sudo dkp-pacman -S --noconfirm \
-             switch-sdl2 \
-             switch-libopenmpt \
-             switch-libogg \
-             switch-libvorbis \
-             switch-mpg123 \
-             switch-libpng \
-             switch-libjpeg-turbo \
-             switch-zlib \
-             switch-cmake \
-             ninja
-       - name: Build PvZ-Portable for Switch
-         run: |
-           mkdir build
-           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
-           cmake --build build
+      - name: Install dependencies
+        run: |
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm \
+            switch-sdl2 \
+            switch-libogg \
+            switch-libvorbis \
+            switch-mpg123 \
+            switch-libpng \
+            switch-libjpeg-turbo \
+            switch-zlib \
+            switch-cmake
 
-       - name: Upload Artifact
-         uses: actions/upload-artifact@v4
-         with:
-           name: pvz-portable-switch
-           path: |
-             build/pvz-portable.nro
-             build/pvz-portable.elf
+      - name: Compile libopenmpt for Switch
+        shell: bash
+        run: |
+          source $DEVKITPRO/switchvars.sh
+          git clone --depth 1 https://github.com/OpenMPT/openmpt
+          cd openmpt
+          make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
+
+      - name: Build PvZ-Portable for Switch
+        run: |
+          source $DEVKITPRO/switchvars.sh
+          mkdir build
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          cmake --build build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvz-portable-switch
+          path: |
+            build/pvz-portable.nro
+            build/pvz-portable.elf
 
   build-macos:
     name: Build for macOS (aarch64)
