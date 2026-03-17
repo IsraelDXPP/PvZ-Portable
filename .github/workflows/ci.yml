@@ -7,7 +7,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-# 👇 CAMBIA ESTA LÍNEA PARA ACTIVAR/DESACTIVAR DEBUG EN TODOS LOS BUILDS 👇
 env:
   PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
 
@@ -195,7 +194,6 @@ jobs:
 
        - name: Install dependencies
          run: |
-           sudo dkp-pacman -Syu --noconfirm
            sudo dkp-pacman -S --noconfirm \
              switch-sdl2 \
              switch-libopenmpt \
