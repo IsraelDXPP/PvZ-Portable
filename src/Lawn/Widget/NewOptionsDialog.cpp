@@ -166,11 +166,11 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
 void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 {
     Dialog::Resize(theX, theY, theWidth, theHeight);
-    mMusicVolumeSlider->Resize(199, 116, 135, 40);
-    mSfxVolumeSlider->Resize(199, 143, 135, 40);
-    mHardwareAccelerationCheckbox->Resize(283, 175, 46, 45);
-    mFullscreenCheckbox->Resize(284, 206, 46, 45);
-    mAlmanacButton->Resize(107, 271, 209, 46);
+    mMusicVolumeSlider->Resize(199, 100, 135, 40);
+    mSfxVolumeSlider->Resize(199, 127, 135, 40);
+    mHardwareAccelerationCheckbox->Resize(283, 155, 46, 45);
+    mFullscreenCheckbox->Resize(284, 186, 46, 45);
+    mAlmanacButton->Resize(107, 241, 209, 46);
     mRestartButton->Resize(mAlmanacButton->mX, mAlmanacButton->mY + 43, 209, 46);
     mBackToMainButton->Resize(mRestartButton->mX, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
@@ -212,10 +212,10 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
     float aFontScale = static_cast<float>(mApp->GetDouble("OPTION_DLG_LABEL_FONT_SCALE", 1.0));
     if (aFontScale != 1.0f)
         g->SetScale(aFontScale, aFontScale, 0.0f, 0.0f);
-    TodDrawString(g, "Music", aSliderLabelsX, 140 + aMusicOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, "Sound FX", aSliderLabelsX, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, "3D Acceleration", aCheckboxLabelsX, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, "Full Screen", aCheckboxLabelsX, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, "Music", aSliderLabelsX, 124 + aMusicOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, "Sound FX", aSliderLabelsX, 151 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, "3D Acceleration", aCheckboxLabelsX, 177 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, "Full Screen", aCheckboxLabelsX, 209 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     if (aFontScale != 1.0f)
         g->SetScale(1.0f, 1.0f, 0.0f, 0.0f);
 }
