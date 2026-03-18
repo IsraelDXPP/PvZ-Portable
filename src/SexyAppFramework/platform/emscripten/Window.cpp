@@ -33,6 +33,26 @@
 
 using namespace Sexy;
 
+static EM_BOOL on_web_display_size_changed(int eventType, const EmscriptenUiEvent* uiEvent, void* userData)
+{
+    (void)eventType;
+    (void)uiEvent;
+    SexyAppBase* app = (SexyAppBase*)userData;
+
+    int width, height;
+    emscripten_get_canvas_element_size("#canvas", &width, &height);
+    SDL_SetWindowSize((SDL_Window*)app->mWindow, width, height);
+
+    if (app->mGLInterface)
+    {
+        app->mGLInterface->UpdateViewport();
+        if (app->mWidgetManager)
+            app->mWidgetManager->Resize(app->mScreenBounds, app->mGLInterface->mPresentationRect);
+    }
+
+    return EM_TRUE;
+}
+
 void SexyAppBase::MakeWindow()
 {
 	if (mWindow)
@@ -47,7 +67,7 @@ void SexyAppBase::MakeWindow()
 	{
 		SDL_Init(SDL_INIT_VIDEO);
 
-		Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+		Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -72,6 +92,8 @@ void SexyAppBase::MakeWindow()
 		}
 
 		SDL_GL_SetSwapInterval(0);
+
+		emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, EM_FALSE, on_web_display_size_changed);
 	}
 
 	if (mGLInterface == nullptr)
