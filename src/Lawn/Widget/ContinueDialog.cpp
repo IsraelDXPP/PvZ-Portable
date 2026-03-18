@@ -170,6 +170,7 @@ void ContinueDialog::ButtonDepress(int theId)
     else
     {
         mApp->KillDialog(mId);
+        mApp->mBoardResult = BoardResult::BOARDRESULT_QUIT;
         if (mApp->IsAdventureMode())
         {
             mApp->ShowGameSelector();
