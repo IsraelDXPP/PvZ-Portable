@@ -697,6 +697,7 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 
 	Image* aImage = aTransform.mImage;
 	ReanimAtlasImage* aAtlasImage = nullptr;
+	bool aFullScreen = false;
 	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
 		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
@@ -708,9 +709,9 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 		else if (aAtlasImage == nullptr)
 		{
 			static std::set<std::string> logged;
-			if (logged.insert(aImage->mName).second)
+			if (logged.insert(aImage->mFilePath).second)
 			{
-				printf("Atlas miss: %s\n", aImage->mName);
+				printf("Atlas miss: %s\n", aImage->mFilePath.c_str());
 			}
 		}
 	}
@@ -727,7 +728,7 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 	}
 
 	SexyMatrix3 aMatrix;
-	// bool aFullScreen = false; // Already handled above
+	// aFullScreen is already declared above
 	if (aAtlasImage != nullptr)
 	{
 		aMatrix.LoadIdentity();
