@@ -83,7 +83,7 @@ static bool gTextureSizeMustBePow2;
 static int MAX_TEXTURE_SIZE;
 static bool gLinearFilter = false;
 
-static std::vector<GLVertex> gVertices;
+static GLVertex* gVertices;
 static int gNumVertices;
 static GLenum gVertexMode;
 static GLuint gProgram;
@@ -103,7 +103,7 @@ static void GfxEnd()
 	if (gNumVertices > 0)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices, GL_DYNAMIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
 		glEnableVertexAttribArray(0);
@@ -117,28 +117,25 @@ static void GfxEnd()
 
 	gVertexMode = (GLenum)-1;
 	gNumVertices = 0;
-	gVertices.clear();
 }
 
-static void GfxFlushIfOverBudget()
+static void GfxFlushIfOverBudget(int arrCount)
 {
-	if (gVertexMode == (GLenum)-1 || gNumVertices < MAX_VERTICES) return;
-	GLenum oldMode = gVertexMode;
-	GfxEnd();
-	GfxBegin(oldMode);
+	if (gNumVertices + arrCount >= MAX_VERTICES)
+	{
+		GLenum oldMode = gVertexMode;
+		GfxEnd();
+		GfxBegin(oldMode);
+	}
 }
 
 static void GfxAddVertices(const GLVertex *arr, int arrCount)
 {
 	if (gVertexMode == (GLenum)-1) return;
-	if (arrCount <= 0) return;
 
-	const int oldCount = gNumVertices;
+	GfxFlushIfOverBudget(arrCount);
+	memcpy(gVertices + gNumVertices, arr, sizeof(GLVertex) * arrCount);
 	gNumVertices += arrCount;
-	gVertices.resize(gNumVertices);
-	memcpy(gVertices.data() + oldCount, arr, sizeof(GLVertex) * arrCount);
-
-	GfxFlushIfOverBudget();
 }
 
 static void GfxAddVertices(VertexList &arr)
@@ -150,28 +147,22 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
                            float tx, float ty, float aMaxTotalU, float aMaxTotalV)
 {
 	if (gVertexMode == (GLenum)-1) return;
-	if (arrCount <= 0) return;
 
-	const int oldCount = gNumVertices;
-	gNumVertices += arrCount * 3;
-	gVertices.resize(gNumVertices);
+	GfxFlushIfOverBudget(arrCount * 3);
 
-	GLVertex* dst = gVertices.data() + oldCount;
 	for (int tri = 0; tri < arrCount; tri++)
 	{
 		const TriVertex* v = arr[tri];
 		for (int i = 0; i < 3; i++)
 		{
-			dst[i].sx    = v[i].x + tx;
-			dst[i].sy    = v[i].y + ty;
-			dst[i].color = GetColorFromTriVertex(v[i], theColor);
-			dst[i].tu    = v[i].u * aMaxTotalU;
-			dst[i].tv    = v[i].v * aMaxTotalV;
+			gVertices[gNumVertices + i].sx    = v[i].x + tx;
+			gVertices[gNumVertices + i].sy    = v[i].y + ty;
+			gVertices[gNumVertices + i].color = GetColorFromTriVertex(v[i], theColor);
+			gVertices[gNumVertices + i].tu    = v[i].u * aMaxTotalU;
+			gVertices[gNumVertices + i].tv    = v[i].v * aMaxTotalV;
 		}
-		dst += 3;
+		gNumVertices += 3;
 	}
-
-	GfxFlushIfOverBudget();
 }
 
 // Unified GLSL body; VERT_IN / V2F / FRAG_OUT / TEX2D macros from GLPlatform.h.
@@ -1071,8 +1062,7 @@ GLInterface::GLInterface(SexyAppBase* theApp)
 
 	gVertexMode  = (GLenum)-1;
 	gNumVertices = 0;
-	gVertices.clear();
-	gVertices.reserve(MAX_VERTICES);
+	gVertices = new GLVertex[MAX_VERTICES]();
 }
 
 GLInterface::~GLInterface()
@@ -1083,6 +1073,7 @@ GLInterface::~GLInterface()
 		delete (TextureData*)img->mRenderData;
 		img->mRenderData = nullptr;
 	}
+	delete[] gVertices;
 }
 
 void GLInterface::SetDrawMode(int theDrawMode)

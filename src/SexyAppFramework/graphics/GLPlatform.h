@@ -25,14 +25,6 @@
 #ifndef __GLPLATFORM_H__
 #define __GLPLATFORM_H__
 
-#ifdef NINTENDO_SWITCH
-#include <switch.h>
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#else
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4551) // glad generated code triggers this on MSVC
@@ -42,10 +34,6 @@
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif
-
-#include <SDL.h>
-
 #endif
 
 // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
@@ -61,13 +49,26 @@
 // When true, a desktop GL compatibility context is in use and shaders
 extern bool gDesktopGLFallback;
 
+#ifdef NINTENDO_SWITCH
+
+#include <switch.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
 inline void PlatformGLInit()
 {
-#ifndef NINTENDO_SWITCH
-	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
-#else
-	// Switch links GLES2 directly, so function pointers are unnecessary.
-#endif
+	gladLoadGLES2((GLADloadfunc)eglGetProcAddress);
 }
+
+#else
+
+#include <SDL.h>
+
+inline void PlatformGLInit()
+{
+	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+}
+
+#endif
 
 #endif // __GLPLATFORM_H__
