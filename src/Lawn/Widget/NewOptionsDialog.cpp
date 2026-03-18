@@ -37,8 +37,8 @@
 using namespace Sexy;
 
 //0x45C050
-NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
-    Dialog(nullptr, nullptr, Dialogs::DIALOG_NEWOPTIONS, true, "Options", "", "", Dialog::BUTTONS_NONE)
+NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) : 
+	Dialog(nullptr, nullptr, Dialogs::DIALOG_NEWOPTIONS, true, "Options", "", "", Dialog::BUTTONS_NONE)
 {
     mApp = theApp;
     mFromGameSelector = theFromGameSelector;
@@ -48,12 +48,12 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     mBackToMainButton = MakeButton(NewOptionsDialog::NewOptionsDialog_MainMenu, this, "[MAIN_MENU_BUTTON]");
 
     mBackToGameButton = MakeNewButton(
-        Dialog::ID_OK,
-        this,
-        "[BACK_TO_GAME]",
-        nullptr,
-        IMAGE_OPTIONS_BACKTOGAMEBUTTON0,
-        IMAGE_OPTIONS_BACKTOGAMEBUTTON0,
+        Dialog::ID_OK, 
+        this, 
+        "[BACK_TO_GAME]", 
+        nullptr, 
+        IMAGE_OPTIONS_BACKTOGAMEBUTTON0, 
+        IMAGE_OPTIONS_BACKTOGAMEBUTTON0, 
         IMAGE_OPTIONS_BACKTOGAMEBUTTON2
     );
     mBackToGameButton->mTranslateX = 0;
@@ -66,7 +66,7 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     mBackToGameButton->SetColor(ButtonWidget::COLOR_LABEL, Color::White);
     mBackToGameButton->SetColor(ButtonWidget::COLOR_LABEL_HILITE, Color::White);
     mBackToGameButton->mHiliteFont = FONT_DWARVENTODCRAFT36BRIGHTGREENINSET;
-
+    
     mMusicVolumeSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERKNOB2, NewOptionsDialog::NewOptionsDialog_MusicVolume, this);
     double aMusicVolume = theApp->GetMusicVolume();
     aMusicVolume = std::max(0.0, std::min(1.0, aMusicVolume));
@@ -92,8 +92,8 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
         }
     }
 
-    if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE ||
-        mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN ||
+    if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ICE || 
+        mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || 
         mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
     {
         mRestartButton->SetVisible(false);
@@ -102,10 +102,10 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     {
         mRestartButton->SetVisible(false);
     }
-    if (!mApp->CanShowAlmanac() ||
-        mApp->mGameScene == GameScenes::SCENE_LEVEL_INTRO ||
+    if (!mApp->CanShowAlmanac() || 
+        mApp->mGameScene == GameScenes::SCENE_LEVEL_INTRO || 
         mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN ||
-        mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM ||
+        mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM || 
         mFromGameSelector)
     {
         mAlmanacButton->SetVisible(false);
@@ -248,13 +248,13 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
         if (!checked && mApp->mForceFullscreen)
         {
             mApp->DoDialog(
-                Dialogs::DIALOG_COLORDEPTH_EXP,
-                true,
-                "No Windowed Mode",
+                Dialogs::DIALOG_COLORDEPTH_EXP, 
+                true, 
+                "No Windowed Mode", 
                 "Windowed mode is only available if your desktop was running in either\n"
-                "16 bit or 32 bit color mode when you started the game.\n\n"
-                "If you'd like to run in Windowed mode then you need to quit the game and switch your desktop to 16 or 32 bit color mode.",
-                "[DIALOG_BUTTON_OK]",
+                    "16 bit or 32 bit color mode when you started the game.\n\n"
+                    "If you'd like to run in Windowed mode then you need to quit the game and switch your desktop to 16 or 32 bit color mode.", 
+                "[DIALOG_BUTTON_OK]", 
                 Dialog::BUTTONS_FOOTER
             );
 
@@ -273,9 +273,9 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
                     true,
                     "Not Supported",
                     "Hardware Acceleration cannot be enabled on this computer.\n\n"
-                    "Your video card does not\n"
-                    "meet the minimum requirements\n"
-                    "for this game.",
+                        "Your video card does not\n"
+                        "meet the minimum requirements\n"
+                        "for this game.",
                     "[DIALOG_BUTTON_OK]",
                     Dialog::BUTTONS_FOOTER
                 );
@@ -287,7 +287,7 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
                     true,
                     "Warning",
                     "Your video card may not fully support this feature.\n\n"
-                    "If you experience slower performance, please disable Hardware Acceleration.\n",
+                        "If you experience slower performance, please disable Hardware Acceleration.\n",
                     "[DIALOG_BUTTON_OK]",
                     Dialog::BUTTONS_FOOTER
                 );
@@ -390,7 +390,7 @@ void NewOptionsDialog::ButtonDepress(int theId)
             LawnDialog* aDialog = (LawnDialog*)mApp->DoDialog(Dialogs::DIALOG_CONFIRM_RESTART, true, aDialogTitle, aDialogMessage, "", Dialog::BUTTONS_YES_NO);
             aDialog->mLawnYesButton->mLabel = TodStringTranslate("[RESTART_BUTTON]");
             aDialog->mLawnNoButton->mLabel = TodStringTranslate("[DIALOG_BUTTON_CANCEL]");
-
+            
             if (aDialog->WaitForResult(true) == Dialog::ID_YES)
             {
                 mApp->mMusic->StopAllMusic();
