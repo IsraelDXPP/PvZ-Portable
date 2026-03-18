@@ -2,10 +2,16 @@ name: CI build
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ "*" ]
+    branches: 
+      - main
+      - mods      # agrega tu rama de mods
+    tags: 
+      - '*'       # todos los tags
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - main
+      - mods      # PRs hacia main o mods
+  workflow_dispatch: {} # permite ejecutar manualmente desde GitHub
 
 env:
   PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
