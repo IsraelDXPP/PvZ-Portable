@@ -1189,3 +1189,4 @@ const XMLParamMap& ResourceManager::GetImageAttributes(const std::string& theId)
 		return anItr->second->mXMLAttributes;
 	else
 		return aStrMap;
+}

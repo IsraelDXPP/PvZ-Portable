@@ -601,10 +601,10 @@ void Attachment::AttachmentDie()
 	// @Minerscale Fix null pointer derefrence due to some sort of circular dependency...
 	// The problems when freeing the data were probably actually bad so this fix is frankly irresponsible
 	// TODO: put todo here so I know to come here when I break everything. !FIXME! !ACHTUNG!
-	DataArray<TodParticleSystem> *aParticleSystems = nullptr;
-	DataArray<Trail> *aTrails = nullptr;
-	DataArray<Reanimation> *aReanimations = nullptr;
-	DataArray<Attachment> *aAttachments = nullptr;
+	DataArray<TodParticleSystem>* aParticleSystems = nullptr;
+	DataArray<Trail>* aTrails = nullptr;
+	DataArray<Reanimation>* aReanimations = nullptr;
+	DataArray<Attachment>* aAttachments = nullptr;
 	if (gEffectSystem->mParticleHolder) aParticleSystems = &gEffectSystem->mParticleHolder->mParticleSystems;
 	if (gEffectSystem->mTrailHolder) aTrails = &gEffectSystem->mTrailHolder->mTrails;
 	if (gEffectSystem->mReanimationHolder) aReanimations = &gEffectSystem->mReanimationHolder->mReanimations;
@@ -617,7 +617,7 @@ void Attachment::AttachmentDie()
 		{
 		case EffectType::EFFECT_PARTICLE:
 		{
-			TodParticleSystem* aParticleSystem = aParticleSystems?aParticleSystems->DataArrayTryToGet(aAttachEffect->mEffectID):nullptr;
+			TodParticleSystem* aParticleSystem = aParticleSystems ? aParticleSystems->DataArrayTryToGet(aAttachEffect->mEffectID) : nullptr;
 			if (aParticleSystem)
 			{
 				aParticleSystem->ParticleSystemDie();
@@ -627,7 +627,7 @@ void Attachment::AttachmentDie()
 
 		case EffectType::EFFECT_TRAIL:
 		{
-			Trail* aTrail = aTrails?aTrails->DataArrayTryToGet(aAttachEffect->mEffectID):nullptr;
+			Trail* aTrail = aTrails ? aTrails->DataArrayTryToGet(aAttachEffect->mEffectID) : nullptr;
 			if (aTrail)
 			{
 				aTrail->mDead = true;
@@ -637,7 +637,7 @@ void Attachment::AttachmentDie()
 
 		case EffectType::EFFECT_REANIM:
 		{
-			Reanimation* aReanimation = aReanimations?aReanimations->DataArrayTryToGet(aAttachEffect->mEffectID):nullptr;
+			Reanimation* aReanimation = aReanimations ? aReanimations->DataArrayTryToGet(aAttachEffect->mEffectID) : nullptr;
 			if (aReanimation)
 			{
 				aReanimation->ReanimationDie();
@@ -647,7 +647,7 @@ void Attachment::AttachmentDie()
 
 		case EffectType::EFFECT_ATTACHMENT:
 		{
-			Attachment* aAttachment = aAttachments?aAttachments->DataArrayTryToGet(aAttachEffect->mEffectID):nullptr;
+			Attachment* aAttachment = aAttachments ? aAttachments->DataArrayTryToGet(aAttachEffect->mEffectID) : nullptr;
 			if (aAttachment)
 			{
 				aAttachment->AttachmentDie();
