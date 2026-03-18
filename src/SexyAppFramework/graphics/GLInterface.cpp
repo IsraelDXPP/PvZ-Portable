@@ -22,9 +22,7 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NINTENDO_SWITCH
 #define GLAD_GLES2_IMPLEMENTATION
-#endif
 #include "graphics/GLPlatform.h"
 
 #ifndef NINTENDO_SWITCH
@@ -83,7 +81,7 @@ static bool gTextureSizeMustBePow2;
 static int MAX_TEXTURE_SIZE;
 static bool gLinearFilter = false;
 
-static GLVertex* gVertices;
+static std::vector<GLVertex> gVertices;
 static int gNumVertices;
 static GLenum gVertexMode;
 static GLuint gProgram;
@@ -103,7 +101,7 @@ static void GfxEnd()
 	if (gNumVertices > 0)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
 		glEnableVertexAttribArray(0);
@@ -117,25 +115,28 @@ static void GfxEnd()
 
 	gVertexMode = (GLenum)-1;
 	gNumVertices = 0;
+	gVertices.clear();
 }
 
-static void GfxFlushIfOverBudget(int arrCount)
+static void GfxFlushIfOverBudget()
 {
-	if (gNumVertices + arrCount >= MAX_VERTICES)
-	{
-		GLenum oldMode = gVertexMode;
-		GfxEnd();
-		GfxBegin(oldMode);
-	}
+	if (gVertexMode == (GLenum)-1 || gNumVertices < MAX_VERTICES) return;
+	GLenum oldMode = gVertexMode;
+	GfxEnd();
+	GfxBegin(oldMode);
 }
 
 static void GfxAddVertices(const GLVertex *arr, int arrCount)
 {
 	if (gVertexMode == (GLenum)-1) return;
+	if (arrCount <= 0) return;
 
-	GfxFlushIfOverBudget(arrCount);
-	memcpy(gVertices + gNumVertices, arr, sizeof(GLVertex) * arrCount);
+	const int oldCount = gNumVertices;
 	gNumVertices += arrCount;
+	gVertices.resize(gNumVertices);
+	memcpy(gVertices.data() + oldCount, arr, sizeof(GLVertex) * arrCount);
+
+	GfxFlushIfOverBudget();
 }
 
 static void GfxAddVertices(VertexList &arr)
@@ -147,22 +148,28 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
                            float tx, float ty, float aMaxTotalU, float aMaxTotalV)
 {
 	if (gVertexMode == (GLenum)-1) return;
+	if (arrCount <= 0) return;
 
-	GfxFlushIfOverBudget(arrCount * 3);
+	const int oldCount = gNumVertices;
+	gNumVertices += arrCount * 3;
+	gVertices.resize(gNumVertices);
 
+	GLVertex* dst = gVertices.data() + oldCount;
 	for (int tri = 0; tri < arrCount; tri++)
 	{
 		const TriVertex* v = arr[tri];
 		for (int i = 0; i < 3; i++)
 		{
-			gVertices[gNumVertices + i].sx    = v[i].x + tx;
-			gVertices[gNumVertices + i].sy    = v[i].y + ty;
-			gVertices[gNumVertices + i].color = GetColorFromTriVertex(v[i], theColor);
-			gVertices[gNumVertices + i].tu    = v[i].u * aMaxTotalU;
-			gVertices[gNumVertices + i].tv    = v[i].v * aMaxTotalV;
+			dst[i].sx    = v[i].x + tx;
+			dst[i].sy    = v[i].y + ty;
+			dst[i].color = GetColorFromTriVertex(v[i], theColor);
+			dst[i].tu    = v[i].u * aMaxTotalU;
+			dst[i].tv    = v[i].v * aMaxTotalV;
 		}
-		gNumVertices += 3;
+		dst += 3;
 	}
+
+	GfxFlushIfOverBudget();
 }
 
 // Unified GLSL body; VERT_IN / V2F / FRAG_OUT / TEX2D macros from GLPlatform.h.
@@ -1062,7 +1069,8 @@ GLInterface::GLInterface(SexyAppBase* theApp)
 
 	gVertexMode  = (GLenum)-1;
 	gNumVertices = 0;
-	gVertices = new GLVertex[MAX_VERTICES]();
+	gVertices.clear();
+	gVertices.reserve(MAX_VERTICES);
 }
 
 GLInterface::~GLInterface()
@@ -1073,7 +1081,6 @@ GLInterface::~GLInterface()
 		delete (TextureData*)img->mRenderData;
 		img->mRenderData = nullptr;
 	}
-	delete[] gVertices;
 }
 
 void GLInterface::SetDrawMode(int theDrawMode)
@@ -1121,44 +1128,21 @@ void GLInterface::UpdateViewport()
 #endif
 
 	vw = width; vh = height;
-	mDisplayWidth = width; mDisplayHeight = height;
-
-	int ww = width, wh = height;
-#ifndef NINTENDO_SWITCH
-	SDL_GetWindowSize((SDL_Window*)mApp->mWindow, &ww, &wh);
-#endif
-
-	int ivx = 0, ivy = 0, ivw = ww, ivh = wh;
 
 	// Letterbox to 4:3
-	if (!mApp->mStretchToFit)
+	if (width * 3 > height * 4)
 	{
-		if (width * 3 > height * 4)
-		{
-			vw = height * 4 / 3;
-			vx = (width - vw) / 2;
-		}
-		else if (width * 3 < height * 4)
-		{
-			vh = width * 3 / 4;
-			vy = (height - vh) / 2;
-		}
-
-		if (ww * 3 > wh * 4)
-		{
-			ivw = wh * 4 / 3;
-			ivx = (ww - ivw) / 2;
-		}
-		else if (ww * 3 < wh * 4)
-		{
-			ivh = ww * 3 / 4;
-			ivy = (wh - ivh) / 2;
-		}
+		vw = height * 4 / 3;
+		vx = (width - vw) / 2;
+	}
+	else if (width * 3 < height * 4)
+	{
+		vh = width * 3 / 4;
+		vy = (height - vh) / 2;
 	}
 
 	glViewport(vx, vy, vw, vh);
 	mPresentationRect = Rect(vx, vy, vw, vh);
-	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
 }
 
 int GLInterface::Init(bool IsWindowed)
