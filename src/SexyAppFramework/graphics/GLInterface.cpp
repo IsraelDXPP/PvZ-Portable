@@ -1132,6 +1132,13 @@ void GLInterface::UpdateViewport()
 	vw = width; vh = height;
 	mDisplayWidth = width; mDisplayHeight = height;
 
+	int ww = width, wh = height;
+#ifndef NINTENDO_SWITCH
+	SDL_GetWindowSize((SDL_Window*)mApp->mWindow, &ww, &wh);
+#endif
+
+	int ivx = 0, ivy = 0, ivw = ww, ivh = wh;
+
 	// Letterbox to 4:3
 	if (!mApp->mStretchToFit)
 	{
@@ -1145,10 +1152,22 @@ void GLInterface::UpdateViewport()
 			vh = width * 3 / 4;
 			vy = (height - vh) / 2;
 		}
+
+		if (ww * 3 > wh * 4)
+		{
+			ivw = wh * 4 / 3;
+			ivx = (ww - ivw) / 2;
+		}
+		else if (ww * 3 < wh * 4)
+		{
+			ivh = ww * 3 / 4;
+			ivy = (wh - ivh) / 2;
+		}
 	}
 
 	glViewport(vx, vy, vw, vh);
 	mPresentationRect = Rect(vx, vy, vw, vh);
+	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
 }
 
 int GLInterface::Init(bool IsWindowed)

@@ -49,7 +49,7 @@ static EM_BOOL on_web_display_size_changed(int eventType, const EmscriptenUiEven
     {
         app->mGLInterface->UpdateViewport();
         if (app->mWidgetManager)
-            app->mWidgetManager->Resize(app->mScreenBounds, app->mGLInterface->mPresentationRect);
+            app->mWidgetManager->Resize(app->mScreenBounds, app->mGLInterface->mInputSourceRect);
     }
 
     return EM_TRUE;
@@ -137,5 +137,5 @@ void SexyAppBase::MakeWindow()
 	mWidgetManager->MarkAllDirty();
 
 	mGLInterface->UpdateViewport();
-	mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
+	mWidgetManager->Resize(mScreenBounds, mGLInterface->mInputSourceRect);
 }
