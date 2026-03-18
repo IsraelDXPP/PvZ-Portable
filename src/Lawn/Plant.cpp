@@ -93,6 +93,7 @@ PlantDefinition gPlantDefs[SeedType::NUM_SEED_TYPES] = {  //0x69F2B0
     { SeedType::SEED_SPIKEROCK,         nullptr, ReanimationType::REANIM_SPIKEROCK,     27, 125,    5000,   PlantSubClass::SUBCLASS_NORMAL,     0,      "SPIKEROCK" },
     { SeedType::SEED_COBCANNON,         nullptr, ReanimationType::REANIM_COBCANNON,     16, 500,    5000,   PlantSubClass::SUBCLASS_NORMAL,     600,    "COB_CANNON" },
     { SeedType::SEED_IMITATER,          nullptr, ReanimationType::REANIM_IMITATER,      33, 0,      750,    PlantSubClass::SUBCLASS_NORMAL,     0,      "IMITATER" },
+    { SeedType::SEED_LAWNMOWER,         nullptr, ReanimationType::REANIM_LAWNMOWER,      16, 2000,   3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      "LAWN_MOWER" },
     { SeedType::SEED_EXPLODE_O_NUT,     nullptr, ReanimationType::REANIM_WALLNUT,       2,  0,      3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      "EXPLODE_O_NUT" },
     { SeedType::SEED_GIANT_WALLNUT,     nullptr, ReanimationType::REANIM_WALLNUT,       2,  0,      3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      "GIANT_WALLNUT" },
     { SeedType::SEED_SPROUT,            nullptr, ReanimationType::REANIM_ZENGARDEN_SPROUT,          33, 0,      3000,   PlantSubClass::SUBCLASS_NORMAL,     0,      "SPROUT" },
@@ -284,6 +285,18 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         aHeadReanim3->AttachToAnotherReanimation(aBodyReanim, "anim_head3");
         mHeadReanimID3 = mApp->ReanimationGetID(aHeadReanim3);
 
+        break;
+    }
+    case SeedType::SEED_LAWNMOWER:
+    {
+        if (mBoard != nullptr)
+        {
+            LawnMower* aLawnMower = mBoard->mLawnMowers.DataArrayAlloc();
+            aLawnMower->LawnMowerInitialize(mRow);
+            aLawnMower->mPosX = (float)mX;
+            aLawnMower->mPosY = mBoard->GetPosYBasedOnRow(aLawnMower->mPosX + 40.0f, mRow) + 23.0f;
+        }
+        mDead = true;
         break;
     }
     case SeedType::SEED_WALLNUT:

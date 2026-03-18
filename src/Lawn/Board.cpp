@@ -2885,6 +2885,22 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		return PlantingReason::PLANTING_OK;
 	}
 
+	if (theSeedType == SeedType::SEED_LAWNMOWER)
+	{
+		bool aHasLilypad = aPlantOnLawn.mUnderPlant && aPlantOnLawn.mUnderPlant->mSeedType == SeedType::SEED_LILYPAD;
+		bool aHasFlowerPot = aPlantOnLawn.mUnderPlant && aPlantOnLawn.mUnderPlant->mSeedType == SeedType::SEED_FLOWERPOT;
+
+		if (IsPoolSquare(theGridX, theGridY) && !aHasLilypad)
+		{
+			return PlantingReason::PLANTING_NOT_ON_WATER;
+		}
+		if (StageHasRoof() && !aHasFlowerPot)
+		{
+			return PlantingReason::PLANTING_NEEDS_POT;
+		}
+		return (aPlantOnLawn.mNormalPlant || aPlantOnLawn.mPumpkinPlant) ? PlantingReason::PLANTING_NOT_HERE : PlantingReason::PLANTING_OK;
+	}
+
 	// 墓碑吞噬者只能种植在墓碑上
 	bool aHasGrave = GetGraveStoneAt(theGridX, theGridY);
 	if (theSeedType == SeedType::SEED_GRAVEBUSTER)

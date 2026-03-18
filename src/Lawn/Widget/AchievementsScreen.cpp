@@ -48,7 +48,7 @@ AchievementItem gAchievementList[MAX_ACHIEVEMENTS] = {
 	{ "China Shop", "Get to a streak of 15 in Vasebreaker Endless" },
 	{ "SPUDOW!", "Blow up a zombie using a Potato Mine." },
 	{ "Explodonator", "Take out 10 full-sized zombies with a single Cherry Bomb." },
-	{ "Morticulturalist", "Collect all 49 plants (including plants from Crazy Dave's shop)." },
+	{ "Morticulturalist", "Collect all 50 plants (including plants from Crazy Dave's shop)." },
 	{ "Don't Pea in the Pool", "Complete a daytime pool level without using pea shooters of any kind." },
 	{ "Roll Some Heads", "Bowl over 5 zombies with the same wall-nut." },
 	{ "Grounded", "Defeat a normal roof level without using any catapult plants." },
@@ -275,7 +275,7 @@ void ReportAchievement::AchievementInitForPlayer(LawnApp* theApp) {
 	}
 
 	bool aGiveAchievement = true;
-	for (int i = STORE_ITEM_PLANT_GATLINGPEA; i <= STORE_ITEM_PLANT_IMITATER; i++) {
+	for (int i = STORE_ITEM_PLANT_GATLINGPEA; i <= STORE_ITEM_PLANT_LAWNMOWER; i++) {
 		if (theApp->HasSeedType(SeedType(i)))
 			aGiveAchievement = false;
 	}
