@@ -48,7 +48,6 @@ protected:
 		NewOptionsDialog_SoundVolume,
 		NewOptionsDialog_Fullscreen,
 		NewOptionsDialog_HardwareAcceleration,
-		NewOptionsDialog_StretchToFit,
 	};
 
 public:
@@ -57,7 +56,6 @@ public:
 	Sexy::Slider*			mSfxVolumeSlider;					//+0x160
 	Sexy::Checkbox*			mFullscreenCheckbox;				//+0x164
 	Sexy::Checkbox*			mHardwareAccelerationCheckbox;		//+0x168
-	Sexy::Checkbox*			mStretchToFitCheckbox;				//+0x16C (new)
 	LawnStoneButton*		mAlmanacButton;						//+0x16C
 	LawnStoneButton*		mBackToMainButton;					//+0x170
 	LawnStoneButton*		mRestartButton;						//+0x174

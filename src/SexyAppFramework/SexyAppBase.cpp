@@ -287,11 +287,7 @@ SexyAppBase::SexyAppBase()
 	mRecommendedVidMemory3D = 14;
 	mRelaxUpdateBacklogCount = 0;
 	mWidescreenAware = false;
-#if defined(__IPHONEOS__) || (defined(__ANDROID__) && !defined(__TERMUX__)) || defined(__SWITCH__) || defined(__3DS__)
 	mStretchToFit = true;
-#else
-	mStretchToFit = false;
-#endif
 	mEnableWindowAspect = false;
 	mWindowAspect.Set(4, 3);
 	mIsWideWindow = false;
