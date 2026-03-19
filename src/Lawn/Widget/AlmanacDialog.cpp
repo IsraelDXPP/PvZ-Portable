@@ -175,7 +175,10 @@ void AlmanacDialog::AddedToManager(WidgetManager* theWidgetManager)
 
 void AlmanacDialog::SliderVal(int theId, double theVal)
 {
-	mScrollPosition = theVal;
+	if (theId == 0 || theId == 1)
+	{
+		mScrollPosition = (float)(theVal * mMaxScrollPosition);
+	}
 	MarkDirty();
 }
 
@@ -247,20 +250,18 @@ void AlmanacDialog::SetPage(AlmanacPage thePage)
 		if (mOpenPage == AlmanacPage::ALMANAC_PAGE_PLANTS)
 		{
 			SetupPlant();
-			mMaxScrollPosition = 86; // (7 rows * 78) - 460
-			mPlantSlider->SetRange(0, mMaxScrollPosition);
+			mMaxScrollPosition = std::max(0, ((NUM_ALMANAC_SEEDS + 7) / 8) * 85 + 76 - 480);
 			mPlantSlider->SetValue(0);
-			mPlantSlider->mVisible = true;
-			mZombieSlider->mVisible = false;
+			mPlantSlider->mVisible = mMaxScrollPosition > 0;
+			mScrollPosition = 0;
 		}
-		else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_ZOMBIES)
+		else if (thePage == ALMANAC_PAGE_ZOMBIES)
 		{
 			SetupZombie();
-			mMaxScrollPosition = 6; // (6 rows * 80) - 474
-			mZombieSlider->SetRange(0, mMaxScrollPosition);
+			mMaxScrollPosition = std::max(0, NUM_ALMANAC_ZOMBIES * 76 + 86 - 480);
 			mZombieSlider->SetValue(0);
-			mPlantSlider->mVisible = false;
-			mZombieSlider->mVisible = true;
+			mZombieSlider->mVisible = mMaxScrollPosition > 0;
+			mScrollPosition = 0;
 		}
 		else return;
 
@@ -321,8 +322,11 @@ void AlmanacDialog::MouseWheel(int theDelta)
 	if (mScrollPosition < 0) mScrollPosition = 0;
 	if (mScrollPosition > mMaxScrollPosition) mScrollPosition = mMaxScrollPosition;
 	
-	if (mOpenPage == ALMANAC_PAGE_PLANTS) mPlantSlider->SetValue(mScrollPosition);
-	else if (mOpenPage == ALMANAC_PAGE_ZOMBIES) mZombieSlider->SetValue(mScrollPosition);
+	if (mMaxScrollPosition > 0)
+	{
+		if (mOpenPage == ALMANAC_PAGE_PLANTS) mPlantSlider->SetValue(mScrollPosition / mMaxScrollPosition);
+		else if (mOpenPage == ALMANAC_PAGE_ZOMBIES) mZombieSlider->SetValue(mScrollPosition / mMaxScrollPosition);
+	}
 }
 
 ZombieType AlmanacDialog::GetZombieType(int theIndex)
@@ -517,7 +521,7 @@ void AlmanacDialog::DrawZombies(Graphics* g)
 				aZombieGraphics.SetColorizeImages(false);
 
 				aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW2, aPosX, aPosY);
-				if (aZombieType == aSeedMouseOn)
+				if (aZombieType == aZombieMouseOn)
 				{
 					aZombieListGraphics.SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
 					aZombieListGraphics.SetColor(Color(255, 255, 255, 48));

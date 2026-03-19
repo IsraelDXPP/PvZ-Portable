@@ -64,7 +64,6 @@ SeedChooserScreen::SeedChooserScreen()
 	mSlider = new Sexy::Slider(Sexy::IMAGE_OPTIONS_SLIDERSLOT, Sexy::IMAGE_OPTIONS_SLIDERKNOB2, 0, this);
 	mSlider->mHorizontal = false;
 	mSlider->Resize(8, 123, 17, 422);
-	mSlider->SetRange(0, mMaxScrollPosition);
 	mSlider->SetValue(0);
 
 	mStartButton = new GameButton(SeedChooserScreen::SeedChooserScreen_Start);
@@ -353,7 +352,7 @@ void SeedChooserScreen::RemovedFromManager(WidgetManager* theWidgetManager)
 
 void SeedChooserScreen::SliderVal(int theId, double theVal)
 {
-	mScrollPosition = theVal;
+	mScrollPosition = (float)(theVal * mMaxScrollPosition);
 }
 
 void SeedChooserScreen::MouseWheel(int theDelta)
@@ -361,7 +360,7 @@ void SeedChooserScreen::MouseWheel(int theDelta)
 	mScrollPosition -= theDelta * 20;
 	if (mScrollPosition < 0) mScrollPosition = 0;
 	if (mScrollPosition > mMaxScrollPosition) mScrollPosition = mMaxScrollPosition;
-	mSlider->SetValue(mScrollPosition);
+	if (mMaxScrollPosition > 0) mSlider->SetValue(mScrollPosition / mMaxScrollPosition);
 }
 
 //0x4845E0
