@@ -31,6 +31,10 @@ static void PruneDeadEffects(Attachment* theAttachment)
 {
 	TOD_ASSERT(gEffectSystem);
 	TOD_ASSERT(theAttachment);
+	DataArray<TodParticleSystem>& aParticleSystems = gEffectSystem->mParticleHolder->mParticleSystems;
+	DataArray<Trail>& aTrails = gEffectSystem->mTrailHolder->mTrails;
+	DataArray<Reanimation>& aReanimations = gEffectSystem->mReanimationHolder->mReanimations;
+	DataArray<Attachment>& aAttachments = gEffectSystem->mAttachmentHolder->mAttachments;
 
 	for (int i = 0; i < theAttachment->mNumEffects;)
 	{
@@ -40,25 +44,25 @@ static void PruneDeadEffects(Attachment* theAttachment)
 		{
 		case EffectType::EFFECT_PARTICLE:
 		{
-			TodParticleSystem* aParticleSystem = gEffectSystem->mParticleHolder->mParticleSystems.DataArrayTryToGet(aAttachEffect->mEffectID);
+			TodParticleSystem* aParticleSystem = aParticleSystems.DataArrayTryToGet(aAttachEffect->mEffectID);
 			aStillAlive = (aParticleSystem != nullptr && !aParticleSystem->mDead);
 			break;
 		}
 		case EffectType::EFFECT_TRAIL:
 		{
-			Trail* aTrail = gEffectSystem->mTrailHolder->mTrails.DataArrayTryToGet(aAttachEffect->mEffectID);
+			Trail* aTrail = aTrails.DataArrayTryToGet(aAttachEffect->mEffectID);
 			aStillAlive = (aTrail != nullptr && !aTrail->mDead);
 			break;
 		}
 		case EffectType::EFFECT_REANIM:
 		{
-			Reanimation* aReanimation = gEffectSystem->mReanimationHolder->mReanimations.DataArrayTryToGet(aAttachEffect->mEffectID);
+			Reanimation* aReanimation = aReanimations.DataArrayTryToGet(aAttachEffect->mEffectID);
 			aStillAlive = (aReanimation != nullptr && !aReanimation->mDead);
 			break;
 		}
 		case EffectType::EFFECT_ATTACHMENT:
 		{
-			Attachment* aAttachment = gEffectSystem->mAttachmentHolder->mAttachments.DataArrayTryToGet(aAttachEffect->mEffectID);
+			Attachment* aAttachment = aAttachments.DataArrayTryToGet(aAttachEffect->mEffectID);
 			aStillAlive = (aAttachment != nullptr && !aAttachment->mDead);
 			break;
 		}
@@ -596,11 +600,19 @@ void Attachment::Detach()
 //0x404FC0
 void Attachment::AttachmentDie()
 {
-	TOD_ASSERT(gEffectSystem);
+	if (mNumEffects == 0)
+	{
+		mDead = true;
+		return;
+	}
 
-	// @Minerscale Fix null pointer derefrence due to some sort of circular dependency...
-	// The problems when freeing the data were probably actually bad so this fix is frankly irresponsible
-	// TODO: put todo here so I know to come here when I break everything. !FIXME! !ACHTUNG!
+	if (!gEffectSystem)
+	{
+		mNumEffects = 0;
+		mDead = true;
+		return;
+	}
+
 	DataArray<TodParticleSystem> *aParticleSystems = nullptr;
 	DataArray<Trail> *aTrails = nullptr;
 	DataArray<Reanimation> *aReanimations = nullptr;
@@ -691,23 +703,14 @@ Attachment* AttachmentHolder::AllocAttachment()
 {
 	if (mAttachments.mSize + 1 >= mAttachments.mMaxSize)
 	{
-		unsigned int aDeadIds[1024];
-		int aDeadCount = 0;
 		Attachment* aAttachment = nullptr;
 		while (mAttachments.IterateNext(aAttachment))
 		{
 			PruneDeadEffects(aAttachment);
-			if (aAttachment->mDead && aDeadCount < 1024)
+			if (aAttachment->mDead)
 			{
-				aDeadIds[aDeadCount++] = mAttachments.DataArrayGetID(aAttachment);
+				mAttachments.DataArrayFree(aAttachment);
 			}
-		}
-
-		for (int i = 0; i < aDeadCount; i++)
-		{
-			Attachment* aDeadAttachment = mAttachments.DataArrayTryToGet(aDeadIds[i]);
-			if (aDeadAttachment)
-				mAttachments.DataArrayFree(aDeadAttachment);
 		}
 	}
 

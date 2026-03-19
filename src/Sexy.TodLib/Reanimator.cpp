@@ -31,8 +31,6 @@
 #include "graphics/Font.h"
 #include "misc/PerfTimer.h"
 #include "graphics/MemoryImage.h"
-#include <set>
-#include <string>
 
 unsigned int gReanimatorDefCount;                     //[0x6A9EE4]
 ReanimatorDefinition* gReanimatorDefArray;   //[0x6A9EE8]
@@ -697,7 +695,6 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 
 	Image* aImage = aTransform.mImage;
 	ReanimAtlasImage* aAtlasImage = nullptr;
-	bool aFullScreen = false;
 	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
 		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
@@ -706,29 +703,17 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 			aImage = aTrackInstance->mImageOverride;
 			aAtlasImage = nullptr;
 		}
-		else if (aAtlasImage == nullptr)
+		else if (aAtlasImage == nullptr && reinterpret_cast<uintptr_t>(aImage) <= 1000)
 		{
-			static std::set<std::string> logged;
-			if (logged.insert(aImage->mFilePath).second)
-			{
-				printf("Atlas miss: %s\n", aImage->mFilePath.c_str());
-			}
+			aImage = nullptr;  // Invalid encoded handle; never treat it as a raw Image*.
 		}
 	}
 	else if (aTrackInstance->mImageOverride != nullptr)
 	{
 		aImage = aTrackInstance->mImageOverride;
 	}
-
-	if (aAtlasImage == nullptr && aImage == nullptr)
-	{
-		if (strcasecmp(mDefinition->mTracks.tracks[theTrackIndex].mName, "fullscreen"))  // 如果既没有图像也没有文本，且不是全屏轨道
-			return false;  // 无需绘制
-		aFullScreen = true;  // 标记全屏轨道，后续会填充一个屏幕大小的矩形
-	}
-
 	SexyMatrix3 aMatrix;
-	// aFullScreen is already declared above
+	bool aFullScreen = false;
 	if (aAtlasImage != nullptr)
 	{
 		aMatrix.LoadIdentity();
@@ -749,10 +734,9 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 	}
 	else
 	{
-		// Fullscreen was already set or we return false
-		if (!aFullScreen)
-			return false;
-		aMatrix.LoadIdentity();
+		if (strcasecmp(mDefinition->mTracks.tracks[theTrackIndex].mName, "fullscreen"))  // 如果既没有图像也没有文本，且不是全屏轨道
+			return false;  // 无需绘制
+		aFullScreen = true;  // 标记全屏轨道，后续会填充一个屏幕大小的矩形
 	}
 
 	if (mDefinition->mReanimAtlas != nullptr && aAtlasImage == nullptr)  // 有 atlas 但不用的情况
@@ -841,11 +825,10 @@ Image* Reanimation::GetCurrentTrackImage(const char* theTrackName)
 	GetCurrentTransform(aTrackIndex, &aTransform);
 
 	Image* aImage = aTransform.mImage;
-	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
+	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr && mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage) != nullptr)
 	{
-		ReanimAtlasImage* aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);
-		if (aAtlasImage != nullptr)
-			return aAtlasImage->mOriginalImage;
+		// Encoded atlas handles do not map to stable source-image pointers at runtime.
+		aImage = nullptr;
 	}
 	return aImage;
 }
@@ -862,6 +845,8 @@ void Reanimation::GetTrackMatrix(int theTrackIndex, SexyTransform2D& theMatrix)
 	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
 		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
+		if (aAtlasImage == nullptr && reinterpret_cast<uintptr_t>(aImage) <= 1000)
+			aImage = nullptr;  // Invalid encoded handle; keep non-atlas path safe.
 	}
 	if (aTrackInstance->mImageOverride != nullptr)
 	{
