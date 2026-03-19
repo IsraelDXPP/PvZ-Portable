@@ -794,9 +794,9 @@ void LawnApp::DoPauseDialog()
 	LawnDialog* aDialog = (LawnDialog*)DoDialog(
 		Dialogs::DIALOG_PAUSED,
 		true,
-		"GAME PAUSED"/*"[RESUME_GAME]"*/,
+		"[RESUME_GAME]",
 		"Click to resume game", 
-		"Resume Game"/*"[GAME_PAUSED]"*/, 
+		"[GAME_PAUSED]", 
 		Dialog::BUTTONS_FOOTER
 	);
 
