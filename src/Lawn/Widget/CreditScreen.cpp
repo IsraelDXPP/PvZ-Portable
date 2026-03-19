@@ -611,8 +611,16 @@ Reanimation* CreditScreen::PlayReanim(int aIndex)
         aCreditsReanim->AssignRenderGroupToPrefix("attacher__DiscoLights", 2);
         aCreditsReanim->AssignRenderGroupToPrefix("Words", 3);
         aCreditsReanim->AssignRenderGroupToPrefix("attacher__cattail", 3);
-        aCreditsReanim->AssignRenderGroupToPrefix("SpotFront", 3);
         aCreditsReanim->AssignRenderGroupToPrefix("attacher__undead", 2);
+        aCreditsReanim->AssignRenderGroupToPrefix("black1", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("black2", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("black3", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("black4", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("black_iris", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("SpotFront", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("Words", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("Words2", 4);
+        aCreditsReanim->AssignRenderGroupToPrefix("Words3", 4);
     }
     else
     {
@@ -1086,6 +1094,8 @@ void CreditScreen::Draw(Graphics* g)
     {
         g->DrawImageF(IMAGE_BRAIN, mBrainPosX, mBrainPosY);
     }
+
+    aCreditsReanim->DrawRenderGroup(g, 4);
 }
 
 Reanimation* CreditScreen::FindSubReanim(Reanimation* theReanim, ReanimationType theReanimType)
