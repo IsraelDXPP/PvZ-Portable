@@ -1,3 +1,4 @@
+```cpp
 /*
  * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
@@ -25,6 +26,8 @@
 #include "../../ConstEnums.h"
 #include "../../Sexy.TodLib/TodCommon.h"
 #include "widget/Widget.h"
+#include "widget/SliderListener.h"
+#include "widget/Slider.h"
 using namespace Sexy;
 
 class Board;
@@ -56,7 +59,7 @@ public:
     bool                    mCrazyDavePicked;                  //+0x38
 };
 
-class SeedChooserScreen : public Widget
+class SeedChooserScreen : public Widget, public Sexy::SliderListener
 {
 private:
     enum
@@ -78,6 +81,7 @@ public:
     GameButton*             mAlmanacButton;                     //+0x98
     GameButton*             mMenuButton;                        //+0x9C
     GameButton*             mImitaterButton;                    //+0xA0
+    Sexy::Slider*           mSlider;
     ChosenSeed              mChosenSeeds[NUM_SEED_TYPES];       //+0xA4
     LawnApp*                mApp;                               //+0xD10
     Board*                  mBoard;                             //+0xD14
@@ -91,6 +95,8 @@ public:
     int                     mLastMouseY;                        //+0xD34
     SeedChooserState        mChooseState;                       //+0xD38
     int                     mViewLawnTime;                      //+0xD3C
+    float                   mScrollPosition;
+    float                   mMaxScrollPosition;
 
 public:
     SeedChooserScreen();
@@ -124,6 +130,10 @@ public:
     void                    ShowToolTip();
     /*inline*/ void         RemoveToolTip();
     /*inline*/ void         CancelLawnView();
+    virtual void            AddedToManager(WidgetManager* theWidgetManager);
+    virtual void            RemovedFromManager(WidgetManager* theWidgetManager);
+    virtual void            SliderVal(int theId, double theVal);
+    virtual void            MouseWheel(int theDelta);
     virtual void            MouseUp(int x, int y, int theClickCount);
     void                    UpdateImitaterButton();
     virtual void            MouseDown(int x, int y, int theClickCount);

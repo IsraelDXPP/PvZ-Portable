@@ -1,30 +1,11 @@
-/*
- * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
- *
- * SPDX-License-Identifier: LGPL-3.0-or-later
- *
- * This file is part of PvZ-Portable.
- *
- * PvZ-Portable is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * PvZ-Portable is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
- */
-
 #ifndef __ALMANACDIALOG_H__
 #define __ALMANACDIALOG_H__
 
 #include "LawnDialog.h"
+#include "widget/SliderListener.h"
+#include "widget/Slider.h"
 
-#define NUM_ALMANAC_SEEDS 49
+#define NUM_ALMANAC_SEEDS 50
 #define NUM_ALMANAC_ZOMBIES 26
 
 constexpr const float			ALMANAC_PLANT_POSITION_X		= 578.0f;
@@ -41,7 +22,7 @@ class Zombie;
 class LawnApp;
 class GameButton;
 class Reanimation;
-class AlmanacDialog : public LawnDialog
+class AlmanacDialog : public LawnDialog, public Sexy::SliderListener
 {
 private:
 	enum
@@ -58,6 +39,8 @@ public:
 	GameButton*					mIndexButton;			//+0x174
 	GameButton*					mPlantButton;			//+0x178
 	GameButton*					mZombieButton;			//+0x17C
+	Sexy::Slider*				mPlantSlider;
+	Sexy::Slider*				mZombieSlider;
 	AlmanacPage					mOpenPage;				//+0x180
 	Reanimation*				mReanim[4];				//+0x184
 	SeedType					mSelectedSeed;			//+0x194
@@ -65,6 +48,8 @@ public:
 	Plant*						mPlant;					//+0x19C
 	Zombie*						mZombie;				//+0x1A0
 	Zombie*						mZombiePerfTest[400];	//+0x1A4
+	float						mScrollPosition;
+	float						mMaxScrollPosition;
 	
 public:
 	AlmanacDialog(LawnApp* theApp);
@@ -72,6 +57,8 @@ public:
 
 	void						ClearPlantsAndZombies();
 	virtual void				RemovedFromManager(WidgetManager* theWidgetManager);
+	virtual void				AddedToManager(WidgetManager* theWidgetManager);
+	void						SliderVal(int theId, double theVal);
 	void						SetupPlant();
 	void						SetupZombie();
 	void						SetPage(AlmanacPage thePage);
@@ -89,6 +76,7 @@ public:
 	ZombieType					ZombieHitTest(int x, int y);
 	virtual void				MouseUp(int x, int y, int theClickCount);
 	virtual void				MouseDown(int x, int y, int theClickCount);
+	virtual void				MouseWheel(int theDelta);
 //	virtual void				KeyChar(char theChar);
 
 	static ZombieType			GetZombieType(int theIndex);

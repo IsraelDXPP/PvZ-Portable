@@ -47,6 +47,18 @@ AlmanacDialog::AlmanacDialog(LawnApp* theApp) : LawnDialog(theApp, DIALOG_ALMANA
 	mZombie = nullptr;
 	mPlant = nullptr;
 	mDrawStandardBack = false;
+	mScrollPosition = 0;
+	mMaxScrollPosition = 0;
+	mPlantSlider = new Sexy::Slider(Sexy::IMAGE_OPTIONS_SLIDERSLOT, Sexy::IMAGE_OPTIONS_SLIDERKNOB2, 0, this);
+	mPlantSlider->mHorizontal = false;
+	mPlantSlider->Resize(8, 92, 17, 460);
+	mPlantSlider->mVisible = false;
+
+	mZombieSlider = new Sexy::Slider(Sexy::IMAGE_OPTIONS_SLIDERSLOT, Sexy::IMAGE_OPTIONS_SLIDERKNOB2, 1, this);
+	mZombieSlider->mHorizontal = false;
+	mZombieSlider->Resize(8, 86, 17, 474);
+	mZombieSlider->mVisible = false;
+
 	mLoadedResourceNames.push_back("DelayLoad_Almanac");
 	for (size_t i = 0; i < LENGTH(mZombiePerfTest); i++) mZombiePerfTest[i] = nullptr;
 	LawnDialog::Resize(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
@@ -113,6 +125,8 @@ AlmanacDialog::~AlmanacDialog()
 	if (mIndexButton)	delete mIndexButton;
 	if (mPlantButton)	delete mPlantButton;
 	if (mZombieButton)	delete mZombieButton;
+	if (mPlantSlider)	delete mPlantSlider;
+	if (mZombieSlider)	delete mZombieSlider;
 
 	ClearPlantsAndZombies();
 }
@@ -147,7 +161,22 @@ void AlmanacDialog::ClearPlantsAndZombies()
 void AlmanacDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 {
 	LawnDialog::RemovedFromManager(theWidgetManager);
+	RemoveWidget(mPlantSlider);
+	RemoveWidget(mZombieSlider);
 	ClearPlantsAndZombies();
+}
+
+void AlmanacDialog::AddedToManager(WidgetManager* theWidgetManager)
+{
+	LawnDialog::AddedToManager(theWidgetManager);
+	AddWidget(mPlantSlider);
+	AddWidget(mZombieSlider);
+}
+
+void AlmanacDialog::SliderVal(int theId, double theVal)
+{
+	mScrollPosition = theVal;
+	MarkDirty();
 }
 
 //0x401A30
@@ -209,13 +238,30 @@ void AlmanacDialog::SetPage(AlmanacPage thePage)
 		mIndexButton->mBtnNoDraw = true;
 		mPlantButton->mBtnNoDraw = false;
 		mZombieButton->mBtnNoDraw = false;
+		mPlantSlider->mVisible = false;
+		mZombieSlider->mVisible = false;
 	}
 	else
 	{
+		mScrollPosition = 0;
 		if (mOpenPage == AlmanacPage::ALMANAC_PAGE_PLANTS)
+		{
 			SetupPlant();
+			mMaxScrollPosition = 86; // (7 rows * 78) - 460
+			mPlantSlider->SetRange(0, mMaxScrollPosition);
+			mPlantSlider->SetValue(0);
+			mPlantSlider->mVisible = true;
+			mZombieSlider->mVisible = false;
+		}
 		else if (mOpenPage == AlmanacPage::ALMANAC_PAGE_ZOMBIES)
+		{
 			SetupZombie();
+			mMaxScrollPosition = 6; // (6 rows * 80) - 474
+			mZombieSlider->SetRange(0, mMaxScrollPosition);
+			mZombieSlider->SetValue(0);
+			mPlantSlider->mVisible = false;
+			mZombieSlider->mVisible = true;
+		}
 		else return;
 
 		mIndexButton->mBtnNoDraw = false;
@@ -269,6 +315,16 @@ void AlmanacDialog::Update()
 	MarkDirty();
 }
 
+void AlmanacDialog::MouseWheel(int theDelta)
+{
+	mScrollPosition -= theDelta * 20;
+	if (mScrollPosition < 0) mScrollPosition = 0;
+	if (mScrollPosition > mMaxScrollPosition) mScrollPosition = mMaxScrollPosition;
+	
+	if (mOpenPage == ALMANAC_PAGE_PLANTS) mPlantSlider->SetValue(mScrollPosition);
+	else if (mOpenPage == ALMANAC_PAGE_ZOMBIES) mZombieSlider->SetValue(mScrollPosition);
+}
+
 ZombieType AlmanacDialog::GetZombieType(int theIndex)
 {
 	return theIndex < NUM_ZOMBIE_TYPES ? (ZombieType)theIndex : ZOMBIE_INVALID;
@@ -299,25 +355,37 @@ void AlmanacDialog::DrawPlants(Graphics* g)
 {
 	g->DrawImage(Sexy::IMAGE_ALMANAC_PLANTBACK, 0, 0);
 	TodDrawString(g, "[SUBURBAN_ALMANAC_PLANTS]", BOARD_WIDTH / 2, 48, Sexy::FONT_HOUSEOFTERROR20, Color(213, 159, 43), DrawStringJustification::DS_ALIGN_CENTER);
-
+	Graphics aSeedGraphics = Graphics(*g);
+	aSeedGraphics.SetClipRect(0, 92, BOARD_WIDTH, 460);
+	
 	SeedType aSeedMouseOn = SeedHitTest(mApp->mWidgetManager->mLastMouseX, mApp->mWidgetManager->mLastMouseY);
 	for (SeedType aSeedType = SeedType::SEED_PEASHOOTER; aSeedType < NUM_ALMANAC_SEEDS; aSeedType = (SeedType)(aSeedType + 1))
 	{
 		int aPosX, aPosY;
 		GetSeedPosition(aSeedType, aPosX, aPosY);
+		
+		if (aPosY > 600 || aPosY < 92 - SEED_PACKET_HEIGHT) continue; // Basic optimization
+
 		if (mApp->HasSeedType(aSeedType))
 		{
 			if (aSeedType == SeedType::SEED_IMITATER)
 			{
 				if (aSeedType == aSeedMouseOn)
-					g->DrawImage(Sexy::IMAGE_ALMANAC_IMITATER, aPosX, aPosY);
-				g->DrawImage(Sexy::IMAGE_ALMANAC_IMITATER, aPosX, aPosY);
+					aSeedGraphics.DrawImage(Sexy::IMAGE_ALMANAC_IMITATER, aPosX, aPosY);
+				aSeedGraphics.DrawImage(Sexy::IMAGE_ALMANAC_IMITATER, aPosX, aPosY);
 			}
 			else
 			{
-				DrawSeedPacket(g, aPosX, aPosY, aSeedType, SeedType::SEED_NONE, 0, 255, true, false);
+				DrawSeedPacket(&aSeedGraphics, aPosX, aPosY, aSeedType, SeedType::SEED_NONE, 0, 255, true, false);
 				if (aSeedType == aSeedMouseOn)
-					g->DrawImage(Sexy::IMAGE_SEEDPACKETFLASH, aPosX, aPosY);
+				{
+					aSeedGraphics.SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
+					aSeedGraphics.SetColor(Color(255, 255, 255, 128));
+					aSeedGraphics.SetColorizeImages(true);
+					DrawSeedPacket(&aSeedGraphics, aPosX, aPosY, aSeedType, SeedType::SEED_NONE, 0, 255, true, false);
+					aSeedGraphics.SetDrawMode(Graphics::DRAWMODE_NORMAL);
+					aSeedGraphics.SetColorizeImages(false);
+				}
 			}
 		}
 	}
@@ -380,7 +448,9 @@ void AlmanacDialog::DrawPlants(Graphics* g)
 void AlmanacDialog::DrawZombies(Graphics* g)
 {
 	g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEBACK, 0, 0);
-	TodDrawString(g, "[SUBURBAN_ALMANAC_ZOMBIES]", BOARD_WIDTH / 2, 54, Sexy::FONT_DWARVENTODCRAFT24, Color(0, 196, 0), DS_ALIGN_CENTER);
+	TodDrawString(g, "[SUBURBAN_ALMANAC_ZOMBIES]", BOARD_WIDTH / 2, 54, Sexy::FONT_DWARVENTODCRAFT24, Color(0, 196, 0), DrawStringJustification::DS_ALIGN_CENTER);
+	Graphics aZombieListGraphics = Graphics(*g);
+	aZombieListGraphics.SetClipRect(0, 86, BOARD_WIDTH, 474);
 
 	ZombieType aZombieMouseOn = ZombieHitTest(mApp->mWidgetManager->mLastMouseX, mApp->mWidgetManager->mLastMouseY);
 	for (int i = 0; i < NUM_ALMANAC_ZOMBIES; i++)
@@ -388,21 +458,24 @@ void AlmanacDialog::DrawZombies(Graphics* g)
 		ZombieType aZombieType = GetZombieType(i);
 		int aPosX, aPosY;
 		GetZombiePosition(aZombieType, aPosX, aPosY);
+
+		if (aPosY > 600 || aPosY < 86 - 76) continue; // Basic optimization
+
 		if (aZombieType != ZombieType::ZOMBIE_INVALID)
 		{
 			if (!ZombieIsShown(aZombieType))
-				g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEBLANK, aPosX, aPosY);
+				aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEBLANK, aPosX, aPosY);
 			else
 			{
-				g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW, aPosX, aPosY);
+				aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW, aPosX, aPosY);
 				if (aZombieType == aZombieMouseOn)
 				{
-					g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
-					g->SetColor(Color(255, 255, 255, 48));
-					g->SetColorizeImages(true);
-					g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW, aPosX, aPosY);
-					g->SetDrawMode(Graphics::DRAWMODE_NORMAL);
-					g->SetColorizeImages(false);
+					aZombieListGraphics.SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
+					aZombieListGraphics.SetColor(Color(255, 255, 255, 48));
+					aZombieListGraphics.SetColorizeImages(true);
+					aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW, aPosX, aPosY);
+					aZombieListGraphics.SetDrawMode(Graphics::DRAWMODE_NORMAL);
+					aZombieListGraphics.SetColorizeImages(false);
 				}
 
 				ZombieType aZombieTypeToDraw = aZombieType;
@@ -443,15 +516,15 @@ void AlmanacDialog::DrawZombies(Graphics* g)
 				mApp->mReanimatorCache->DrawCachedZombie(&aZombieGraphics, 0, 0, aZombieTypeToDraw);
 				aZombieGraphics.SetColorizeImages(false);
 
-				g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW2, aPosX, aPosY);
-				if (aZombieType == aZombieMouseOn)
+				aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW2, aPosX, aPosY);
+				if (aZombieType == aSeedMouseOn)
 				{
-					g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
-					g->SetColor(Color(255, 255, 255, 48));
-					g->SetColorizeImages(true);
-					g->DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW2, aPosX, aPosY);
-					g->SetDrawMode(Graphics::DRAWMODE_NORMAL);
-					g->SetColorizeImages(false);
+					aZombieListGraphics.SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
+					aZombieListGraphics.SetColor(Color(255, 255, 255, 48));
+					aZombieListGraphics.SetColorizeImages(true);
+					aZombieListGraphics.DrawImage(Sexy::IMAGE_ALMANAC_ZOMBIEWINDOW2, aPosX, aPosY);
+					aZombieListGraphics.SetDrawMode(Graphics::DRAWMODE_NORMAL);
+					aZombieListGraphics.SetColorizeImages(false);
 				}
 			}
 		}
@@ -551,8 +624,8 @@ void AlmanacDialog::GetSeedPosition(SeedType theSeedType, int& x, int& y)
 		x = 20, y = 23;
 	else
 	{
-		x = theSeedType % 8 * 52 + 26;
-		y = theSeedType / 8 * 78 + 92;
+		x = theSeedType % 8 * 52 + 25;
+		y = theSeedType / 8 * 78 + 92 - (int)mScrollPosition;
 	}
 }
 
@@ -648,7 +721,7 @@ void AlmanacDialog::GetZombiePosition(ZombieType theZombieType, int& x, int& y)
 	else
 	{
 		x = theZombieType % 5 * 85 + 22;
-		y = theZombieType / 5 * 80 + 86;
+		y = theZombieType / 5 * 80 + 86 - (int)mScrollPosition;
 	}
 }
 

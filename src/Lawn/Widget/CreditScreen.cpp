@@ -482,46 +482,57 @@ void CreditScreen::PreLoadCredits()
     ReanimatorEnsureDefinitionLoaded(ReanimationType::REANIM_SUNSHROOM, true);
     ReanimationPreload(ReanimationType::REANIM_SUNSHROOM);
 
-    ReanimatorDefinition* aMain2Def = &gReanimatorDefArray[ReanimationType::REANIM_CREDITS_MAIN2];
-    for (int aTrackIndex = 0; aTrackIndex < aMain2Def->mTracks.count; aTrackIndex++)
+    ReanimationType aReanimTypes[] = { ReanimationType::REANIM_CREDITS_MAIN, ReanimationType::REANIM_CREDITS_MAIN2, ReanimationType::REANIM_CREDITS_MAIN3 };
+    for (ReanimationType aType : aReanimTypes)
     {
-        ReanimatorTrack* aTrack = &aMain2Def->mTracks.tracks[aTrackIndex];
-        for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
+        ReanimatorDefinition* aDef = &gReanimatorDefArray[static_cast<int>(aType)];
+        for (int aTrackIndex = 0; aTrackIndex < aDef->mTracks.count; aTrackIndex++)
         {
-            ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
-            if (aTransIndex < 124 && (strcmp(aTrack->mName, "Words") == 0 || strcmp(aTrack->mName, "Words2") == 0))
+            ReanimatorTrack* aTrack = &aDef->mTracks.tracks[aTrackIndex];
+            if (strcmp(aTrack->mName, "Words") == 0 || strcmp(aTrack->mName, "Words2") == 0)
             {
-                aTrans.mFont = FONT_BRIANNETOD32BLACK;
+                for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
+                {
+                    ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
+                    if (aTransIndex < 124)
+                        aTrans.mFont = FONT_BRIANNETOD32BLACK;
+                }
             }
         }
     }
-    ReanimatorDefinition* aMain3Def = &gReanimatorDefArray[ReanimationType::REANIM_CREDITS_MAIN3];
-    for (int aTrackIndex = 0; aTrackIndex < aMain3Def->mTracks.count; aTrackIndex++)
+
+    ReanimationType aExtraReanims[] = { 
+        ReanimationType::REANIM_CREDITS_WEARETHEUNDEAD, 
+        ReanimationType::REANIM_ZOMBIE_CREDITS_DANCE, 
+        ReanimationType::REANIM_CREDITS_BOSSDANCE,
+        ReanimationType::REANIM_ZOMBIE,
+        ReanimationType::REANIM_DIGGER,
+        ReanimationType::REANIM_ZOMBIE_FOOTBALL,
+        ReanimationType::REANIM_ZOMBIE_CREDITS_CONEHEAD,
+        ReanimationType::REANIM_ZOMBIE_CREDITS_SCREEN_DOOR,
+        ReanimationType::REANIM_CREDITS_ZOMBIEARMY1,
+        ReanimationType::REANIM_CREDITS_ZOMBIEARMY2,
+        ReanimationType::REANIM_CREDITS_INFANTRY
+    };
+    for (ReanimationType aType : aExtraReanims)
     {
-        ReanimatorTrack* aTrack = &aMain3Def->mTracks.tracks[aTrackIndex];
-        for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
+        ReanimatorDefinition* aDef = &gReanimatorDefArray[static_cast<int>(aType)];
+        for (int aTrackIndex = 0; aTrackIndex < aDef->mTracks.count; aTrackIndex++)
         {
-            ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
-            if (aTransIndex < 124 && (strcmp(aTrack->mName, "Words") == 0 || strcmp(aTrack->mName, "Words2") == 0))
+            ReanimatorTrack* aTrack = &aDef->mTracks.tracks[aTrackIndex];
+            for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
             {
-                aTrans.mFont = FONT_BRIANNETOD32BLACK;
-            }
-        }
-    }
-    ReanimatorDefinition* aUndeadDef = &gReanimatorDefArray[ReanimationType::REANIM_CREDITS_WEARETHEUNDEAD];
-    for (int aTrackIndex = 0; aTrackIndex < aUndeadDef->mTracks.count; aTrackIndex++)
-    {
-        ReanimatorTrack* aTrack = &aUndeadDef->mTracks.tracks[aTrackIndex];
-        for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
-        {
-            ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
-            if (aTrans.mFont)
-            {
-                aTrans.mFont = FONT_BRIANNETOD32BLACK;
+                ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
+                if (aTrans.mFont || strstr(aTrack->mName, "Words") || strstr(aTrack->mName, "text") || strstr(aTrack->mName, "Name"))
+                {
+                    aTrans.mFont = FONT_BRIANNETOD32BLACK;
+                }
             }
         }
     }
 }
+
+
 
 //0x434C70
 void CreditScreen::GetTiming(CreditsTiming** theBeforeTiming, CreditsTiming** theAfterTiming, float* theFraction)

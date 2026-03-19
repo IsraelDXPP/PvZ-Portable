@@ -59,6 +59,14 @@ SeedChooserScreen::SeedChooserScreen()
 	mToolTip->mMaxLinesWidth = mApp->GetInteger("SEED_CHOOSER_SCREEN_TOOL_TIP_MAX_LINE_WIDTH", 0);
 	mToolTipSeed = -1;
 
+	mScrollPosition = 0;
+	mMaxScrollPosition = 68; // (7 rows * 70) - 422
+	mSlider = new Sexy::Slider(Sexy::IMAGE_OPTIONS_SLIDERSLOT, Sexy::IMAGE_OPTIONS_SLIDERKNOB2, 0, this);
+	mSlider->mHorizontal = false;
+	mSlider->Resize(8, 123, 17, 422);
+	mSlider->SetRange(0, mMaxScrollPosition);
+	mSlider->SetValue(0);
+
 	mStartButton = new GameButton(SeedChooserScreen::SeedChooserScreen_Start);
 	mStartButton->SetLabel("[LETS_ROCK_BUTTON]"); // @Patoke: wrong local name
 	mStartButton->mButtonImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON;
@@ -301,11 +309,11 @@ void SeedChooserScreen::GetSeedPositionInChooser(int theIndex, int& x, int& y)
 		x = aCol * 53 + 22;
 		if (Has7Rows())
 		{
-			y = aRow * 70 + 123;
+			y = aRow * 70 + 123 - (int)mScrollPosition;
 		}
 		else
 		{
-			y = aRow * 73 + 128;
+			y = aRow * 73 + 128 - (int)mScrollPosition;
 		}
 	}
 }
@@ -328,6 +336,32 @@ SeedChooserScreen::~SeedChooserScreen()
 	if (mStoreButton) delete mStoreButton;
 	if (mToolTip) delete mToolTip;
 	if (mMenuButton) delete mMenuButton;
+	if (mSlider) delete mSlider;
+}
+
+void SeedChooserScreen::AddedToManager(WidgetManager* theWidgetManager)
+{
+	Widget::AddedToManager(theWidgetManager);
+	AddWidget(mSlider);
+}
+
+void SeedChooserScreen::RemovedFromManager(WidgetManager* theWidgetManager)
+{
+	Widget::RemovedFromManager(theWidgetManager);
+	RemoveWidget(mSlider);
+}
+
+void SeedChooserScreen::SliderVal(int theId, double theVal)
+{
+	mScrollPosition = theVal;
+}
+
+void SeedChooserScreen::MouseWheel(int theDelta)
+{
+	mScrollPosition -= theDelta * 20;
+	if (mScrollPosition < 0) mScrollPosition = 0;
+	if (mScrollPosition > mMaxScrollPosition) mScrollPosition = mMaxScrollPosition;
+	mSlider->SetValue(mScrollPosition);
 }
 
 //0x4845E0
@@ -370,6 +404,9 @@ void SeedChooserScreen::Draw(Graphics* g)
 	// @Patoke: wrong local name
 	TodDrawString(g, "[CHOOSE_YOUR_PLANTS]", 229, 110, Sexy::FONT_DWARVENTODCRAFT18YELLOW, Color::White, DS_ALIGN_CENTER);
 
+	Graphics aChooserGraphics = Graphics(*g);
+	aChooserGraphics.SetClipRect(0, 123, BOARD_WIDTH, 422);
+
 	int aNumSeeds = Has7Rows() ? 48 : 40;
 	for (SeedType aSeedShadow = SEED_PEASHOOTER; aSeedShadow < aNumSeeds; aSeedShadow = (SeedType)(aSeedShadow + 1))
 	{
@@ -385,12 +422,12 @@ void SeedChooserScreen::Draw(Graphics* g)
 			ChosenSeed& aChosenSeed = mChosenSeeds[aSeedShadow];
 			if (aChosenSeed.mSeedState != SEED_IN_CHOOSER)
 			{
-				DrawSeedPacket(g, x, y, aSeedShadow, SEED_NONE, 0, 55, true, false);
+				DrawSeedPacket(&aChooserGraphics, x, y, aSeedShadow, SEED_NONE, 0, 55, true, false);
 			}
 		}
 		else
 		{
-			g->DrawImage(Sexy::IMAGE_SEEDPACKETSILHOUETTE, x, y);
+			aChooserGraphics.DrawImage(Sexy::IMAGE_SEEDPACKETSILHOUETTE, x, y);
 		}
 	}
 
@@ -423,8 +460,12 @@ void SeedChooserScreen::Draw(Graphics* g)
 			{
 				aPosX -= mX;
 				aPosY -= mY;
+				DrawSeedPacket(g, aPosX, aPosY, aChosenSeed.mSeedType, aChosenSeed.mImitaterType, 0, aGrayed ? 115 : 255, true, false);
 			}
-			DrawSeedPacket(g, aPosX, aPosY, aChosenSeed.mSeedType, aChosenSeed.mImitaterType, 0, aGrayed ? 115 : 255, true, false);
+			else
+			{
+				DrawSeedPacket(&aChooserGraphics, aPosX, aPosY, aChosenSeed.mSeedType, aChosenSeed.mImitaterType, 0, aGrayed ? 115 : 255, true, false);
+			}
 		}
 	}
 
