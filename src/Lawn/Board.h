@@ -59,6 +59,17 @@ class Challenge;
 class Reanimation;
 class DataSync;
 class TodParticleSystem;
+
+enum SpeedMod : int
+{
+	SPEED_SLOWMO,
+	SPEED_SLOW,
+	SPEED_NORMAL,
+	SPEED_FAST,
+	SPEED_VERY_FAST,
+	SPEED_SONIC
+};
+
 namespace Sexy
 {
 	class Graphics;
@@ -67,6 +78,8 @@ namespace Sexy
 	class Image;
 	class MTRand;
 }
+
+class NewLawnButton;
 
 class HitResult
 {
@@ -125,6 +138,11 @@ struct BungeeDropGrid
 
 class Board : public Widget, public ButtonListener
 {
+	enum {
+		SLOWDOWN,
+		PAUSE,
+		SPEEDUP
+	};
 public:
 	LawnApp*						mApp;													//+0x8C
 	DataArray<Zombie>				mZombies;												//+0x90
@@ -248,6 +266,15 @@ public:
 	int32_t							mPottedPlantsCollected;									//+0x57A8
 	int32_t							mChocolateCollected;									//+0x57AC
 
+	bool							mAllowSpeedMod;
+	SpeedMod						mPrevSpeedMod;
+	SpeedMod						mSpeedMod;
+	int								mSlowMoCounter;
+	int								mQECounter;
+	NewLawnButton*					mSlowdownButton;
+	NewLawnButton*					mPauseButton;
+	NewLawnButton*					mSpeedupButton;
+
 public:
 	Board(LawnApp* theApp);
 	virtual ~Board();
@@ -281,6 +308,8 @@ public:
 	virtual void					MouseDrag(int x, int y);
 	virtual void					MouseDown(int x, int y, int theClickCount);
 	virtual void					MouseUp(int x, int y, int theClickCount);
+	virtual void					AddedToManager(WidgetManager* theWidgetManager);
+	virtual void					RemovedFromManager(WidgetManager* theWidgetManager);
 	virtual void					KeyChar(char theChar);
 	virtual void					KeyUp(KeyCode) {}
 	virtual void					KeyDown(KeyCode theKey);
@@ -289,7 +318,7 @@ public:
 	virtual void					Draw(Graphics* g);
 	void							DrawBackdrop(Graphics* g);
 	virtual void					ButtonPress  	(int){}
-	virtual void					ButtonDepress	(int){}
+	virtual void					ButtonDepress	(int);
 	virtual void					ButtonDownTick	(int){}
 	virtual void					ButtonMouseEnter(int){}
 	virtual void					ButtonMouseLeave(int){}
@@ -298,6 +327,9 @@ public:
 	bool							TakeSunMoney(int theAmount);
 	/*inline*/ bool					CanTakeSunMoney(int theAmount);
 	/*inline*/ void					Pause(bool thePause);
+	float							GetSpeedValue(SpeedMod theMod);
+	std::string						GetSpeedString();
+	void							DrawSpeed(Graphics* g);
 	inline bool						MakeEasyZombieType() { /* 未发现 */return false; }
 	void							TryToSaveGame();
 	/*inline*/ bool					NeedSaveGame();

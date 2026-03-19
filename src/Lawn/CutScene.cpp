@@ -1055,6 +1055,7 @@ void CutScene::CancelIntro()
 
 		if (mBoard->mTutorialState != TutorialState::TUTORIAL_ZEN_GARDEN_PICKUP_WATER)
 		{
+			mBoard->mAllowSpeedMod = true;
 			mBoard->mMenuButton->mBtnNoDraw = false;
 		}
 		mApp->mSoundSystem->StopFoley(FoleyType::FOLEY_DIGGER);
@@ -1513,6 +1514,7 @@ void CutScene::Update()
 		}
 
 		ShowShovel();
+		mBoard->mAllowSpeedMod = true;
 		mApp->StartPlaying();
 		return;
 	}

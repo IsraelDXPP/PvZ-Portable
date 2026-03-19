@@ -227,6 +227,45 @@ Board::Board(LawnApp* theApp)
 		mStoreButton->mBtnNoDraw = true;
 		mStoreButton->SetLabel("[GET_FULL_VERSION_BUTTON]");
 	}
+
+	mAllowSpeedMod = false;
+	mSpeedMod = SPEED_NORMAL;
+	mPrevSpeedMod = SPEED_NORMAL;
+	mSlowMoCounter = 0;
+	mQECounter = 0;
+
+	mSlowdownButton = new NewLawnButton(nullptr, SLOWDOWN, this);
+	mSlowdownButton->mDoFinger = true;
+	mSlowdownButton->mLabel = _S("");
+	mSlowdownButton->mButtonImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mSlowdownButton->mOverImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mSlowdownButton->mDownImage = Sexy::IMAGE_PAUSE_BUTTON_PRESSED;
+	mSlowdownButton->mColors[0] = Color(255, 255, 255);
+	mSlowdownButton->mColors[1] = Color(255, 255, 255);
+	mSlowdownButton->Resize(730, 520, 24, 24);
+	mSlowdownButton->mBtnNoDraw = true;
+
+	mPauseButton = new NewLawnButton(nullptr, PAUSE, this);
+	mPauseButton->mDoFinger = true;
+	mPauseButton->mLabel = _S("");
+	mPauseButton->mButtonImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mPauseButton->mOverImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mPauseButton->mDownImage = Sexy::IMAGE_PAUSE_BUTTON_PRESSED;
+	mPauseButton->mColors[0] = Color(255, 255, 255);
+	mPauseButton->mColors[1] = Color(255, 255, 255);
+	mPauseButton->Resize(760, 520, 24, 24);
+	mPauseButton->mBtnNoDraw = true;
+
+	mSpeedupButton = new NewLawnButton(nullptr, SPEEDUP, this);
+	mSpeedupButton->mDoFinger = true;
+	mSpeedupButton->mLabel = _S("");
+	mSpeedupButton->mButtonImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mSpeedupButton->mOverImage = Sexy::IMAGE_PAUSE_BUTTON;
+	mSpeedupButton->mDownImage = Sexy::IMAGE_PAUSE_BUTTON_PRESSED;
+	mSpeedupButton->mColors[0] = Color(255, 255, 255);
+	mSpeedupButton->mColors[1] = Color(255, 255, 255);
+	mSpeedupButton->Resize(790, 520, 24, 24);
+	mSpeedupButton->mBtnNoDraw = true;
 }
 
 //0x408670 and 0x408690
@@ -244,6 +283,9 @@ Board::~Board()
 	{
 		delete mStoreButton;
 	}
+	delete mPauseButton;
+	delete mSpeedupButton;
+	delete mSlowdownButton;
 	mZombies.DataArrayDispose();
 	mPlants.DataArrayDispose();
 	mProjectiles.DataArrayDispose();
@@ -4895,6 +4937,12 @@ void Board::Pause(bool thePause)
 	{
 		TryToSaveGame();
 	}
+
+	if (mAllowSpeedMod)
+	{
+		mSlowMoButton->mBtnNoDraw = mPaused;
+		mFastForwardButton->mBtnNoDraw = mPaused;
+	}
 }
 
 //0x412850
@@ -6048,7 +6096,34 @@ void Board::Update()
 
 	UpdateGridItems();
 	UpdateFwoosh();
-	UpdateGame();
+
+	int aUpdateCount = 1;
+	if (mApp->mGameScene == GameScenes::SCENE_PLAYING)
+	{
+		float aSpeed = GetSpeedValue(mSpeedMod);
+		if (aSpeed < 1.0f)
+		{
+			mSlowMoCounter++;
+			if (mSlowMoCounter >= (int)(1.0f / aSpeed))
+			{
+				mSlowMoCounter = 0;
+			}
+			else
+			{
+				aUpdateCount = 0;
+			}
+		}
+		else
+		{
+			aUpdateCount = (int)aSpeed;
+		}
+	}
+
+	for (int i = 0; i < aUpdateCount; i++)
+	{
+		UpdateGame();
+	}
+
 	UpdateFog();
 	mChallenge->Update();
 	UpdateLevelEndSequence();
@@ -6971,6 +7046,10 @@ void Board::DrawLevel(Graphics* g)
 	{
 		aPosX = 593;
 	}
+	if (mAllowSpeedMod && mApp->mGameScene == GameScenes::SCENE_PLAYING)
+	{
+		aPosX -= 100;
+	}
 	if (mChallenge->mChallengeState == ChallengeState::STATECHALLENGE_ZEN_FADING)
 	{
 		aPosY += TodAnimateCurve(50, 0, mChallenge->mChallengeStateCounter, 0, 50, TodCurves::CURVE_EASE_IN_OUT);
@@ -7815,6 +7894,7 @@ void Board::Draw(Graphics* g)
 
 	mDrawCount++;
 	DrawGameObjects(g);
+	DrawSpeed(g);
 }
 
 //0x41AE60
@@ -8029,6 +8109,28 @@ static void TodCrash()
 //0x41B950（原版中废弃）
 void Board::KeyChar(char theChar)
 {
+	if (mAllowSpeedMod)
+	{
+		if (theChar == 'q')
+		{
+			if (mSpeedMod > SPEED_SLOWMO)
+			{
+				mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+				mApp->PlaySample(Sexy::SOUND_BUTTONCLICK);
+			}
+			return;
+		}
+		if (theChar == 'e')
+		{
+			if (mSpeedMod < SPEED_SONIC)
+			{
+				mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+				mApp->PlaySample(Sexy::SOUND_BUTTONCLICK);
+			}
+			return;
+		}
+	}
+
 	if (!mApp->mDebugKeysEnabled)
 		return;
 
@@ -10094,6 +10196,112 @@ int Board::NumberZombiesInWave(int theWaveIndex)
 bool Board::IsZombieTypeSpawnedOnly(ZombieType theZombieType)
 {
 	return (theZombieType == ZombieType::ZOMBIE_BACKUP_DANCER || theZombieType == ZombieType::ZOMBIE_BOBSLED || theZombieType == ZombieType::ZOMBIE_IMP);
+}
+
+void Board::AddedToManager(WidgetManager* theWidgetManager)
+{
+	Widget::AddedToManager(theWidgetManager);
+	theWidgetManager->AddWidget(mMenuButton);
+	if (mStoreButton) theWidgetManager->AddWidget(mStoreButton);
+	theWidgetManager->AddWidget(mPauseButton);
+	theWidgetManager->AddWidget(mSpeedupButton);
+	theWidgetManager->AddWidget(mSlowdownButton);
+}
+
+void Board::RemovedFromManager(WidgetManager* theWidgetManager)
+{
+	Widget::RemovedFromManager(theWidgetManager);
+	theWidgetManager->RemoveWidget(mMenuButton);
+	if (mStoreButton) theWidgetManager->RemoveWidget(mStoreButton);
+	theWidgetManager->RemoveWidget(mPauseButton);
+	theWidgetManager->RemoveWidget(mSpeedupButton);
+	theWidgetManager->RemoveWidget(mSlowdownButton);
+}
+
+void Board::ButtonDepress(int theId)
+{
+	if (!mApp->mBoard) return;
+
+	if (theId == 0)
+	{
+		mApp->DoPauseDialog();
+	}
+	else if (theId == 1)
+	{
+		mApp->mBoard->mStoreButton->mBtnNoDraw = true;
+		mApp->mBoard->mStoreButton->mDisabled = true;
+		mApp->ShowStoreScreen();
+	}
+	else if (theId == Board::PAUSE)
+	{
+		Pause(!mPaused);
+		mApp->PlaySample(Sexy::SOUND_BUTTONCLICK);
+	}
+	else if (theId == Board::SPEEDUP)
+	{
+		if (mSpeedMod < SPEED_SONIC)
+		{
+			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+			mApp->PlaySample(Sexy::SOUND_BUTTONCLICK);
+		}
+	}
+	else if (theId == Board::SLOWDOWN)
+	{
+		if (mSpeedMod > SPEED_SLOWMO)
+		{
+			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+			mApp->PlaySample(Sexy::SOUND_BUTTONCLICK);
+		}
+	}
+}
+
+float Board::GetSpeedValue(SpeedMod theMod)
+{
+	switch (theMod)
+	{
+	case SPEED_SLOWMO:		return 0.25f;
+	case SPEED_SLOW:		return 0.5f;
+	case SPEED_NORMAL:		return 1.0f;
+	case SPEED_FAST:		return 1.5f;
+	case SPEED_VERY_FAST:	return 2.0f;
+	case SPEED_SONIC:		return 2.5f;
+	default:				return 1.0f;
+	}
+}
+
+std::string Board::GetSpeedString()
+{
+	float aSpeed = GetSpeedValue(mSpeedMod);
+	char aBuf[32];
+	sprintf(aBuf, "%.2fx", aSpeed);
+	return aBuf;
+}
+
+void Board::DrawSpeed(Graphics* g)
+{
+	if (!mAllowSpeedMod || (mApp->mGameScene != GameScenes::SCENE_LEVEL_INTRO && mApp->mGameScene != GameScenes::SCENE_PLAYING))
+	{
+		mPauseButton->mBtnNoDraw = true;
+		mSpeedupButton->mBtnNoDraw = true;
+		mSlowdownButton->mBtnNoDraw = true;
+		return;
+	}
+
+	mPauseButton->mBtnNoDraw = false;
+	mSpeedupButton->mBtnNoDraw = false;
+	mSlowdownButton->mBtnNoDraw = false;
+
+	int aPosX = 750 + mApp->mWideScreenXOffset;
+	int aPosY = 550;
+
+	mPauseButton->Resize(aPosX, aPosY, IMAGE_PAUSE_BUTTON->mWidth, IMAGE_PAUSE_BUTTON->mHeight);
+	mSpeedupButton->Resize(aPosX + 30, aPosY, IMAGE_SPEEDUP_BUTTON->mWidth, IMAGE_SPEEDUP_BUTTON->mHeight);
+	mSlowdownButton->Resize(aPosX - 30, aPosY, IMAGE_SLOWDOWN_BUTTON->mWidth, IMAGE_SLOWDOWN_BUTTON->mHeight);
+
+	g->SetFont(Sexy::FONT_TINYBOLD);
+	g->SetColor(Color(255, 255, 255));
+	std::string aSpeedStr = GetSpeedString();
+	g->DrawString(aSpeedStr, aPosX - 15, aPosY - 10);
 }
 
 

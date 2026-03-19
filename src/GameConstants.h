@@ -21,6 +21,8 @@
 
 #pragma once
 
+#define _REPLANTED_SPEED_CONTROL
+
 #include "ConstEnums.h"
 constexpr const double PI = 3.141592653589793;
 
