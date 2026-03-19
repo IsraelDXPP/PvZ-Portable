@@ -119,6 +119,7 @@ public:
 	virtual void			Draw(Graphics* g);
 	virtual void			KeyChar(char theChar);
 	virtual void			KeyDown(KeyCode theKey);
+	virtual void			MouseDown(int x, int y, int theClickCount);
 	virtual void			MouseUp(int x, int y, int theClickCount);
 	virtual void			AddedToManager(WidgetManager* theWidgetManager);
 	virtual void			RemovedFromManager(WidgetManager* theWidgetManager);

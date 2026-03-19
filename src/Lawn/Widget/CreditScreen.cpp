@@ -400,7 +400,6 @@ void CreditScreen::AddedToManager(WidgetManager* theWidgetManager)
 	Widget::AddedToManager(theWidgetManager);
 	AddWidget(mMainMenuButton);
 	AddWidget(mReplayButton);
-	AddWidget(mCloseButton);
 	AddWidget(mOverlayWidget);
 }
 
@@ -410,7 +409,6 @@ void CreditScreen::RemovedFromManager(WidgetManager* theWidgetManager)
 	Widget::RemovedFromManager(theWidgetManager);
 	RemoveWidget(mMainMenuButton);
 	RemoveWidget(mReplayButton);
-	RemoveWidget(mCloseButton);
 	RemoveWidget(mOverlayWidget);
 }
 
@@ -1123,6 +1121,11 @@ void CreditScreen::Draw(Graphics* g)
     }
 
     aCreditsReanim->DrawRenderGroup(g, 4);
+
+    if (mCloseButton)
+    {
+        mCloseButton->Draw(g);
+    }
 }
 
 Reanimation* CreditScreen::FindSubReanim(Reanimation* theReanim, ReanimationType theReanimType)
@@ -1242,6 +1245,10 @@ void CreditScreen::Update()
     }
 
     mLastDrawCount = mDrawCount;
+    if (mCloseButton)
+    {
+        mCloseButton->Update();
+    }
     MarkDirty();
 }
 
@@ -1279,7 +1286,11 @@ void CreditScreen::UpdateMovie()
         {
             mMainMenuButton->SetVisible(true);
             mReplayButton->SetVisible(true);
-            mCloseButton->SetVisible(false);
+            if (mCloseButton)
+            {
+                mCloseButton->mBtnNoDraw = true;
+                mCloseButton->mDisabled = true;
+            }
         }
     }
 
@@ -1577,7 +1588,11 @@ void CreditScreen::JumpToFrame(CreditsPhase thePhase, float theFrame)
 {
     mMainMenuButton->SetVisible(false);
     mReplayButton->SetVisible(false);
-    mCloseButton->SetVisible(true);
+    if (mCloseButton)
+    {
+        mCloseButton->mBtnNoDraw = false;
+        mCloseButton->mDisabled = false;
+    }
     mCreditsPhaseCounter = 0;
     mApp->mEffectSystem->EffectSystemFreeAll();
 
@@ -1848,4 +1863,20 @@ void CreditScreen::ButtonDepress(int theId)
     }
 }
 
-void CreditScreen::MouseUp(int, int, int){}
+void CreditScreen::MouseDown(int x, int y, int theClickCount)
+{
+    Widget::MouseDown(x, y, theClickCount);
+    if (theClickCount == 1 && mCloseButton && mCloseButton->IsMouseOver())
+    {
+        mApp->PlaySample(SOUND_GRAVEBUTTON);
+    }
+}
+
+void CreditScreen::MouseUp(int x, int y, int theClickCount)
+{
+    Widget::MouseUp(x, y, theClickCount);
+    if (theClickCount == 1 && mCloseButton && mCloseButton->IsMouseOver())
+    {
+        PauseCredits();
+    }
+}
