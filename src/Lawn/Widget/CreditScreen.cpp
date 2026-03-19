@@ -482,6 +482,18 @@ void CreditScreen::PreLoadCredits()
     ReanimatorEnsureDefinitionLoaded(ReanimationType::REANIM_SUNSHROOM, true);
     ReanimationPreload(ReanimationType::REANIM_SUNSHROOM);
 
+    ReanimatorDefinition* aMainDef = &gReanimatorDefArray[ReanimationType::REANIM_CREDITS_MAIN];
+    for (int aTrackIndex = 0; aTrackIndex < aMainDef->mTracks.count; aTrackIndex++)
+    {
+        ReanimatorTrack* aTrack = &aMainDef->mTracks.tracks[aTrackIndex];
+        if (strncmp(aTrack->mName, "Words", 5) == 0)
+        {
+            for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
+            {
+                aTrack->mTransforms.mTransforms[aTransIndex].mFont = FONT_BRIANNETOD32BLACK;
+            }
+        }
+    }
     ReanimatorDefinition* aMain2Def = &gReanimatorDefArray[ReanimationType::REANIM_CREDITS_MAIN2];
     for (int aTrackIndex = 0; aTrackIndex < aMain2Def->mTracks.count; aTrackIndex++)
     {
@@ -489,7 +501,7 @@ void CreditScreen::PreLoadCredits()
         for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
         {
             ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
-            if (aTransIndex < 124 && (strcmp(aTrack->mName, "Words") == 0 || strcmp(aTrack->mName, "Words2") == 0))
+            if (aTransIndex < 124 && strncmp(aTrack->mName, "Words", 5) == 0)
             {
                 aTrans.mFont = FONT_BRIANNETOD32BLACK;
             }
@@ -502,7 +514,7 @@ void CreditScreen::PreLoadCredits()
         for (int aTransIndex = 0; aTransIndex < aTrack->mTransforms.count; aTransIndex++)
         {
             ReanimatorTransform& aTrans = aTrack->mTransforms.mTransforms[aTransIndex];
-            if (aTransIndex < 124 && (strcmp(aTrack->mName, "Words") == 0 || strcmp(aTrack->mName, "Words2") == 0))
+            if (aTransIndex < 124 && strncmp(aTrack->mName, "Words", 5) == 0)
             {
                 aTrans.mFont = FONT_BRIANNETOD32BLACK;
             }
