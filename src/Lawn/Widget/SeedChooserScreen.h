@@ -1,4 +1,3 @@
-```cpp
 /*
  * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
