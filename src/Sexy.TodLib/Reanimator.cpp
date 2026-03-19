@@ -703,7 +703,7 @@ bool Reanimation::DrawTrack(Graphics* g, int theTrackIndex, int theRenderGroup, 
 			aImage = aTrackInstance->mImageOverride;
 			aAtlasImage = nullptr;
 		}
-		else if (aAtlasImage == nullptr)
+		else if (aAtlasImage == nullptr && reinterpret_cast<uintptr_t>(aImage) <= 1000)
 		{
 			aImage = nullptr;  // Invalid encoded handle; never treat it as a raw Image*.
 		}
@@ -845,7 +845,7 @@ void Reanimation::GetTrackMatrix(int theTrackIndex, SexyTransform2D& theMatrix)
 	if (mDefinition->mReanimAtlas != nullptr && aImage != nullptr)
 	{
 		aAtlasImage = mDefinition->mReanimAtlas->GetEncodedReanimAtlas(aImage);  // Decode atlas handle from transform image.
-		if (aAtlasImage == nullptr)
+		if (aAtlasImage == nullptr && reinterpret_cast<uintptr_t>(aImage) <= 1000)
 			aImage = nullptr;  // Invalid encoded handle; keep non-atlas path safe.
 	}
 	if (aTrackInstance->mImageOverride != nullptr)
