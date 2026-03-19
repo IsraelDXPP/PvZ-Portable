@@ -362,6 +362,18 @@ CreditScreen::CreditScreen(LawnApp* theApp)
 	mReplayButton->mTextOffsetX = 33;
 	mReplayButton->mTextOffsetY = -5;
 
+	mCloseButton = new GameButton(CreditScreen::Credits_Button_Menu);
+	mCloseButton->SetLabel("[MAIN_MENU_BUTTON]");
+	mCloseButton->mButtonImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2;
+	mCloseButton->mOverImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW;
+	mCloseButton->mDownImage = nullptr;
+	mCloseButton->SetFont(Sexy::FONT_BRIANNETOD12);
+	mCloseButton->mColors[ButtonWidget::COLOR_LABEL] = Color(42, 42, 90);
+	mCloseButton->mColors[ButtonWidget::COLOR_LABEL_HILITE] = Color(42, 42, 90);
+	mCloseButton->mParentWidget = this;
+	mCloseButton->Resize(677, 16, 111, 26);
+	mCloseButton->mTextOffsetY = 1;
+
 	mOverlayWidget = new CreditsOverlay(this);
 	mOverlayWidget->Resize(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 	
@@ -378,6 +390,7 @@ CreditScreen::~CreditScreen()
 	mApp->SetMusicVolume(mOriginalMusicVolume);
 	delete mReplayButton;
 	delete mMainMenuButton;
+	delete mCloseButton;
 	delete mOverlayWidget;
 }
 
@@ -387,6 +400,7 @@ void CreditScreen::AddedToManager(WidgetManager* theWidgetManager)
 	Widget::AddedToManager(theWidgetManager);
 	AddWidget(mMainMenuButton);
 	AddWidget(mReplayButton);
+	AddWidget(mCloseButton);
 	AddWidget(mOverlayWidget);
 }
 
@@ -396,6 +410,7 @@ void CreditScreen::RemovedFromManager(WidgetManager* theWidgetManager)
 	Widget::RemovedFromManager(theWidgetManager);
 	RemoveWidget(mMainMenuButton);
 	RemoveWidget(mReplayButton);
+	RemoveWidget(mCloseButton);
 	RemoveWidget(mOverlayWidget);
 }
 
@@ -1167,7 +1182,7 @@ void CreditScreen::UpdateBlink()
 void CreditScreen::Update()
 {
     Widget::Update();
-    if (!mCreditsPaused && !mMainMenuButton->mIsOver && !mReplayButton->mIsOver)
+    if (!mCreditsPaused && !mMainMenuButton->mIsOver && !mReplayButton->mIsOver && !mCloseButton->mIsOver)
     {
         mApp->SetCursor(CURSOR_POINTER);
     }
@@ -1264,6 +1279,7 @@ void CreditScreen::UpdateMovie()
         {
             mMainMenuButton->SetVisible(true);
             mReplayButton->SetVisible(true);
+            mCloseButton->SetVisible(false);
         }
     }
 
@@ -1561,6 +1577,7 @@ void CreditScreen::JumpToFrame(CreditsPhase thePhase, float theFrame)
 {
     mMainMenuButton->SetVisible(false);
     mReplayButton->SetVisible(false);
+    mCloseButton->SetVisible(true);
     mCreditsPhaseCounter = 0;
     mApp->mEffectSystem->EffectSystemFreeAll();
 
@@ -1806,6 +1823,10 @@ void CreditScreen::ButtonPress(int theId)
     {
         mApp->PlaySample(SOUND_TAP);
     }
+    else if (theId == CreditScreen::Credits_Button_Menu)
+    {
+        mApp->PlaySample(SOUND_GRAVEBUTTON);
+    }
 }
 
 //0x4385A0
@@ -1820,6 +1841,10 @@ void CreditScreen::ButtonDepress(int theId)
     {
         mApp->KillCreditScreen();
         mApp->ShowCreditScreen();
+    }
+    else if (theId == CreditScreen::Credits_Button_Menu)
+    {
+        PauseCredits();
     }
 }
 
