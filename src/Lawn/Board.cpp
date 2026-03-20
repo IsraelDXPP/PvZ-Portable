@@ -4903,6 +4903,13 @@ void Board::MouseUp(int x, int y, int theClickCount)
 				mApp->DoBackToMain();
 			}
 		}
+
+		if (mAllowSpeedMod)
+		{
+			if (mSlowdownButton->IsMouseOver()) ButtonDepress(SLOWDOWN);
+			if (mPauseButton->IsMouseOver()) ButtonDepress(PAUSE);
+			if (mSpeedupButton->IsMouseOver()) ButtonDepress(SPEEDUP);
+		}
 	}
 }
 
@@ -6032,6 +6039,12 @@ void Board::Update()
 		mStoreButton->mDisabled = aDisabled;
 		mStoreButton->Update();
 	}
+	mSlowdownButton->mDisabled = aDisabled;
+	mSlowdownButton->Update();
+	mPauseButton->mDisabled = aDisabled;
+	mPauseButton->Update();
+	mSpeedupButton->mDisabled = aDisabled;
+	mSpeedupButton->Update();
 
 	int aUpdateCount = 1;
 	if (mAllowSpeedMod)
@@ -6135,27 +6148,11 @@ void Board::UpdateLayers()
 void Board::AddedToManager(WidgetManager* theWidgetManager)
 {
 	Widget::AddedToManager(theWidgetManager);
-	theWidgetManager->AddWidget(mMenuButton);
-	if (mStoreButton)
-	{
-		theWidgetManager->AddWidget(mStoreButton);
-	}
-	theWidgetManager->AddWidget(mSlowdownButton);
-	theWidgetManager->AddWidget(mPauseButton);
-	theWidgetManager->AddWidget(mSpeedupButton);
 }
 
 void Board::RemovedFromManager(WidgetManager* theWidgetManager)
 {
 	Widget::RemovedFromManager(theWidgetManager);
-	theWidgetManager->RemoveWidget(mMenuButton);
-	if (mStoreButton)
-	{
-		theWidgetManager->RemoveWidget(mStoreButton);
-	}
-	theWidgetManager->RemoveWidget(mSlowdownButton);
-	theWidgetManager->RemoveWidget(mPauseButton);
-	theWidgetManager->RemoveWidget(mSpeedupButton);
 }
 
 //0x416110
