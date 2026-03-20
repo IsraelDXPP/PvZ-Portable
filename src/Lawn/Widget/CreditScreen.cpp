@@ -363,7 +363,7 @@ CreditScreen::CreditScreen(LawnApp* theApp)
 	mReplayButton->mTextOffsetY = -5;
 
 	mCloseButton = new GameButton(CreditScreen::Credits_Button_Menu);
-	mCloseButton->SetLabel("[MAIN_MENU_BUTTON]");
+	mCloseButton->SetLabel("[CREDITS_MAIN_MENU_BUTTON]");
 	mCloseButton->mButtonImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2;
 	mCloseButton->mOverImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW;
 	mCloseButton->mDownImage = nullptr;
@@ -1803,7 +1803,7 @@ void CreditScreen::PauseCredits()
         "[CREDITS_PAUSE_HEADER]", 
         "[CREDITS_PAUSE_BODY]", 
         "[CREDITS_RESUME_BUTTON]", 
-        "[MAIN_MENU_BUTTON]", 
+        "[CREDITS_MAIN_MENU_BUTTON]", 
         Dialog::BUTTONS_YES_NO) == Dialog::ID_NO)
     {
         mApp->KillCreditScreen();
