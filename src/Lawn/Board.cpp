@@ -10288,6 +10288,3 @@ void Board::ButtonDepress(int theId)
 		}
 	}
 }
-}
-
-
