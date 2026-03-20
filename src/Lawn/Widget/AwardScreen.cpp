@@ -162,10 +162,16 @@ AwardScreen::AwardScreen(LawnApp* theApp, AwardType theAwardType, bool theShowin
 	mContinueButton->mDisabled = true;
 
 	mMenuButton = new GameButton(AwardScreen::AwardScreen_Menu);
-	mMenuButton->SetLabel("[MENU_BUTTON]");
-	mMenuButton->mDrawStoneButton = true;
+	mMenuButton->SetLabel("[AWARD_MAIN_MENU_BUTTON]");
+	mMenuButton->mButtonImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2;
+	mMenuButton->mOverImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW;
+	mMenuButton->mDownImage = nullptr;
+	mMenuButton->SetFont(Sexy::FONT_BRIANNETOD12);
+	mMenuButton->mColors[ButtonWidget::COLOR_LABEL] = Color(42, 42, 90);
+	mMenuButton->mColors[ButtonWidget::COLOR_LABEL_HILITE] = Color(42, 42, 90);
 	mMenuButton->mParentWidget = this;
-	mMenuButton->Resize(677, 16, 117, 46);
+	mMenuButton->Resize(677, 16, 111, 26);
+	mMenuButton->mTextOffsetY = 1;
 	if (!mApp->HasFinishedAdventure() && aLevel <= 3)
 	{
 		mMenuButton->mBtnNoDraw = true;
