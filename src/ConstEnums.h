@@ -269,55 +269,55 @@ enum Dialogs : int32_t
 {
     DIALOG_NEW_GAME,                            // 0：
     DIALOG_OPTIONS,                             // 1：
-    DIALOG_NEWOPTIONS,                          // 2：menú
-    DIALOG_ALMANAC,                             // 3：enciclopedia
-    DIALOG_STORE,                               // 4：tienda
+    DIALOG_NEWOPTIONS,                          // 2：菜单
+    DIALOG_ALMANAC,                             // 3：图鉴
+    DIALOG_STORE,                               // 4：商店
     DIALOG_PREGAME_NAG,                         // 5：
     DIALOG_LOAD_GAME,                           // 6：
     DIALOG_CONFIRM_UPDATE_CHECK,                // 7：
     DIALOG_CHECKING_UPDATES,                    // 8：
     DIALOG_REGISTER_ERROR,                      // 9：
-    DIALOG_COLORDEPTH_EXP,                      // 10：no soporta modo ventana
+    DIALOG_COLORDEPTH_EXP,                      // 10：不支持窗口模式
     DIALOG_OPENURL_WAIT,                        // 11：
     DIALOG_OPENURL_FAIL,                        // 12：
-    DIALOG_QUIT,                                // 13：salir del juego (cuando se presiona salir en el menú principal)
+    DIALOG_QUIT,                                // 13：退出游戏（主菜单点击退出时）
     DIALOG_HIGH_SCORES,                         // 14：
     DIALOG_NAG,                                 // 15：
-    DIALOG_INFO,                                // 16：información (aceleración 3D no soportada / no recomendada)
-    DIALOG_GAME_OVER,                           // 17：fin del juego (nivel fallido)
-    DIALOG_LEVEL_COMPLETE,                      // 18：nivel completado
-    DIALOG_PAUSED,                              // 19：juego en pausa
+    DIALOG_INFO,                                // 16：信息（3D 加速不支持/不推荐）
+    DIALOG_GAME_OVER,                           // 17：游戏结束（关卡失败）
+    DIALOG_LEVEL_COMPLETE,                      // 18：关卡完成
+    DIALOG_PAUSED,                              // 19：暂停游戏
     DIALOG_NO_MORE_MONEY,                       // 20：
     DIALOG_BONUS,                               // 21：
-    DIALOG_CONFIRM_BACK_TO_MAIN,                // 22：volver al menú principal
-    DIALOG_CONFIRM_RESTART,                     // 23：reiniciar nivel
+    DIALOG_CONFIRM_BACK_TO_MAIN,                // 22：返回主菜单
+    DIALOG_CONFIRM_RESTART,                     // 23：重新开始关卡
     DIALOG_THANKS_FOR_REGISTERING,              // 24：
-    DIALOG_NOT_ENOUGH_MONEY,                    // 25：dinero insuficiente (al intentar comprar sin tener suficiente)
-    DIALOG_UPGRADED,                            // 26：ranuras de cartas mejoradas
+    DIALOG_NOT_ENOUGH_MONEY,                    // 25：资金不足（购买商品但钱数不够时触发）
+    DIALOG_UPGRADED,                            // 26：卡槽升级
     DIALOG_NO_UPGRADE,                          // 27：
-    DIALOG_CHOOSER_WARNING,                     // 28：advertencia de selección de cartas (sin plantas de sol, etc.)
-    DIALOG_USERDIALOG,                          // 29：diálogo de usuario
-    DIALOG_CREATEUSER,                          // 30：crear nuevo usuario
-    DIALOG_CONFIRMDELETEUSER,                   // 31：eliminar usuario
-    DIALOG_RENAMEUSER,                          // 32：renombrar usuario
-    DIALOG_CREATEUSERERROR,                     // 33：por favor ingresa un nombre (al crear usuario sin nombre)
-    DIALOG_RENAMEUSERERROR,                     // 34：por favor ingresa un nombre (al renombrar sin nombre)
-    DIALOG_CHEAT,                               // 35：diálogo de salto de nivel (solo versión de prueba interna)
-    DIALOG_CHEATERROR,                          // 36：error en el comando de salto de nivel
-    DIALOG_CONTINUE,                            // 37：continuar juego (al cargar partida)
+    DIALOG_CHOOSER_WARNING,                     // 28：选卡提醒（未携带生产阳光的植物、未携带紫卡原植物等情况下触发）
+    DIALOG_USERDIALOG,                          // 29：用户对话
+    DIALOG_CREATEUSER,                          // 30：创建新用户
+    DIALOG_CONFIRMDELETEUSER,                   // 31：删除用户
+    DIALOG_RENAMEUSER,                          // 32：重命名用户
+    DIALOG_CREATEUSERERROR,                     // 33：请输入名字（创建新用户对话中不输入用户名时触发）
+    DIALOG_RENAMEUSERERROR,                     // 34：请输入名字（重命名用户对话中不输入用户名时触发）
+    DIALOG_CHEAT,                               // 35：跳关对话（仅内测版可触发）
+    DIALOG_CHEATERROR,                          // 36：跳关指令输入有误
+    DIALOG_CONTINUE,                            // 37：继续游戏（读档进入关卡时）
     DIALOG_GETREADY,                            // 38：
-    DIALOG_RESTARTCONFIRM,                      // 39：reiniciar juego (al elegir nueva partida desde continuar)
+    DIALOG_RESTARTCONFIRM,                      // 39：重新开始游戏（继续游戏对话中选择开始新游戏时触发）
     DIALOG_CONFIRMPURCHASE,                     // 40：
     DIALOG_CONFIRMSELL,                         // 41：
     DIALOG_TIMESUP,                             // 42：
     DIALOG_VIRTUALHELP,                         // 43：
     DIALOG_JUMPAHEAD,                           // 44：
     DIALOG_CRAZY_DAVE,                          // 45：
-    DIALOG_STORE_PURCHASE,                      // 46：comprar en la tienda de Dave
-    DIALOG_ZEN_SELL,                            // 47：vender plantas en el jardín zen
-    DIALOG_MESSAGE,                             // 48：mensaje general (cargando, modos no desbloqueados, etc.)
-    DIALOG_IMITATER,                            // 49：diálogo del imitador
-    DIALOG_PURCHASE_PACKET_SLOT,                // 50：comprar espacio adicional de cartas
+    DIALOG_STORE_PURCHASE,                      // 46：购买商品（戴夫商店）
+    DIALOG_ZEN_SELL,                            // 47：出售盆栽植物（禅境花园）
+    DIALOG_MESSAGE,                             // 48：通用消息对话，包括：①加载中（切换用户时触发）；②小游戏等模式未解锁；……
+    DIALOG_IMITATER,                            // 49：模仿者对话
+    DIALOG_PURCHASE_PACKET_SLOT,                // 50：升级卡槽的格子数量
     NUM_DIALOGS
 };
 enum DebugTextMode : int32_t
