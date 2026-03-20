@@ -4633,6 +4633,11 @@ void Board::MouseDown(int x, int y, int theClickCount)
 {
 	Widget::MouseDown(x, y, theClickCount);
 	mIgnoreMouseUp = !CanInteractWithBoardButtons();
+	if (mAllowSpeedMod && (mSlowdownButton->IsMouseOver() || mPauseButton->IsMouseOver() || mSpeedupButton->IsMouseOver()))
+	{
+		mIgnoreMouseUp = false;
+	}
+
 	if (mTimeStopCounter > 0)
 		return;
 
@@ -6045,6 +6050,24 @@ void Board::Update()
 	mPauseButton->Update();
 	mSpeedupButton->mDisabled = aDisabled;
 	mSpeedupButton->Update();
+
+	int aCelWidth = Sexy::IMAGE_FLAGMETER->GetCelWidth();
+	int aTargetX = 600 + aCelWidth / 2;
+	int aTargetY = 575;
+	if (HasProgressMeter() && mApp->mGameScene == GameScenes::SCENE_PLAYING)
+	{
+		aTargetY -= 40;
+	}
+	else
+	{
+		aTargetY += 5;
+	}
+
+	mPauseButton->Resize(aTargetX - 16, aTargetY, 32, 32);
+	mSlowdownButton->Resize(aTargetX - 16 - 35, aTargetY, 32, 32);
+	mSpeedupButton->Resize(aTargetX - 16 + 35, aTargetY, 32, 32);
+	mSlowdownButton->mBtnNoDraw = (mSpeedMod == SPEED_NORMAL);
+	mSlowdownButton->mDisabled = (mSpeedMod == SPEED_NORMAL);
 
 	int aUpdateCount = 1;
 	if (mAllowSpeedMod)
@@ -10032,6 +10055,22 @@ int Board::GetNumWavesPerSurvivalStage()
 	unreachable();
 }
 
+void Board::DrawSpeed(Graphics* g)
+{
+	if (!mAllowSpeedMod)
+		return;
+
+	mSlowdownButton->Draw(g);
+	mPauseButton->Draw(g);
+	mSpeedupButton->Draw(g);
+
+	g->SetFont(FONT_CONTINUUMBOLD14);
+	g->SetColor(Color(255, 255, 255));
+	
+	std::string aSpeedStr = GetSpeedString();
+	g->DrawString(aSpeedStr, mSpeedupButton->mX + mSpeedupButton->mWidth + 10, mSpeedupButton->mY + 22);
+}
+
 //0x41DA50
 void Board::RemoveParticleByType(ParticleEffect theEffectType)
 {
@@ -10249,30 +10288,6 @@ void Board::ButtonDepress(int theId)
 		}
 	}
 }
-
-void Board::DrawSpeed(Graphics* g)
-{
-	int aWideX = (mApp->mWidth - 800) / 2;
-	if (mApp->mGameScene == GameScenes::SCENE_PLAYING)
-	{
-		g->DrawImage(mSlowdownButton->mButtonImage, 580 + aWideX + mX, 555 + mY);
-		g->DrawImage(mSpeedupButton->mButtonImage, 680 + aWideX + mX, 555 + mY);
-		g->DrawImage(mPauseButton->mButtonImage, 630 + aWideX + mX, 555 + mY);
-
-		g->SetFont(FONT_BRIANNETOD12);
-		g->SetColor(Color(255, 255, 255));
-		g->DrawString(GetSpeedString(), 630 + aWideX + mX, 550 + mY);
-	}
 }
-
-
-
-
-
-
-
-
-
-
 
 
