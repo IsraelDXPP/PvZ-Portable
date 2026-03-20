@@ -138,7 +138,8 @@ enum SpeedMod
 	SPEED_NORMAL,
 	SPEED_FAST,
 	SPEED_FASTER,
-	SPEED_FASTEST
+	SPEED_FASTEST,
+	SPEED_ULTRAFAST
 };
 
 class Board : public Widget, public ButtonListener
