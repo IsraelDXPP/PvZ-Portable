@@ -123,6 +123,24 @@ struct BungeeDropGrid
 	int								mGridArrayCount;
 };
 
+enum BoardButtonId
+{
+	MENU_BUTTON = 0,
+	STORE_BUTTON = 1,
+	SLOWDOWN = 2,
+	PAUSE = 3,
+	SPEEDUP = 4
+};
+
+enum SpeedMod
+{
+	SPEED_SLOWMO,
+	SPEED_NORMAL,
+	SPEED_FAST,
+	SPEED_FASTER,
+	SPEED_FASTEST
+};
+
 class Board : public Widget, public ButtonListener
 {
 public:
@@ -139,6 +157,14 @@ public:
 	SeedBank*						mSeedBank;												//+0x144
 	GameButton*						mMenuButton;											//+0x148
 	GameButton*						mStoreButton;											//+0x14C
+	GameButton*						mSlowdownButton;
+	GameButton*						mPauseButton;
+	GameButton*						mSpeedupButton;
+	bool							mAllowSpeedMod;
+	SpeedMod						mPrevSpeedMod;
+	SpeedMod						mSpeedMod;
+	int								mSlowMoCounter;
+	int								mQECounter;
 	bool							mIgnoreMouseUp;											//+0x150
 	ToolTipWidget*					mToolTip;												//+0x154
 	//_Font*							mDebugFont;											//+0x158
@@ -288,6 +314,11 @@ public:
 	void							UpdateLayers();
 	virtual void					Draw(Graphics* g);
 	void							DrawBackdrop(Graphics* g);
+	float							GetSpeedValue();
+	std::string						GetSpeedString();
+	void							DrawSpeed(Graphics* g);
+	virtual void					AddedToManager(WidgetManager* theWidgetManager);
+	virtual void					RemovedFromManager(WidgetManager* theWidgetManager);
 	virtual void					ButtonPress  	(int){}
 	virtual void					ButtonDepress	(int){}
 	virtual void					ButtonDownTick	(int){}

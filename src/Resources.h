@@ -1690,6 +1690,12 @@ namespace Sexy
 	extern Image* IMAGE_ZOMBIE_NOTE_SMALL;
 	extern Image* IMAGE_ZOMBIE_SEAWEED;
 	extern Image* IMAGE_ZOMBOSS_PARTICLES;
+	extern Image* IMAGE_PAUSE_BUTTON;
+	extern Image* IMAGE_PAUSE_BUTTON_PRESSED;
+	extern Image* IMAGE_SPEEDUP_BUTTON;
+	extern Image* IMAGE_SPEEDUP_BUTTON_PRESSED;
+	extern Image* IMAGE_SLOWDOWN_BUTTON;
+	extern Image* IMAGE_SLOWDOWN_BUTTON_PRESSED;
 
 	// LoadingSounds Resources
 	extern intptr_t SOUND_ACHIEVEMENT;

@@ -180,6 +180,11 @@ Board::Board(LawnApp* theApp)
 	mAdvice = new MessageWidget(mApp);
 	mBackground = BackgroundType::BACKGROUND_1_DAY;
 	mMainCounter = 0;
+	mAllowSpeedMod = false;
+	mPrevSpeedMod = SPEED_NORMAL;
+	mSpeedMod = SPEED_NORMAL;
+	mSlowMoCounter = 0;
+	mQECounter = 0;
 	mTutorialState = TutorialState::TUTORIAL_OFF;
 	mTutorialTimer = -1;
 	mTutorialParticleID = ParticleSystemID::PARTICLESYSTEMID_NULL;
@@ -190,6 +195,27 @@ Board::Board(LawnApp* theApp)
 	mMenuButton->mDrawStoneButton = true;
 	mStoreButton = nullptr;
 	mIgnoreMouseUp = false;
+
+	mSlowdownButton = new GameButton(SLOWDOWN);
+	mSlowdownButton->mButtonImage = IMAGE_SLOWDOWN_BUTTON;
+	mSlowdownButton->mDownImage = IMAGE_SLOWDOWN_BUTTON_PRESSED;
+	mSlowdownButton->mOverImage = IMAGE_SLOWDOWN_BUTTON_PRESSED;
+	mSlowdownButton->mLabel = "";
+	mSlowdownButton->mParentWidget = this;
+
+	mPauseButton = new GameButton(PAUSE);
+	mPauseButton->mButtonImage = IMAGE_PAUSE_BUTTON;
+	mPauseButton->mDownImage = IMAGE_PAUSE_BUTTON_PRESSED;
+	mPauseButton->mOverImage = IMAGE_PAUSE_BUTTON_PRESSED;
+	mPauseButton->mLabel = "";
+	mPauseButton->mParentWidget = this;
+
+	mSpeedupButton = new GameButton(SPEEDUP);
+	mSpeedupButton->mButtonImage = IMAGE_SPEEDUP_BUTTON;
+	mSpeedupButton->mDownImage = IMAGE_SPEEDUP_BUTTON_PRESSED;
+	mSpeedupButton->mOverImage = IMAGE_SPEEDUP_BUTTON_PRESSED;
+	mSpeedupButton->mLabel = "";
+	mSpeedupButton->mParentWidget = this;
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
@@ -243,6 +269,18 @@ Board::~Board()
 	if (mStoreButton)
 	{
 		delete mStoreButton;
+	}
+	if (mSlowdownButton)
+	{
+		delete mSlowdownButton;
+	}
+	if (mPauseButton)
+	{
+		delete mPauseButton;
+	}
+	if (mSpeedupButton)
+	{
+		delete mSpeedupButton;
 	}
 	mZombies.DataArrayDispose();
 	mPlants.DataArrayDispose();
@@ -5995,63 +6033,84 @@ void Board::Update()
 		mStoreButton->Update();
 	}
 
-	mApp->mEffectSystem->Update();
-	mAdvice->Update();
-	UpdateTutorial();
-
-	if (mCobCannonCursorDelayCounter > 0)
+	int aUpdateCount = 1;
+	if (mAllowSpeedMod)
 	{
-		mCobCannonCursorDelayCounter--;
-	}
-	if (mOutOfMoneyCounter > 0)
-	{
-		mOutOfMoneyCounter--;
-	}
-	if (mShakeCounter > 0)
-	{
-		mShakeCounter--;
-		if (mShakeCounter == 0)
+		if (mSpeedMod == SPEED_SLOWMO)
 		{
-			mX = 0;
-			mY = 0;
-		}
-		else
-		{
-			if (!Rand(3))
+			mSlowMoCounter++;
+			if (mSlowMoCounter >= 4)
 			{
-				mShakeAmountX = -mShakeAmountX;
+				aUpdateCount = 1;
+				mSlowMoCounter = 0;
 			}
-			mX = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, TodCurves::CURVE_BOUNCE);
-			mY = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, TodCurves::CURVE_BOUNCE);
+			else aUpdateCount = 0;
 		}
-	}
-	if (mCoinBankFadeCount > 0 && mApp->GetDialog(Dialogs::DIALOG_PURCHASE_PACKET_SLOT) == nullptr)
-	{
-		mCoinBankFadeCount--;
-	}
-	UpdateLayers();
-
-	if (mTimeStopCounter > 0)
-		return;
-
-	mEffectCounter++;
-	if (StageHasPool() && !mIceTrapCounter && mApp->mGameScene != GameScenes::SCENE_ZOMBIES_WON && !mCutScene->IsSurvivalRepick())
-	{
-		mApp->mPoolEffect->mPoolCounter++;
-	}
-	if (mBackground == BackgroundType::BACKGROUND_3_POOL && mPoolSparklyParticleID == ParticleSystemID::PARTICLESYSTEMID_NULL && mDrawCount > 0)
-	{
-		int aRenderPosition = MakeRenderOrder(RenderLayer::RENDER_LAYER_GROUND, 2, 0);
-		TodParticleSystem* aPoolParticle = mApp->AddTodParticle(450, 295, aRenderPosition, ParticleEffect::PARTICLE_POOL_SPARKLY);
-		mPoolSparklyParticleID = mApp->ParticleGetID(aPoolParticle);
+		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
+		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 5;
+		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 10;
 	}
 
-	UpdateGridItems();
-	UpdateFwoosh();
-	UpdateGame();
-	UpdateFog();
-	mChallenge->Update();
-	UpdateLevelEndSequence();
+	for (int i = 0; i < aUpdateCount; i++)
+	{
+		mApp->mEffectSystem->Update();
+		mAdvice->Update();
+		UpdateTutorial();
+
+		if (mCobCannonCursorDelayCounter > 0)
+		{
+			mCobCannonCursorDelayCounter--;
+		}
+		if (mOutOfMoneyCounter > 0)
+		{
+			mOutOfMoneyCounter--;
+		}
+		if (mShakeCounter > 0)
+		{
+			mShakeCounter--;
+			if (mShakeCounter == 0)
+			{
+				mX = 0;
+				mY = 0;
+			}
+			else
+			{
+				if (!Rand(3))
+				{
+					mShakeAmountX = -mShakeAmountX;
+				}
+				mX = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, TodCurves::CURVE_BOUNCE);
+				mY = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, TodCurves::CURVE_BOUNCE);
+			}
+		}
+		if (mCoinBankFadeCount > 0 && mApp->GetDialog(Dialogs::DIALOG_PURCHASE_PACKET_SLOT) == nullptr)
+		{
+			mCoinBankFadeCount--;
+		}
+		UpdateLayers();
+
+		if (mTimeStopCounter > 0)
+			break;
+
+		mEffectCounter++;
+		if (StageHasPool() && !mIceTrapCounter && mApp->mGameScene != GameScenes::SCENE_ZOMBIES_WON && !mCutScene->IsSurvivalRepick())
+		{
+			mApp->mPoolEffect->mPoolCounter++;
+		}
+		if (mBackground == BackgroundType::BACKGROUND_3_POOL && mPoolSparklyParticleID == ParticleSystemID::PARTICLESYSTEMID_NULL && mDrawCount > 0)
+		{
+			int aRenderPosition = MakeRenderOrder(RenderLayer::RENDER_LAYER_GROUND, 2, 0);
+			TodParticleSystem* aPoolParticle = mApp->AddTodParticle(450, 295, aRenderPosition, ParticleEffect::PARTICLE_POOL_SPARKLY);
+			mPoolSparklyParticleID = mApp->ParticleGetID(aPoolParticle);
+		}
+
+		UpdateGridItems();
+		UpdateFwoosh();
+		UpdateGame();
+		UpdateFog();
+		mChallenge->Update();
+		UpdateLevelEndSequence();
+	}
 	mPrevMouseX = mApp->mWidgetManager->mLastMouseX;
 	mPrevMouseY = mApp->mWidgetManager->mLastMouseY;
 }
@@ -6071,6 +6130,18 @@ void Board::UpdateLayers()
 			aDialog->MarkDirty();
 		}
 	}
+}
+
+void Board::AddedToManager(WidgetManager* theWidgetManager)
+{
+	Widget::AddedToManager(theWidgetManager);
+	theWidgetManager->AddWidget(mSeedBank);
+}
+
+void Board::RemovedFromManager(WidgetManager* theWidgetManager)
+{
+	Widget::RemovedFromManager(theWidgetManager);
+	theWidgetManager->RemoveWidget(mSeedBank);
 }
 
 //0x416110
@@ -6754,6 +6825,7 @@ void Board::DrawGameObjects(Graphics* g)
 	}
 
 	TodHesitationTrace("end draw");
+	DrawSpeed(g);
 }
 
 //0x4173C0
@@ -8029,6 +8101,20 @@ static void TodCrash()
 //0x41B950（原版中废弃）
 void Board::KeyChar(char theChar)
 {
+	if (mAllowSpeedMod)
+	{
+		if (theChar == 'q')
+		{
+			ButtonDepress(SLOWDOWN);
+			return;
+		}
+		if (theChar == 'e')
+		{
+			ButtonDepress(SPEEDUP);
+			return;
+		}
+	}
+
 	if (!mApp->mDebugKeysEnabled)
 		return;
 
@@ -10094,6 +10180,78 @@ int Board::NumberZombiesInWave(int theWaveIndex)
 bool Board::IsZombieTypeSpawnedOnly(ZombieType theZombieType)
 {
 	return (theZombieType == ZombieType::ZOMBIE_BACKUP_DANCER || theZombieType == ZombieType::ZOMBIE_BOBSLED || theZombieType == ZombieType::ZOMBIE_IMP);
+}
+
+float Board::GetSpeedValue()
+{
+	switch (mSpeedMod)
+	{
+	case SPEED_SLOWMO: return 0.25f;
+	case SPEED_NORMAL: return 1.0f;
+	case SPEED_FAST: return 2.0f;
+	case SPEED_FASTER: return 5.0f;
+	case SPEED_FASTEST: return 10.0f;
+	default: return 1.0f;
+	}
+}
+
+std::string Board::GetSpeedString()
+{
+	switch (mSpeedMod)
+	{
+	case SPEED_SLOWMO: return "0.25x";
+	case SPEED_NORMAL: return "1.0x";
+	case SPEED_FAST: return "2.0x";
+	case SPEED_FASTER: return "5.0x";
+	case SPEED_FASTEST: return "10.0x";
+	default: return "1.0x";
+	}
+}
+
+void Board::ButtonDepress(int theId)
+{
+	if (theId == SLOWDOWN)
+	{
+		if (mSpeedMod > SPEED_SLOWMO)
+			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+	}
+	else if (theId == SPEEDUP)
+	{
+		if (mSpeedMod < SPEED_FASTEST)
+			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+	}
+	else if (theId == PAUSE)
+	{
+		if (mSpeedMod != SPEED_SLOWMO || mPaused)
+		{
+			mPaused = !mPaused;
+			if (mPaused)
+			{
+				mPrevSpeedMod = mSpeedMod;
+				mSpeedMod = SPEED_SLOWMO;
+			}
+			else
+			{
+				mSpeedMod = mPrevSpeedMod;
+			}
+			Pause(mPaused);
+		}
+	}
+}
+
+void Board::DrawSpeed(Graphics* g)
+{
+	int aWideX = (mApp->mWidth - 800) / 2;
+	if (mApp->mGameScene == GameScenes::SCENE_PLAYING)
+	{
+		g->DrawImage(mSlowdownButton->mButtonImage, 580 + aWideX + mX, 555 + mY);
+		g->DrawImage(mSpeedupButton->mButtonImage, 680 + aWideX + mX, 555 + mY);
+		g->DrawImage(mPauseButton->mButtonImage, 630 + aWideX + mX, 555 + mY);
+
+		g->SetFont(mApp->mFontBrianneTod12);
+		g->SetColor(Color(255, 255, 255));
+		g->DrawString(GetSpeedString(), 630 + aWideX + mX, 550 + mY);
+	}
 }
 
 

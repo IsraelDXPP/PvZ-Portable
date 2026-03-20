@@ -63,6 +63,18 @@ bool Sexy::ExtractResourcesByName(ResourceManager* theResourceManager, const cha
 	if (!strcmp(theName, "LoadingImages")) return ExtractLoadingImagesResources(theResourceManager);
 	if (!strcmp(theName, "LoadingSounds")) return ExtractLoadingSoundsResources(theResourceManager);
 
+	if (!strcmp(theName, "SpeedControl"))
+	{
+		ResourceManager& aMgr = *theResourceManager;
+		IMAGE_PAUSE_BUTTON = aMgr.GetImageThrow("IMAGE_PAUSE_BUTTON");
+		IMAGE_PAUSE_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_PAUSE_BUTTON_PRESSED");
+		IMAGE_SPEEDUP_BUTTON = aMgr.GetImageThrow("IMAGE_SPEEDUP_BUTTON");
+		IMAGE_SPEEDUP_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_SPEEDUP_BUTTON_PRESSED");
+		IMAGE_SLOWDOWN_BUTTON = aMgr.GetImageThrow("IMAGE_SLOWDOWN_BUTTON");
+		IMAGE_SLOWDOWN_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_SLOWDOWN_BUTTON_PRESSED");
+		return true;
+	}
+
 	unreachable();
 }
 
@@ -586,6 +598,13 @@ Image* Sexy::IMAGE_ZOMBATAR_EYEWEAR_9_MASK;
 Image* Sexy::IMAGE_ZOMBATAR_EYEWEAR_BUTTON;
 Image* Sexy::IMAGE_ZOMBATAR_EYEWEAR_BUTTON_HIGHLIGHT;
 Image* Sexy::IMAGE_ZOMBATAR_EYEWEAR_BUTTON_OVER;
+
+Image* Sexy::IMAGE_PAUSE_BUTTON;
+Image* Sexy::IMAGE_PAUSE_BUTTON_PRESSED;
+Image* Sexy::IMAGE_SPEEDUP_BUTTON;
+Image* Sexy::IMAGE_SPEEDUP_BUTTON_PRESSED;
+Image* Sexy::IMAGE_SLOWDOWN_BUTTON;
+Image* Sexy::IMAGE_SLOWDOWN_BUTTON_PRESSED;
 Image* Sexy::IMAGE_ZOMBATAR_FACIALHAIR_1;
 Image* Sexy::IMAGE_ZOMBATAR_FACIALHAIR_10;
 Image* Sexy::IMAGE_ZOMBATAR_FACIALHAIR_10_MASK;
@@ -1931,6 +1950,12 @@ bool Sexy::ExtractLoadingImagesResources(ResourceManager* theManager)
 		IMAGE_ZAMBONISMOKE = aMgr.GetImageThrow("IMAGE_ZAMBONISMOKE");
 		IMAGE_ZENSHOPBUTTON = aMgr.GetImageThrow("IMAGE_ZENSHOPBUTTON");
 		IMAGE_ZENSHOPBUTTON_HIGHLIGHT = aMgr.GetImageThrow("IMAGE_ZENSHOPBUTTON_HIGHLIGHT");
+		IMAGE_PAUSE_BUTTON = aMgr.GetImageThrow("IMAGE_PAUSE_BUTTON");
+		IMAGE_PAUSE_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_PAUSE_BUTTON_PRESSED");
+		IMAGE_SPEEDUP_BUTTON = aMgr.GetImageThrow("IMAGE_SPEEDUP_BUTTON");
+		IMAGE_SPEEDUP_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_SPEEDUP_BUTTON_PRESSED");
+		IMAGE_SLOWDOWN_BUTTON = aMgr.GetImageThrow("IMAGE_SLOWDOWN_BUTTON");
+		IMAGE_SLOWDOWN_BUTTON_PRESSED = aMgr.GetImageThrow("IMAGE_SLOWDOWN_BUTTON_PRESSED");
 		IMAGE_ZEN_GARDENGLOVE = aMgr.GetImageThrow("IMAGE_ZEN_GARDENGLOVE");
 		IMAGE_ZEN_GOLDTOOLRETICLE = aMgr.GetImageThrow("IMAGE_ZEN_GOLDTOOLRETICLE");
 		IMAGE_ZEN_MONEYSIGN = aMgr.GetImageThrow("IMAGE_ZEN_MONEYSIGN");
