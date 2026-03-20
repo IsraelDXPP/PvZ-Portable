@@ -6135,13 +6135,27 @@ void Board::UpdateLayers()
 void Board::AddedToManager(WidgetManager* theWidgetManager)
 {
 	Widget::AddedToManager(theWidgetManager);
-	theWidgetManager->AddWidget(mSeedBank);
+	theWidgetManager->AddWidget(mMenuButton);
+	if (mStoreButton)
+	{
+		theWidgetManager->AddWidget(mStoreButton);
+	}
+	theWidgetManager->AddWidget(mSlowdownButton);
+	theWidgetManager->AddWidget(mPauseButton);
+	theWidgetManager->AddWidget(mSpeedupButton);
 }
 
 void Board::RemovedFromManager(WidgetManager* theWidgetManager)
 {
 	Widget::RemovedFromManager(theWidgetManager);
-	theWidgetManager->RemoveWidget(mSeedBank);
+	theWidgetManager->RemoveWidget(mMenuButton);
+	if (mStoreButton)
+	{
+		theWidgetManager->RemoveWidget(mStoreButton);
+	}
+	theWidgetManager->RemoveWidget(mSlowdownButton);
+	theWidgetManager->RemoveWidget(mPauseButton);
+	theWidgetManager->RemoveWidget(mSpeedupButton);
 }
 
 //0x416110
