@@ -6025,19 +6025,8 @@ void Board::Update()
 		mApp->UpdateCrazyDave();
 	}
 
-	if (mPaused)
-	{
-		mChallenge->Update();
-		mCursorPreview->mVisible = false;
-		mCursorObject->mVisible = false;
-		return;
-	}
-
 	bool aDisabled = !CanInteractWithBoardButtons() || mIgnoreMouseUp;
-	if (!mMenuButton->mBtnNoDraw)
-	{
-		mMenuButton->mDisabled = aDisabled;
-	}
+	mMenuButton->mDisabled = aDisabled;
 	mMenuButton->Update();
 	if (mStoreButton)
 	{
@@ -6069,6 +6058,17 @@ void Board::Update()
 	mSlowdownButton->mBtnNoDraw = (mSpeedMod == SPEED_NORMAL);
 	mSlowdownButton->mDisabled = (mSpeedMod == SPEED_NORMAL);
 
+	if (mQECounter > 0) mQECounter--;
+
+	if (mPaused)
+	{
+		mChallenge->Update();
+		mCursorPreview->mVisible = false;
+		mCursorObject->mVisible = false;
+		return;
+	}
+
+
 	int aUpdateCount = 1;
 	if (mAllowSpeedMod)
 	{
@@ -6083,8 +6083,9 @@ void Board::Update()
 			else aUpdateCount = 0;
 		}
 		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
-		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 5;
-		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 10;
+		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 3;
+		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 5;
+		else if (mSpeedMod == SPEED_ULTRAFAST) aUpdateCount = 10;
 	}
 
 	for (int i = 0; i < aUpdateCount; i++)
@@ -10064,11 +10065,24 @@ void Board::DrawSpeed(Graphics* g)
 	mPauseButton->Draw(g);
 	mSpeedupButton->Draw(g);
 
-	g->SetFont(FONT_CONTINUUMBOLD14);
+	_Font* aFont = FONT_CONTINUUMBOLD14;
+	g->SetFont(aFont);
 	g->SetColor(Color(255, 255, 255));
 	
 	std::string aSpeedStr = GetSpeedString();
-	g->DrawString(aSpeedStr, mSpeedupButton->mX + mSpeedupButton->mWidth + 10, mSpeedupButton->mY + 22);
+	float aScale = 1.0f;
+	if (mQECounter > 0)
+	{
+		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * 3.14159f);
+	}
+
+	int aPosX = mSpeedupButton->mX + mSpeedupButton->mWidth + 10;
+	int aPosY = mSpeedupButton->mY + 22;
+
+	SexyMatrix3 aMatrix;
+	SexyMatrix3Translation(aMatrix, aPosX, aPosY);
+	TodScaleTransformMatrix(aMatrix, 0, 0, aScale, aScale);
+	TodDrawStringMatrix(g, aFont, aMatrix, aSpeedStr, Color::White);
 }
 
 //0x41DA50
@@ -10236,11 +10250,12 @@ float Board::GetSpeedValue()
 {
 	switch (mSpeedMod)
 	{
-	case SPEED_SLOWMO: return 0.25f;
+	case SPEED_SLOWMO: return 0.5f;
 	case SPEED_NORMAL: return 1.0f;
 	case SPEED_FAST: return 2.0f;
-	case SPEED_FASTER: return 5.0f;
-	case SPEED_FASTEST: return 10.0f;
+	case SPEED_FASTER: return 3.0f;
+	case SPEED_FASTEST: return 5.0f;
+	case SPEED_ULTRAFAST: return 10.0f;
 	default: return 1.0f;
 	}
 }
@@ -10249,11 +10264,12 @@ std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
 	{
-	case SPEED_SLOWMO: return "0.25x";
+	case SPEED_SLOWMO: return "0.5x";
 	case SPEED_NORMAL: return "1.0x";
 	case SPEED_FAST: return "2.0x";
-	case SPEED_FASTER: return "5.0x";
-	case SPEED_FASTEST: return "10.0x";
+	case SPEED_FASTER: return "3.0x";
+	case SPEED_FASTEST: return "5.0x";
+	case SPEED_ULTRAFAST: return "10.0x";
 	default: return "1.0x";
 	}
 }
@@ -10272,19 +10288,13 @@ void Board::ButtonDepress(int theId)
 	}
 	else if (theId == PAUSE)
 	{
-		if (mSpeedMod != SPEED_SLOWMO || mPaused)
-		{
-			mPaused = !mPaused;
-			if (mPaused)
-			{
-				mPrevSpeedMod = mSpeedMod;
-				mSpeedMod = SPEED_SLOWMO;
-			}
-			else
-			{
-				mSpeedMod = mPrevSpeedMod;
-			}
-			Pause(mPaused);
-		}
+		mPaused = !mPaused;
+		Pause(mPaused);
+	}
+
+	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
+	{
+		mApp->PlaySample(Sexy::SOUND_GRAVEBUTTON);
+		mQECounter = 40;
 	}
 }
