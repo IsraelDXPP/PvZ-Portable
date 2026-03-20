@@ -10248,7 +10248,7 @@ void Board::DrawSpeed(Graphics* g)
 		g->DrawImage(mSpeedupButton->mButtonImage, 680 + aWideX + mX, 555 + mY);
 		g->DrawImage(mPauseButton->mButtonImage, 630 + aWideX + mX, 555 + mY);
 
-		g->SetFont(mApp->mFontBrianneTod12);
+		g->SetFont(FONT_BRIANNETOD12);
 		g->SetColor(Color(255, 255, 255));
 		g->DrawString(GetSpeedString(), 630 + aWideX + mX, 550 + mY);
 	}

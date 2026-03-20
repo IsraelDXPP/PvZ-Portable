@@ -320,7 +320,7 @@ public:
 	virtual void					AddedToManager(WidgetManager* theWidgetManager);
 	virtual void					RemovedFromManager(WidgetManager* theWidgetManager);
 	virtual void					ButtonPress  	(int){}
-	virtual void					ButtonDepress	(int){}
+	virtual void					ButtonDepress	(int);
 	virtual void					ButtonDownTick	(int){}
 	virtual void					ButtonMouseEnter(int){}
 	virtual void					ButtonMouseLeave(int){}
