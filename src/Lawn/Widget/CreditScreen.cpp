@@ -363,10 +363,16 @@ CreditScreen::CreditScreen(LawnApp* theApp)
 	mReplayButton->mTextOffsetY = -5;
 
 	mCloseButton = new GameButton(CreditScreen::Credits_Button_Menu);
-	mCloseButton->mDrawStoneButton = true;
-	mCloseButton->SetLabel("[MENU_BUTTON]");
+	mCloseButton->SetLabel("[MAIN_MENU_BUTTON]");
+	mCloseButton->mButtonImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2;
+	mCloseButton->mOverImage = Sexy::IMAGE_SEEDCHOOSER_BUTTON2_GLOW;
+	mCloseButton->mDownImage = nullptr;
+	mCloseButton->SetFont(Sexy::FONT_BRIANNETOD12);
+	mCloseButton->mColors[ButtonWidget::COLOR_LABEL] = Color(42, 42, 90);
+	mCloseButton->mColors[ButtonWidget::COLOR_LABEL_HILITE] = Color(42, 42, 90);
 	mCloseButton->mParentWidget = this;
-	mCloseButton->Resize(677, 16, 117, 46);
+	mCloseButton->Resize(677, 16, 111, 26);
+	mCloseButton->mTextOffsetY = 1;
 
 	mOverlayWidget = new CreditsOverlay(this);
 	mOverlayWidget->Resize(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
