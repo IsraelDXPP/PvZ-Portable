@@ -1057,6 +1057,7 @@ void CutScene::CancelIntro()
 		{
 			mBoard->mMenuButton->mBtnNoDraw = false;
 		}
+		mBoard->mAllowSpeedMod = true;
 		mApp->mSoundSystem->StopFoley(FoleyType::FOLEY_DIGGER);
 	}
 }
@@ -1513,6 +1514,7 @@ void CutScene::Update()
 		}
 
 		ShowShovel();
+		mBoard->mAllowSpeedMod = true;
 		mApp->StartPlaying();
 		return;
 	}
