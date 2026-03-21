@@ -336,6 +336,7 @@ public:
 	float							GetSpeedValue(SpeedMod theMod);
 	std::string						GetSpeedString();
 	void							DrawSpeed(Graphics* g);
+	void							UpdateSpeedButtons();
 #else
 	float							GetSpeedValue();
 	std::string						GetSpeedString();
@@ -564,6 +565,7 @@ public:
 	void							DoTypingCheck(KeyCode theKey);
 	int								CountZombieByType(ZombieType theZombieType);
 	static /*inline*/ bool			IsZombieTypeSpawnedOnly(ZombieType theZombieType);
+#endif
 };
 extern bool gShownMoreSunTutorial;
 
