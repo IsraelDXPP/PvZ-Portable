@@ -381,6 +381,19 @@ elseif (IOS)
 	endif()
 endif()
 
+# Asset Automation (Download)
+# If 'main.pak' is missing from 'assets', download it from Google Drive.
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")
+	message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive...")
+	execute_process(
+		COMMAND python "${CMAKE_CURRENT_SOURCE_DIR}/scripts/download_main_pak.py" "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak"
+		RESULT_VARIABLE DOWNLOAD_RESULT
+	)
+	if(NOT DOWNLOAD_RESULT EQUAL 0)
+		message(WARNING "Asset automation: Failed to download main.pak automatically. Please download manually from: https://drive.google.com/file/d/1NsQJScVwQSrDI49G2CURiGr67vAS6cuv/view?usp=sharing")
+	endif()
+endif()
+
 # Asset Automation (Desktop/Consoles)
 # If an 'assets' folder exists in the project root, copy its contents to the build directory.
 # Android, iOS, and WASM have their own specific bundling logic above.
