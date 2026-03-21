@@ -132,6 +132,17 @@ enum BoardButtonId
 	SPEEDUP = 4
 };
 
+#ifdef _REPLANTED_SPEED_CONTROL
+enum SpeedMod
+{
+	SPEED_SLOWMO,
+	SPEED_SLOW,
+	SPEED_NORMAL,
+	SPEED_FAST,
+	SPEED_VERY_FAST,
+	SPEED_SONIC
+};
+#else
 enum SpeedMod
 {
 	SPEED_SLOWMO,
@@ -141,6 +152,7 @@ enum SpeedMod
 	SPEED_FASTEST,
 	SPEED_ULTRAFAST
 };
+#endif
 
 class Board : public Widget, public ButtonListener
 {
@@ -158,9 +170,15 @@ public:
 	SeedBank*						mSeedBank;												//+0x144
 	GameButton*						mMenuButton;											//+0x148
 	GameButton*						mStoreButton;											//+0x14C
+#ifdef _REPLANTED_SPEED_CONTROL
+	NewLawnButton*					mSlowdownButton;
+	NewLawnButton*					mPauseButton;
+	NewLawnButton*					mSpeedupButton;
+#else
 	GameButton*						mSlowdownButton;
 	GameButton*						mPauseButton;
 	GameButton*						mSpeedupButton;
+#endif
 	bool							mAllowSpeedMod;
 	SpeedMod						mPrevSpeedMod;
 	SpeedMod						mSpeedMod;
@@ -315,9 +333,15 @@ public:
 	void							UpdateLayers();
 	virtual void					Draw(Graphics* g);
 	void							DrawBackdrop(Graphics* g);
+#ifdef _REPLANTED_SPEED_CONTROL
+	float							GetSpeedValue(SpeedMod theMod);
+	SexyString						GetSpeedString();
+	void							DrawSpeed(Graphics* g);
+#else
 	float							GetSpeedValue();
 	std::string						GetSpeedString();
 	void							DrawSpeed(Graphics* g);
+#endif
 	virtual void					AddedToManager(WidgetManager* theWidgetManager);
 	virtual void					RemovedFromManager(WidgetManager* theWidgetManager);
 	virtual void					ButtonPress  	(int){}
