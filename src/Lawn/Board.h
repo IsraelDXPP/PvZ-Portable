@@ -335,7 +335,7 @@ public:
 	void							DrawBackdrop(Graphics* g);
 #ifdef _REPLANTED_SPEED_CONTROL
 	float							GetSpeedValue(SpeedMod theMod);
-	SexyString						GetSpeedString();
+	std::string						GetSpeedString();
 	void							DrawSpeed(Graphics* g);
 #else
 	float							GetSpeedValue();

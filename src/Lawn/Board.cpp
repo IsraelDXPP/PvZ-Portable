@@ -197,19 +197,19 @@ Board::Board(LawnApp* theApp)
 	mIgnoreMouseUp = false;
 
 #ifdef _REPLANTED_SPEED_CONTROL
-	mSlowdownButton = MakeNewButton(Board::SLOWDOWN, this, "", nullptr, IMAGE_SLOWDOWN_BUTTON, IMAGE_SLOWDOWN_BUTTON_PRESSED, IMAGE_SLOWDOWN_BUTTON_PRESSED);
+	mSlowdownButton = MakeNewButton(SLOWDOWN, this, "", nullptr, IMAGE_SLOWDOWN_BUTTON, IMAGE_SLOWDOWN_BUTTON_PRESSED, IMAGE_SLOWDOWN_BUTTON_PRESSED);
 	mSlowdownButton->mBtnNoDraw = true;
 	mSlowdownButton->mDoFinger = true;
 	mSlowdownButton->mTranslateX = 0;
 	mSlowdownButton->mTranslateY = 0;
 
-	mPauseButton = MakeNewButton(Board::PAUSE, this, "", nullptr, IMAGE_PAUSE_BUTTON, IMAGE_PAUSE_BUTTON_PRESSED, IMAGE_PAUSE_BUTTON_PRESSED);
+	mPauseButton = MakeNewButton(PAUSE, this, "", nullptr, IMAGE_PAUSE_BUTTON, IMAGE_PAUSE_BUTTON_PRESSED, IMAGE_PAUSE_BUTTON_PRESSED);
 	mPauseButton->mBtnNoDraw = true;
 	mPauseButton->mDoFinger = true;
 	mPauseButton->mTranslateX = 0;
 	mPauseButton->mTranslateY = 0;
 
-	mSpeedupButton = MakeNewButton(Board::SPEEDUP, this, "", nullptr, IMAGE_SPEEDUP_BUTTON, IMAGE_SPEEDUP_BUTTON_PRESSED, IMAGE_SPEEDUP_BUTTON_PRESSED);
+	mSpeedupButton = MakeNewButton(SPEEDUP, this, "", nullptr, IMAGE_SPEEDUP_BUTTON, IMAGE_SPEEDUP_BUTTON_PRESSED, IMAGE_SPEEDUP_BUTTON_PRESSED);
 	mSpeedupButton->mBtnNoDraw = true;
 	mSpeedupButton->mDoFinger = true;
 	mSpeedupButton->mTranslateX = 0;
@@ -4653,7 +4653,11 @@ void Board::MouseDown(int x, int y, int theClickCount)
 {
 	Widget::MouseDown(x, y, theClickCount);
 	mIgnoreMouseUp = !CanInteractWithBoardButtons();
+#ifdef _REPLANTED_SPEED_CONTROL
+	if (mAllowSpeedMod && (mSlowdownButton->mIsOver || mPauseButton->mIsOver || mSpeedupButton->mIsOver))
+#else
 	if (mAllowSpeedMod && (mSlowdownButton->IsMouseOver() || mPauseButton->IsMouseOver() || mSpeedupButton->IsMouseOver()))
+#endif
 	{
 		mIgnoreMouseUp = false;
 	}
@@ -4931,9 +4935,15 @@ void Board::MouseUp(int x, int y, int theClickCount)
 
 		if (mAllowSpeedMod)
 		{
+#ifdef _REPLANTED_SPEED_CONTROL
+			if (mSlowdownButton->mIsOver) ButtonDepress(SLOWDOWN);
+			if (mPauseButton->mIsOver) ButtonDepress(PAUSE);
+			if (mSpeedupButton->mIsOver) ButtonDepress(SPEEDUP);
+#else
 			if (mSlowdownButton->IsMouseOver()) ButtonDepress(SLOWDOWN);
 			if (mPauseButton->IsMouseOver()) ButtonDepress(PAUSE);
 			if (mSpeedupButton->IsMouseOver()) ButtonDepress(SPEEDUP);
+#endif
 		}
 	}
 }
@@ -6102,10 +6112,26 @@ void Board::Update()
 			}
 			else aUpdateCount = 0;
 		}
+#ifdef _REPLANTED_SPEED_CONTROL
+		else if (mSpeedMod == SPEED_SLOW)
+		{
+			mSlowMoCounter++;
+			if (mSlowMoCounter >= 4)
+			{
+				aUpdateCount = 3;
+				mSlowMoCounter = 0;
+			}
+			else aUpdateCount = 2; // Rough mapping for 0.75x
+		}
+		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
+		else if (mSpeedMod == SPEED_VERY_FAST) aUpdateCount = 5;
+		else if (mSpeedMod == SPEED_SONIC) aUpdateCount = 10;
+#else
 		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
 		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 3;
 		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 5;
 		else if (mSpeedMod == SPEED_ULTRAFAST) aUpdateCount = 10;
+#endif
 	}
 
 	for (int i = 0; i < aUpdateCount; i++)
@@ -10265,7 +10291,7 @@ float Board::GetSpeedValue(SpeedMod theMod)
 	}
 }
 
-SexyString Board::GetSpeedString()
+std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
 	{
