@@ -64,23 +64,6 @@ public:
 	}
 };
 
-class PakInterface : public PakInterfaceBase
-{
-public:
-	PakCollectionList		mPakCollectionList;		//+0x4：通过 AddPakFile() 添加的各个资源包的内存映射文件数据的链表
-	PakRecordMap			mPakRecordMap;			//+0x10：所有已添加的资源包中的所有资源文件的、从文件名到文件数据的映射容器
-
-	static std::string		NormalizePakPath(std::string_view theFileName);
-	bool ParsePakData(PakCollection* aPakCollection, BinaryReader& aReader, const std::string& aPakKey);
-
-public:
-	PakInterface();
-	~PakInterface();
-
-	bool AddPakFile(const std::string& theFileName);
-	bool AddPakMemory(void* theData, size_t theSize, bool theOwnsMemory, const std::string& theName);
-};
-
 PakInterface* gPakInterface = new PakInterface();
 
 PakInterface::PakInterface()
@@ -248,65 +231,9 @@ bool PakInterface::AddPakMemory(void* theData, size_t theSize, bool theOwnsMemor
 	aPakRecord->mStartPos = 0;
 	aPakRecord->mSize = static_cast<int>(theSize);
 
-	// Parse header from memory
+	// Parse from memory
 	BinaryReader aReader(static_cast<uint8_t*>(aPakCollection->mDataPtr), theSize);
-	
-	uint32_t aMagic = aReader.ReadU32();
-	if (aMagic != 0xBAC04AC0)
-		return false;
-
-	uint32_t aVersion = aReader.ReadU32();
-	if (aVersion > 0)
-		return false;
-
-	int aPos = 0;
-	for (;;)
-	{
-		if (aReader.Remaining() < 1) break;
-		uint8_t aFlags = aReader.ReadU8();
-		if (aFlags & FILEFLAGS_END)
-			break;
-
-		if (aReader.Remaining() < 1) break;
-		uint8_t aNameWidth = aReader.ReadU8();
-		if (aReader.Remaining() < aNameWidth) break;
-		
-		char aNameBuffer[256];
-		memcpy(aNameBuffer, aReader.GetDataPtr(), aNameWidth);
-		aNameBuffer[aNameWidth] = 0;
-		aReader.Skip(aNameWidth);
-
-		if (aReader.Remaining() < 4) break;
-		int aSrcSize = static_cast<int>(aReader.ReadU32());
-		if (aReader.Remaining() < 8) break;
-		int64_t aFileTime = static_cast<int64_t>(aReader.ReadU64());
-
-		for (int i = 0; i < aNameWidth; i++)
-		{
-			if (aNameBuffer[i] == '\\')
-				aNameBuffer[i] = '/';
-		}
-
-		std::string aKey = NormalizePakPath(aNameBuffer);
-		auto aRecItr = mPakRecordMap.emplace(aKey, PakRecord()).first;
-		PakRecord* aRec = &aRecItr->second;
-		aRec->mCollection = aPakCollection;
-		aRec->mFileName = aKey;
-		aRec->mStartPos = aPos;
-		aRec->mSize = aSrcSize;
-		aRec->mFileTime = aFileTime;
-
-		aPos += aSrcSize;
-	}
-
-	int anOffset = aReader.GetPos();
-	for (auto& [key, record] : mPakRecordMap)
-	{
-		if (record.mCollection == aPakCollection)
-			record.mStartPos += anOffset;
-	}
-
-	return true;
+	return ParsePakData(aPakCollection, aReader, aPakKey);
 }
 
 //0x5D85C0
