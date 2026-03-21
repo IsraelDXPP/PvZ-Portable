@@ -384,13 +384,26 @@ endif()
 # Asset Automation (Download)
 # If 'main.pak' is missing from 'assets', download it from Google Drive.
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")
-	message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive...")
-	execute_process(
-		COMMAND python "${CMAKE_CURRENT_SOURCE_DIR}/scripts/download_main_pak.py" "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak"
-		RESULT_VARIABLE DOWNLOAD_RESULT
-	)
-	if(NOT DOWNLOAD_RESULT EQUAL 0)
-		message(WARNING "Asset automation: Failed to download main.pak automatically. Please download manually from: https://drive.google.com/file/d/1NsQJScVwQSrDI49G2CURiGr67vAS6cuv/view?usp=sharing")
+	find_package(Python3 COMPONENTS Interpreter QUIET)
+	if(Python3_Interpreter_FOUND)
+		message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive using ${Python3_EXECUTABLE}...")
+		execute_process(
+			COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/download_main_pak.py" "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak"
+			RESULT_VARIABLE DOWNLOAD_RESULT
+			OUTPUT_VARIABLE DOWNLOAD_OUTPUT
+			ERROR_VARIABLE DOWNLOAD_ERROR
+		)
+		if(DOWNLOAD_OUTPUT)
+			message(STATUS "Download output: ${DOWNLOAD_OUTPUT}")
+		endif()
+		if(DOWNLOAD_ERROR)
+			message(STATUS "Download error: ${DOWNLOAD_ERROR}")
+		endif()
+		if(NOT DOWNLOAD_RESULT EQUAL 0)
+			message(WARNING "Asset automation: Failed to download main.pak automatically. Exit code: ${DOWNLOAD_RESULT}")
+		endif()
+	else()
+		message(WARNING "Asset automation: Python3 not found. Cannot download main.pak automatically.")
 	endif()
 endif()
 
