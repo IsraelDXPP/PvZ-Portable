@@ -10385,20 +10385,6 @@ float Board::GetSpeedValue()
 	}
 }
 
-#ifdef _REPLANTED_SPEED_CONTROL
-std::string Board::GetSpeedString()
-{
-	switch (mSpeedMod)
-	{
-	case SPEED_0_75x: return "0.75x";
-	case SPEED_1_x: return "1.0x";
-	case SPEED_1_5x: return "1.5x";
-	case SPEED_2_x: return "2.0x";
-	case SPEED_2_5x: return "2.5x";
-	default: return "1.0x";
-	}
-}
-#else
 std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
@@ -10412,38 +10398,9 @@ std::string Board::GetSpeedString()
 	default: return "1.0x";
 	}
 }
-#endif
 
 void Board::ButtonDepress(int theId)
 {
-#ifdef _REPLANTED_SPEED_CONTROL
-	if (theId == SLOWDOWN)
-	{
-		if (mSpeedMod > SPEED_0_75x)
-		{
-			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
-			mApp->PlaySample(SOUND_REVERSE_WAKEUP);
-		}
-	}
-	else if (theId == SPEEDUP)
-	{
-		if (mSpeedMod < SPEED_2_5x)
-		{
-			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
-			mApp->PlaySample(SOUND_WAKEUP);
-		}
-	}
-	else if (theId == PAUSE)
-	{
-		mApp->DoPauseDialog();
-	}
-
-	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
-	{
-		UpdateSpeedButtons();
-		mQECounter = 40;
-	}
-#else
 	if (theId == SLOWDOWN)
 	{
 		if (mSpeedMod > SPEED_SLOWMO)
@@ -10465,5 +10422,5 @@ void Board::ButtonDepress(int theId)
 		mApp->PlaySample(SOUND_GRAVEBUTTON);
 		mQECounter = 40;
 	}
-#endif
 }
+#endif
