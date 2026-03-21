@@ -181,8 +181,8 @@ Board::Board(LawnApp* theApp)
 	mBackground = BackgroundType::BACKGROUND_1_DAY;
 	mMainCounter = 0;
 	mAllowSpeedMod = false;
-	mPrevSpeedMod = SPEED_NORMAL;
-	mSpeedMod = SPEED_NORMAL;
+	mPrevSpeedMod = SPEED_1_x;
+	mSpeedMod = SPEED_1_x;
 	mSlowMoCounter = 0;
 	mQECounter = 0;
 	mTutorialState = TutorialState::TUTORIAL_OFF;
@@ -6080,34 +6080,12 @@ void Board::Update()
 	}
 
 
-	int aUpdateCount = 1;
 	if (mAllowSpeedMod)
 	{
-		if (mSpeedMod == SPEED_0_75x)
-		{
-			mSlowMoCounter++;
-			if (mSlowMoCounter >= 4)
-			{
-				aUpdateCount = 0; // Skip every 4th update for 0.75x
-				mSlowMoCounter = 0;
-			}
-			else aUpdateCount = 1;
-		}
-		else if (mSpeedMod == SPEED_1_x) aUpdateCount = 1;
-		else if (mSpeedMod == SPEED_1_5x)
-		{
-			mSlowMoCounter++;
-			if (mSlowMoCounter % 2 == 0) aUpdateCount = 2;
-			else aUpdateCount = 1;
-		}
-		else if (mSpeedMod == SPEED_2_x) aUpdateCount = 2;
-		else if (mSpeedMod == SPEED_2_5x)
-		{
-			mSlowMoCounter++;
-			if (mSlowMoCounter % 2 == 0) aUpdateCount = 3;
-			else aUpdateCount = 2;
-		}
+#ifdef _REPLANTED_SPEED_CONTROL
+		// Logic handles aUpdateCount early to allow intermediate speeds
 #else
+		if (mSpeedMod == SPEED_SLOWMO) aUpdateCount = 0;
 		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
 		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 3;
 		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 5;
@@ -10397,7 +10375,7 @@ float Board::GetSpeedValue()
 	switch (mSpeedMod)
 	{
 	case SPEED_SLOWMO: return 0.5f;
-	case SPEED_NORMAL: return 1.0f;
+	case SPEED_1_x: return 1.0f;
 	case SPEED_FAST: return 2.0f;
 	case SPEED_FASTER: return 3.0f;
 	case SPEED_FASTEST: return 5.0f;
@@ -10406,12 +10384,26 @@ float Board::GetSpeedValue()
 	}
 }
 
+#ifdef _REPLANTED_SPEED_CONTROL
+std::string Board::GetSpeedString()
+{
+	switch (mSpeedMod)
+	{
+	case SPEED_0_75x: return "0.75x";
+	case SPEED_1_x: return "1.0x";
+	case SPEED_1_5x: return "1.5x";
+	case SPEED_2_x: return "2.0x";
+	case SPEED_2_5x: return "2.5x";
+	default: return "1.0x";
+	}
+}
+#else
 std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
 	{
 	case SPEED_SLOWMO: return "0.5x";
-	case SPEED_NORMAL: return "1.0x";
+	case SPEED_1_x: return "1.0x";
 	case SPEED_FAST: return "2.0x";
 	case SPEED_FASTER: return "3.0x";
 	case SPEED_FASTEST: return "5.0x";
@@ -10419,9 +10411,38 @@ std::string Board::GetSpeedString()
 	default: return "1.0x";
 	}
 }
+#endif
 
 void Board::ButtonDepress(int theId)
 {
+#ifdef _REPLANTED_SPEED_CONTROL
+	if (theId == SLOWDOWN)
+	{
+		if (mSpeedMod > SPEED_0_75x)
+		{
+			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+			mApp->PlaySample(SOUND_REVERSE_WAKEUP);
+		}
+	}
+	else if (theId == SPEEDUP)
+	{
+		if (mSpeedMod < SPEED_2_5x)
+		{
+			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+			mApp->PlaySample(SOUND_WAKEUP);
+		}
+	}
+	else if (theId == PAUSE)
+	{
+		mApp->DoPauseDialog();
+	}
+
+	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
+	{
+		UpdateSpeedButtons();
+		mQECounter = 40;
+	}
+#else
 	if (theId == SLOWDOWN)
 	{
 		if (mSpeedMod > SPEED_SLOWMO)
@@ -10443,5 +10464,5 @@ void Board::ButtonDepress(int theId)
 		mApp->PlaySample(SOUND_GRAVEBUTTON);
 		mQECounter = 40;
 	}
-}
 #endif
+}
