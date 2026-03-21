@@ -248,6 +248,11 @@ if(EMSCRIPTEN)
 		"SHELL:-lidbfs.js"
 		"SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/wasm/shell.html"
 	)
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		target_link_options(pvz-portable PRIVATE "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@/")
+	endif()
+
 	set_target_properties(pvz-portable PROPERTIES SUFFIX ".html")
 else()
 	target_link_libraries(pvz-portable PRIVATE
@@ -319,6 +324,14 @@ elseif (NINTENDO_3DS)
 elseif (ANDROID)
 	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL android log)
 	set_target_properties(pvz-portable PROPERTIES OUTPUT_NAME "main")
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		add_custom_command(TARGET pvz-portable POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets"
+			COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets"
+			COMMENT "Syncing assets to Android project"
+		)
+	endif()
 elseif (IOS)
 	target_link_libraries(pvz-portable PRIVATE
 		"-framework Foundation"
@@ -360,4 +373,23 @@ elseif (IOS)
 		set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios/Assets.xcassets"
 			PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 	endif()
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		file(GLOB_RECURSE IOS_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+		target_sources(pvz-portable PRIVATE ${IOS_ASSETS})
+		set_source_files_properties(${IOS_ASSETS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+	endif()
+endif()
+
+# Asset Automation (Desktop/Consoles)
+# If an 'assets' folder exists in the project root, copy its contents to the build directory.
+# Android, iOS, and WASM have their own specific bundling logic above.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets" AND NOT ANDROID AND NOT IOS AND NOT EMSCRIPTEN)
+	message(STATUS "Asset automation: 'assets' folder found. Implementing post-build deployment.")
+	add_custom_command(TARGET pvz-portable POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_SOURCE_DIR}/assets"
+			"$<TARGET_FILE_DIR:pvz-portable>"
+		COMMENT "Copying assets from source root to build directory"
+	)
 endif()
