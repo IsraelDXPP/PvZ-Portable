@@ -4,6 +4,7 @@
 //
 #define IDC_CURSOR1                     102
 #define IDI_APP_ICON                    103
+#define IDR_MAIN_PAK                    104
 
 // Next default values for new objects
 // 

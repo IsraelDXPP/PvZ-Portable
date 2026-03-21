@@ -103,6 +103,8 @@ public:
 	~PakInterface();
 
 	bool					AddPakFile(const std::string& theFileName);
+	bool					AddPakMemory(void* theData, size_t theSize, bool theOwnsMemory, const std::string& theName);
+	bool					ParsePakData(PakCollection* aPakCollection, class BinaryReader& aReader, const std::string& aPakKey);
 	PFILE*					FOpen(const char* theFileName, const char* theAccess);
 	int						FClose(PFILE* theFile);
 	int						FSeek(PFILE* theFile, long theOffset, int theOrigin);
