@@ -565,7 +565,6 @@ public:
 	void							DoTypingCheck(KeyCode theKey);
 	int								CountZombieByType(ZombieType theZombieType);
 	static /*inline*/ bool			IsZombieTypeSpawnedOnly(ZombieType theZombieType);
-#endif
 };
 extern bool gShownMoreSunTutorial;
 
