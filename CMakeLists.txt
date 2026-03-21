@@ -400,6 +400,13 @@ endif()
 # If 'main.pak' is missing from 'assets', download it from Google Drive.
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")
 	find_package(Python3 COMPONENTS Interpreter QUIET)
+	if(NOT Python3_Interpreter_FOUND)
+		find_program(Python3_EXECUTABLE NAMES python3 python python.exe)
+		if(Python3_EXECUTABLE)
+			set(Python3_Interpreter_FOUND TRUE)
+		endif()
+	endif()
+
 	if(Python3_Interpreter_FOUND)
 		message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive using ${Python3_EXECUTABLE}...")
 		execute_process(
