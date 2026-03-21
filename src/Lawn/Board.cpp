@@ -6084,7 +6084,27 @@ void Board::Update()
 	if (mAllowSpeedMod)
 	{
 #ifdef _REPLANTED_SPEED_CONTROL
-		// Logic handles aUpdateCount early to allow intermediate speeds
+		mSlowMoCounter++;
+		if (mSpeedMod == SPEED_0_75x)
+		{
+			aUpdateCount = (mSlowMoCounter % 4 == 0) ? 0 : 1;
+		}
+		else if (mSpeedMod == SPEED_1_x)
+		{
+			aUpdateCount = 1;
+		}
+		else if (mSpeedMod == SPEED_1_5x)
+		{
+			aUpdateCount = (mSlowMoCounter % 2 == 0) ? 1 : 2;
+		}
+		else if (mSpeedMod == SPEED_2_x)
+		{
+			aUpdateCount = 2;
+		}
+		else if (mSpeedMod == SPEED_2_5x)
+		{
+			aUpdateCount = (mSlowMoCounter % 2 == 0) ? 2 : 3;
+		}
 #else
 		if (mSpeedMod == SPEED_SLOWMO) aUpdateCount = 0;
 		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
@@ -10277,14 +10297,16 @@ void Board::UpdateSpeedButtons()
 		return;
 	}
 
+	bool aSlowdownHidden = mSpeedMod == SPEED_0_75x;
+	bool aSpeedupHidden = mSpeedMod == SPEED_2_5x;
 	bool aDisabled = !CanInteractWithBoardButtons() || mIgnoreMouseUp;
-	mSlowdownButton->mDisabled = aDisabled || mSpeedMod == SPEED_0_75x;
+	mSlowdownButton->mDisabled = aDisabled || aSlowdownHidden;
 	mPauseButton->mDisabled = aDisabled;
-	mSpeedupButton->mDisabled = aDisabled || mSpeedMod == SPEED_2_5x;
+	mSpeedupButton->mDisabled = aDisabled || aSpeedupHidden;
 
-	mSlowdownButton->mVisible = true;
+	mSlowdownButton->mVisible = !aSlowdownHidden;
 	mPauseButton->mVisible = true;
-	mSpeedupButton->mVisible = true;
+	mSpeedupButton->mVisible = !aSpeedupHidden;
 
 	int aCelWidth = Sexy::IMAGE_FLAGMETER->GetCelWidth();
 	int aTargetX = 600 + aCelWidth / 2;
@@ -10325,14 +10347,13 @@ void Board::DrawSpeed(Graphics* g)
 		aPosY = 575; // In the meter's space
 	}
 
-	float curStrWidth = FONT_HOUSEOFTERROR16->StringWidth(GetSpeedString());
-	float aTextX = aPosX - curStrWidth / 2;
-	float aTextY = aPosY + 25; // Adjusted Y for text below buttons
+	float aTextX = aPosX + 55;
+	float aTextY = aPosY + 20;
 
 	float aScale = 1.0f;
 	if (mQECounter == 0)
 	{
-		TodDrawString(g, GetSpeedString(), aTextX, aTextY, FONT_HOUSEOFTERROR16, Color(237, 241, 170), DS_ALIGN_CENTER);
+		TodDrawString(g, GetSpeedString(), aTextX, aTextY, FONT_HOUSEOFTERROR16, Color(237, 241, 170), DS_ALIGN_LEFT);
 	}
 	else
 	{
@@ -10349,20 +10370,30 @@ void Board::ButtonDepress(int theId)
 	{
 		if (theId == SPEEDUP || theId == SLOWDOWN)
 		{
+			bool aChanged = false;
 			if (theId == SPEEDUP)
 			{
 				if (mSpeedMod < SPEED_2_5x)
+				{
 					mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+					aChanged = true;
+				}
 			}
 			else
 			{
 				if (mSpeedMod > SPEED_0_75x)
+				{
 					mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+					aChanged = true;
+				}
 			}
 
-			mQECounter = 40;
-			mApp->PlaySample(theId == SPEEDUP ? Sexy::SOUND_WAKEUP : Sexy::SOUND_REVERSE_WAKEUP);
-			UpdateSpeedButtons();
+			if (aChanged)
+			{
+				mQECounter = 40;
+				mApp->PlaySample(theId == SPEEDUP ? Sexy::SOUND_WAKEUP : Sexy::SOUND_REVERSE_WAKEUP);
+				UpdateSpeedButtons();
+			}
 		}
 		else if (theId == PAUSE)
 		{
