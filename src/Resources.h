@@ -555,6 +555,7 @@ namespace Sexy
 		SOUND_JUICY_ID,
 		SOUND_COFFEE_ID,
 		SOUND_WAKEUP_ID,
+		SOUND_REVERSE_WAKEUP_ID,
 		SOUND_LOWGROAN_ID,
 		SOUND_LOWGROAN2_ID,
 		SOUND_PRIZE_ID,
@@ -1821,6 +1822,7 @@ namespace Sexy
 	extern intptr_t SOUND_RAIN;
 	extern intptr_t SOUND_READYSETPLANT;
 	extern intptr_t SOUND_REVERSE_EXPLOSION;
+	extern intptr_t SOUND_REVERSE_WAKEUP;
 	extern intptr_t SOUND_ROLL_IN;
 	extern intptr_t SOUND_RVTHROW;
 	extern intptr_t SOUND_SCREAM;

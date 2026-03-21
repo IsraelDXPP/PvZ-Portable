@@ -2153,6 +2153,7 @@ intptr_t Sexy::SOUND_THROW2;
 intptr_t Sexy::SOUND_THUNDER;
 intptr_t Sexy::SOUND_VASE_BREAKING;
 intptr_t Sexy::SOUND_WAKEUP;
+intptr_t Sexy::SOUND_REVERSE_WAKEUP;
 intptr_t Sexy::SOUND_WATERING;
 intptr_t Sexy::SOUND_WINMUSIC;
 intptr_t Sexy::SOUND_YUCK;
@@ -2326,6 +2327,7 @@ bool Sexy::ExtractLoadingSoundsResources(ResourceManager* theManager)
 		SOUND_THUNDER = aMgr.GetSoundThrow("SOUND_THUNDER");
 		SOUND_VASE_BREAKING = aMgr.GetSoundThrow("SOUND_VASE_BREAKING");
 		SOUND_WAKEUP = aMgr.GetSoundThrow("SOUND_WAKEUP");
+		SOUND_REVERSE_WAKEUP = aMgr.GetSoundThrow("SOUND_REVERSE_WAKEUP");
 		SOUND_WATERING = aMgr.GetSoundThrow("SOUND_WATERING");
 		SOUND_WINMUSIC = aMgr.GetSoundThrow("SOUND_WINMUSIC");
 		SOUND_YUCK = aMgr.GetSoundThrow("SOUND_YUCK");
@@ -2874,6 +2876,7 @@ void* gResources[static_cast<int>(Sexy::ResourceId::RESOURCE_ID_MAX)] =
 	&Sexy::SOUND_JUICY,
 	&Sexy::SOUND_COFFEE,
 	&Sexy::SOUND_WAKEUP,
+	&Sexy::SOUND_REVERSE_WAKEUP,
 	&Sexy::SOUND_LOWGROAN,
 	&Sexy::SOUND_LOWGROAN2,
 	&Sexy::SOUND_PRIZE,

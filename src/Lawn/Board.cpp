@@ -10374,38 +10374,38 @@ void Board::DrawSpeed(Graphics* g)
 	else
 	{
 		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * PI);
-		TodDrawStringMatrix(g, FONT_HOUSEOFTERROR16, TodCalculatedMatrix(aPosX - curStrWidth / 2, aPosY, aScale, aScale), GetSpeedString(), Color(237, 241, 170));
+		SexyMatrix3 aTransform;
+		TodScaleTransformMatrix(aTransform, aPosX - curStrWidth / 2, aPosY, aScale, aScale);
+		TodDrawStringMatrix(g, FONT_HOUSEOFTERROR16, aTransform, GetSpeedString(), Color(237, 241, 170));
 	}
 }
 
 void Board::ButtonDepress(int theId)
 {
-	if (theId == SLOWDOWN)
+	if (mAllowSpeedMod)
 	{
-		if (mSpeedMod > SPEED_SLOWMO)
+		if (theId == SPEEDUP || theId == SLOWDOWN)
 		{
-			mPrevSpeedMod = mSpeedMod;
-			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
-		}
-	}
-	else if (theId == SPEEDUP)
-	{
-		if (mSpeedMod < SPEED_SONIC)
-		{
-			mPrevSpeedMod = mSpeedMod;
-			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
-		}
-	}
-	else if (theId == PAUSE)
-	{
-		mPaused = !mPaused;
-		Pause(mPaused);
-	}
+			if (theId == SPEEDUP)
+			{
+				if (mSpeedMod < SPEED_SONIC)
+					mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+			}
+			else
+			{
+				if (mSpeedMod > SPEED_SLOWMO)
+					mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+			}
 
-	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
-	{
-		mApp->PlaySample(theId == SPEEDUP ? SOUND_WAKEUP : SOUND_REVERSE_WAKEUP);
-		mQECounter = 40;
+			mQECounter = 40;
+			mApp->PlaySample(theId == SPEEDUP ? Sexy::SOUND_WAKEUP : Sexy::SOUND_REVERSE_WAKEUP);
+		}
+		else if (theId == PAUSE)
+		{
+			mPaused = !mPaused;
+			Pause(mPaused);
+			mApp->PlaySample(Sexy::SOUND_PAUSE);
+		}
 	}
 }
 #else
