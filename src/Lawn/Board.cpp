@@ -196,6 +196,25 @@ Board::Board(LawnApp* theApp)
 	mStoreButton = nullptr;
 	mIgnoreMouseUp = false;
 
+#ifdef _REPLANTED_SPEED_CONTROL
+	mSlowdownButton = MakeNewButton(Board::SLOWDOWN, this, "", nullptr, IMAGE_SLOWDOWN_BUTTON, IMAGE_SLOWDOWN_BUTTON_PRESSED, IMAGE_SLOWDOWN_BUTTON_PRESSED);
+	mSlowdownButton->mBtnNoDraw = true;
+	mSlowdownButton->mDoFinger = true;
+	mSlowdownButton->mTranslateX = 0;
+	mSlowdownButton->mTranslateY = 0;
+
+	mPauseButton = MakeNewButton(Board::PAUSE, this, "", nullptr, IMAGE_PAUSE_BUTTON, IMAGE_PAUSE_BUTTON_PRESSED, IMAGE_PAUSE_BUTTON_PRESSED);
+	mPauseButton->mBtnNoDraw = true;
+	mPauseButton->mDoFinger = true;
+	mPauseButton->mTranslateX = 0;
+	mPauseButton->mTranslateY = 0;
+
+	mSpeedupButton = MakeNewButton(Board::SPEEDUP, this, "", nullptr, IMAGE_SPEEDUP_BUTTON, IMAGE_SPEEDUP_BUTTON_PRESSED, IMAGE_SPEEDUP_BUTTON_PRESSED);
+	mSpeedupButton->mBtnNoDraw = true;
+	mSpeedupButton->mDoFinger = true;
+	mSpeedupButton->mTranslateX = 0;
+	mSpeedupButton->mTranslateY = 0;
+#else
 	mSlowdownButton = new GameButton(SLOWDOWN);
 	mSlowdownButton->mButtonImage = IMAGE_SLOWDOWN_BUTTON;
 	mSlowdownButton->mDownImage = IMAGE_SLOWDOWN_BUTTON_PRESSED;
@@ -216,6 +235,7 @@ Board::Board(LawnApp* theApp)
 	mSpeedupButton->mOverImage = IMAGE_SPEEDUP_BUTTON_PRESSED;
 	mSpeedupButton->mLabel = "";
 	mSpeedupButton->mParentWidget = this;
+#endif
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
@@ -6172,11 +6192,21 @@ void Board::UpdateLayers()
 void Board::AddedToManager(WidgetManager* theWidgetManager)
 {
 	Widget::AddedToManager(theWidgetManager);
+#ifdef _REPLANTED_SPEED_CONTROL
+	theWidgetManager->AddWidget(mSlowdownButton);
+	theWidgetManager->AddWidget(mPauseButton);
+	theWidgetManager->AddWidget(mSpeedupButton);
+#endif
 }
 
 void Board::RemovedFromManager(WidgetManager* theWidgetManager)
 {
 	Widget::RemovedFromManager(theWidgetManager);
+#ifdef _REPLANTED_SPEED_CONTROL
+	theWidgetManager->RemoveWidget(mSlowdownButton);
+	theWidgetManager->RemoveWidget(mPauseButton);
+	theWidgetManager->RemoveWidget(mSpeedupButton);
+#endif
 }
 
 //0x416110
@@ -6860,7 +6890,9 @@ void Board::DrawGameObjects(Graphics* g)
 	}
 
 	TodHesitationTrace("end draw");
+#ifdef _REPLANTED_SPEED_CONTROL
 	DrawSpeed(g);
+#endif
 }
 
 //0x4173C0
@@ -10056,38 +10088,6 @@ int Board::GetNumWavesPerSurvivalStage()
 	unreachable();
 }
 
-void Board::DrawSpeed(Graphics* g)
-{
-	if (!mAllowSpeedMod)
-		return;
-
-	mSlowdownButton->Draw(g);
-	mPauseButton->Draw(g);
-	mSpeedupButton->Draw(g);
-
-	_Font* aFont = FONT_CONTINUUMBOLD14;
-	g->SetFont(aFont);
-	g->SetColor(Color(255, 255, 255));
-	
-	std::string aSpeedStr = GetSpeedString();
-	float aScale = 1.0f;
-	if (mQECounter > 0)
-	{
-		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * 3.14159f);
-	}
-
-	int aPosX = mSpeedupButton->mX + mSpeedupButton->mWidth + 10;
-	int aPosY = mSpeedupButton->mY + 22;
-
-	SexyMatrix3 aMatrix;
-	// Initialize identity to be safe
-	aMatrix.m00 = 1; aMatrix.m01 = 0; aMatrix.m02 = 0;
-	aMatrix.m10 = 0; aMatrix.m11 = 1; aMatrix.m12 = 0;
-	aMatrix.m20 = 0; aMatrix.m21 = 0; aMatrix.m22 = 1;
-
-	TodScaleTransformMatrix(aMatrix, aPosX, aPosY, aScale, aScale);
-	TodDrawStringMatrix(g, aFont, aMatrix, aSpeedStr, Color::White);
-}
 
 //0x41DA50
 void Board::RemoveParticleByType(ParticleEffect theEffectType)
@@ -10250,6 +10250,139 @@ bool Board::IsZombieTypeSpawnedOnly(ZombieType theZombieType)
 	return (theZombieType == ZombieType::ZOMBIE_BACKUP_DANCER || theZombieType == ZombieType::ZOMBIE_BOBSLED || theZombieType == ZombieType::ZOMBIE_IMP);
 }
 
+#ifdef _REPLANTED_SPEED_CONTROL
+float Board::GetSpeedValue(SpeedMod theMod)
+{
+	switch (theMod)
+	{
+	case SPEED_SLOWMO:		return 0.5f;
+	case SPEED_SLOW:		return 0.75f;
+	case SPEED_NORMAL:		return 1.0f;
+	case SPEED_FAST:		return 2.0f;
+	case SPEED_VERY_FAST:	return 5.0f;
+	case SPEED_SONIC:		return 10.0f;
+	default:				return 1.0f;
+	}
+}
+
+SexyString Board::GetSpeedString()
+{
+	switch (mSpeedMod)
+	{
+	case SPEED_SLOWMO:		return "0.5x";
+	case SPEED_SLOW:		return "0.75x";
+	case SPEED_NORMAL:		return "1.0x";
+	case SPEED_FAST:		return "2.0x";
+	case SPEED_VERY_FAST:	return "5.0x";
+	case SPEED_SONIC:		return "10.0x";
+	default:				return "1.0x";
+	}
+}
+
+void Board::DrawSpeed(Graphics* g)
+{
+	if (!mAllowSpeedMod || mLevelAwardSpawned)
+		return;
+
+	int aPosX = 780;
+	int aPosY = 595;
+	const int fontHeight = FONT_HOUSEOFTERROR16->GetHeight();
+	float aStrWidth = FONT_HOUSEOFTERROR16->StringWidth("1.0x");
+
+	if (HasProgressMeter())
+	{
+		aPosX -= 30;
+		aPosY -= IMAGE_FLAGMETERPARTS->GetHeight() + 8;
+	}
+
+	mSpeedupButton->mX = aPosX - aStrWidth - 12 - IMAGE_SPEEDUP_BUTTON->GetWidth();
+    mSpeedupButton->mY = aPosY - fontHeight / 2 - 4;
+
+	mSlowdownButton->mButtonImage = mSpeedMod < SpeedMod::SPEED_NORMAL ? IMAGE_SLOWDOWN_BUTTON_PRESSED : IMAGE_SLOWDOWN_BUTTON;
+	mSpeedupButton->mButtonImage = mSpeedMod > SpeedMod::SPEED_NORMAL ? IMAGE_SPEEDUP_BUTTON_PRESSED : IMAGE_SPEEDUP_BUTTON;
+
+	mPauseButton->mX = mSpeedupButton->mX - IMAGE_SPEEDUP_BUTTON->GetWidth() - 4 ;
+	mPauseButton->mY = mSpeedupButton->mY;
+
+	mSlowdownButton->mX = mPauseButton->mX - IMAGE_SLOWDOWN_BUTTON->GetWidth() - 4;
+	mSlowdownButton->mY = mPauseButton->mY;
+
+	Graphics gSlowdownButton(*g);
+	gSlowdownButton.mTransX = mSlowdownButton->mX;
+	gSlowdownButton.mTransY = mSlowdownButton->mY;
+	gSlowdownButton.mTransX += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, CURVE_BOUNCE);
+	gSlowdownButton.mTransY += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, CURVE_BOUNCE);
+
+	Graphics gPauseButton(*g);
+	gPauseButton.mTransX = mPauseButton->mX;
+	gPauseButton.mTransY = mPauseButton->mY;
+	gPauseButton.mTransX += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, CURVE_BOUNCE);
+	gPauseButton.mTransY += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, CURVE_BOUNCE);
+
+	Graphics gSpeedupButton(*g);
+	gSpeedupButton.mTransX = mSpeedupButton->mX;
+	gSpeedupButton.mTransY = mSpeedupButton->mY;
+	gSpeedupButton.mTransX += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, CURVE_BOUNCE);
+	gSpeedupButton.mTransY += TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, CURVE_BOUNCE);
+
+	mSlowdownButton->SetDisabled(mSpeedMod == SpeedMod::SPEED_SLOWMO
+#ifndef _DEBUG
+		|| mSpeedMod <= SpeedMod::SPEED_NORMAL
+#endif
+	);
+	mSpeedupButton->SetDisabled(mSpeedMod == SpeedMod::SPEED_SONIC);
+
+	if (!mSlowdownButton->mDisabled)
+		mSlowdownButton->Draw(&gSlowdownButton);
+	mPauseButton->Draw(&gPauseButton);
+	if (!mSpeedupButton->mDisabled)
+		mSpeedupButton->Draw(&gSpeedupButton);
+
+	float curStrWidth = FONT_HOUSEOFTERROR16->StringWidth(GetSpeedString());
+
+	float aScale = 1.0f;
+	if (mQECounter == 0)
+	{
+		TodDrawString(g, GetSpeedString(), aPosX - curStrWidth / 2, aPosY, FONT_HOUSEOFTERROR16, Color(237, 241, 170), DS_ALIGN_CENTER);
+	}
+	else
+	{
+		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * PI);
+		TodDrawStringMatrix(g, FONT_HOUSEOFTERROR16, TodCalculatedMatrix(aPosX - curStrWidth / 2, aPosY, aScale, aScale), GetSpeedString(), Color(237, 241, 170));
+	}
+}
+
+void Board::ButtonDepress(int theId)
+{
+	if (theId == SLOWDOWN)
+	{
+		if (mSpeedMod > SPEED_SLOWMO)
+		{
+			mPrevSpeedMod = mSpeedMod;
+			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
+		}
+	}
+	else if (theId == SPEEDUP)
+	{
+		if (mSpeedMod < SPEED_SONIC)
+		{
+			mPrevSpeedMod = mSpeedMod;
+			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
+		}
+	}
+	else if (theId == PAUSE)
+	{
+		mPaused = !mPaused;
+		Pause(mPaused);
+	}
+
+	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
+	{
+		mApp->PlaySample(theId == SPEEDUP ? SOUND_WAKEUP : SOUND_REVERSE_WAKEUP);
+		mQECounter = 40;
+	}
+}
+#else
 float Board::GetSpeedValue()
 {
 	switch (mSpeedMod)
@@ -10298,7 +10431,8 @@ void Board::ButtonDepress(int theId)
 
 	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
 	{
-		mApp->PlaySample(Sexy::SOUND_GRAVEBUTTON);
+		mApp->PlaySample(SOUND_GRAVEBUTTON);
 		mQECounter = 40;
 	}
 }
+#endif
