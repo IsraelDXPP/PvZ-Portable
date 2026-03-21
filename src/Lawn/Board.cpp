@@ -10080,8 +10080,12 @@ void Board::DrawSpeed(Graphics* g)
 	int aPosY = mSpeedupButton->mY + 22;
 
 	SexyMatrix3 aMatrix;
-	SexyMatrix3Translation(aMatrix, aPosX, aPosY);
-	TodScaleTransformMatrix(aMatrix, 0, 0, aScale, aScale);
+	// Initialize identity to be safe
+	aMatrix.m00 = 1; aMatrix.m01 = 0; aMatrix.m02 = 0;
+	aMatrix.m10 = 0; aMatrix.m11 = 1; aMatrix.m12 = 0;
+	aMatrix.m20 = 0; aMatrix.m21 = 0; aMatrix.m22 = 1;
+
+	TodScaleTransformMatrix(aMatrix, aPosX, aPosY, aScale, aScale);
 	TodDrawStringMatrix(g, aFont, aMatrix, aSpeedStr, Color::White);
 }
 
@@ -10283,7 +10287,7 @@ void Board::ButtonDepress(int theId)
 	}
 	else if (theId == SPEEDUP)
 	{
-		if (mSpeedMod < SPEED_FASTEST)
+		if (mSpeedMod < SPEED_ULTRAFAST)
 			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
 	}
 	else if (theId == PAUSE)
