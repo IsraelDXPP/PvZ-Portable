@@ -2572,6 +2572,7 @@ static void FixBoardAfterLoad(Board* theBoard)
 	theBoard->mChallenge->mBoard = theBoard;
 	theBoard->mApp->mMusic->mApp = theBoard->mApp;
 	theBoard->mApp->mMusic->mMusicInterface = theBoard->mApp->mMusicInterface;
+	theBoard->mAllowSpeedMod = true;
 }
 
 static bool LawnLoadGameV4(Board* theBoard, const std::string& theFilePath)
