@@ -135,12 +135,11 @@ enum BoardButtonId
 #ifdef _REPLANTED_SPEED_CONTROL
 enum SpeedMod
 {
-	SPEED_SLOWMO,
-	SPEED_SLOW,
-	SPEED_NORMAL,
-	SPEED_FAST,
-	SPEED_VERY_FAST,
-	SPEED_SONIC
+	SPEED_0_75x,
+	SPEED_1_x,
+	SPEED_1_5x,
+	SPEED_2_x,
+	SPEED_2_5x
 };
 #else
 enum SpeedMod
@@ -565,6 +564,10 @@ public:
 	void							DoTypingCheck(KeyCode theKey);
 	int								CountZombieByType(ZombieType theZombieType);
 	static /*inline*/ bool			IsZombieTypeSpawnedOnly(ZombieType theZombieType);
+#ifdef _REPLANTED_SPEED_CONTROL
+	void							UpdateSpeedButtons();
+	void							DrawSpeed(Graphics* g);
+#endif
 };
 extern bool gShownMoreSunTutorial;
 
