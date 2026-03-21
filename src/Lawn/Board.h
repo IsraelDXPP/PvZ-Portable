@@ -564,10 +564,6 @@ public:
 	void							DoTypingCheck(KeyCode theKey);
 	int								CountZombieByType(ZombieType theZombieType);
 	static /*inline*/ bool			IsZombieTypeSpawnedOnly(ZombieType theZombieType);
-#ifdef _REPLANTED_SPEED_CONTROL
-	void							UpdateSpeedButtons();
-	void							DrawSpeed(Graphics* g);
-#endif
 };
 extern bool gShownMoreSunTutorial;
 

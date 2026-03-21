@@ -6059,6 +6059,7 @@ void Board::Update()
 		mApp->UpdateCrazyDave();
 	}
 
+	int aUpdateCount = 1;
 	bool aDisabled = !CanInteractWithBoardButtons() || mIgnoreMouseUp;
 	mMenuButton->mDisabled = aDisabled;
 	mMenuButton->Update();
@@ -6082,15 +6083,23 @@ void Board::Update()
 
 	if (mAllowSpeedMod)
 	{
-#ifdef _REPLANTED_SPEED_CONTROL
-		// Logic handles aUpdateCount early to allow intermediate speeds
-#else
-		if (mSpeedMod == SPEED_SLOWMO) aUpdateCount = 0;
+		if (mSpeedMod == SPEED_SLOWMO)
+		{
+			mSlowMoCounter++;
+			if (mSlowMoCounter >= 2)
+			{
+				mSlowMoCounter = 0;
+				aUpdateCount = 1;
+			}
+			else
+			{
+				aUpdateCount = 0;
+			}
+		}
 		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
 		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 3;
 		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 5;
 		else if (mSpeedMod == SPEED_ULTRAFAST) aUpdateCount = 10;
-#endif
 	}
 
 	for (int i = 0; i < aUpdateCount; i++)
@@ -10239,17 +10248,17 @@ bool Board::IsZombieTypeSpawnedOnly(ZombieType theZombieType)
 	return (theZombieType == ZombieType::ZOMBIE_BACKUP_DANCER || theZombieType == ZombieType::ZOMBIE_BOBSLED || theZombieType == ZombieType::ZOMBIE_IMP);
 }
 
-#ifdef _REPLANTED_SPEED_CONTROL
-float Board::GetSpeedValue(SpeedMod theMod)
+float Board::GetSpeedValue()
 {
-	switch (theMod)
+	switch (mSpeedMod)
 	{
-	case SPEED_0_75x:	return 0.75f;
-	case SPEED_1_x:		return 1.0f;
-	case SPEED_1_5x:	return 1.5f;
-	case SPEED_2_x:		return 2.0f;
-	case SPEED_2_5x:	return 2.5f;
-	default:			return 1.0f;
+	case SPEED_SLOWMO: return 0.5f;
+	case SPEED_NORMAL: return 1.0f;
+	case SPEED_FAST: return 2.0f;
+	case SPEED_FASTER: return 3.0f;
+	case SPEED_FASTEST: return 5.0f;
+	case SPEED_ULTRAFAST: return 10.0f;
+	default: return 1.0f;
 	}
 }
 
@@ -10257,18 +10266,19 @@ std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
 	{
-	case SPEED_0_75x:	return "0.75x";
-	case SPEED_1_x:		return "1.0x";
-	case SPEED_1_5x:	return "1.5x";
-	case SPEED_2_x:		return "2.0x";
-	case SPEED_2_5x:	return "2.5x";
-	default:			return "1.0x";
+	case SPEED_SLOWMO: return "0.5x";
+	case SPEED_NORMAL: return "1.0x";
+	case SPEED_FAST: return "2.0x";
+	case SPEED_FASTER: return "3.0x";
+	case SPEED_FASTEST: return "5.0x";
+	case SPEED_ULTRAFAST: return "10.0x";
+	default: return "1.0x";
 	}
 }
 
 void Board::UpdateSpeedButtons()
 {
-	if (!mAllowSpeedMod || mLevelAwardSpawned)
+	if (!mAllowSpeedMod)
 	{
 		mSlowdownButton->mVisible = false;
 		mPauseButton->mVisible = false;
@@ -10277,9 +10287,9 @@ void Board::UpdateSpeedButtons()
 	}
 
 	bool aDisabled = !CanInteractWithBoardButtons() || mIgnoreMouseUp;
-	mSlowdownButton->mDisabled = aDisabled || mSpeedMod == SPEED_0_75x;
+	mSlowdownButton->mDisabled = aDisabled;
 	mPauseButton->mDisabled = aDisabled;
-	mSpeedupButton->mDisabled = aDisabled || mSpeedMod == SPEED_2_5x;
+	mSpeedupButton->mDisabled = aDisabled;
 
 	mSlowdownButton->mVisible = true;
 	mPauseButton->mVisible = true;
@@ -10302,147 +10312,47 @@ void Board::UpdateSpeedButtons()
 	mSlowdownButton->Resize(aTargetX - 16 - 35, aTargetY, 32, 32);
 	mSpeedupButton->Resize(aTargetX - 16 + 35, aTargetY, 32, 32);
 
-	mSlowdownButton->mButtonImage = mSpeedMod < SPEED_1_x ? IMAGE_SLOWDOWN_BUTTON_PRESSED : IMAGE_SLOWDOWN_BUTTON;
-	mSpeedupButton->mButtonImage = mSpeedMod > SPEED_1_x ? IMAGE_SPEEDUP_BUTTON_PRESSED : IMAGE_SPEEDUP_BUTTON;
+	mSlowdownButton->mBtnNoDraw = (mSpeedMod == SPEED_NORMAL);
+	mSlowdownButton->mDisabled = (mSpeedMod == SPEED_NORMAL);
 }
 
 void Board::DrawSpeed(Graphics* g)
 {
-	if (!mAllowSpeedMod || mLevelAwardSpawned)
+	if (!mAllowSpeedMod)
 		return;
 
-	int aCelWidth = Sexy::IMAGE_FLAGMETER->GetCelWidth();
-	int aPosX = 600 + aCelWidth / 2;
-	int aPosY = 575;
+	mSlowdownButton->Draw(g);
+	mPauseButton->Draw(g);
+	mSpeedupButton->Draw(g);
 
-	if (HasProgressMeter() && mApp->mGameScene == GameScenes::SCENE_PLAYING)
-	{
-		aPosY = 535; // Above the meter
-	}
-	else
-	{
-		aPosY = 575; // In the meter's space
-	}
-
-	float curStrWidth = FONT_HOUSEOFTERROR16->StringWidth(GetSpeedString());
-	float aTextX = aPosX - curStrWidth / 2;
-	float aTextY = aPosY + 25; // Adjusted Y for text below buttons
-
+	_Font* aFont = Sexy::FONT_CONTINUUMBOLD14;
+	g->SetFont(aFont);
+	g->SetColor(Color(255, 255, 255));
+	
+	std::string aSpeedStr = GetSpeedString();
 	float aScale = 1.0f;
-	if (mQECounter == 0)
+	if (mQECounter > 0)
 	{
-		TodDrawString(g, GetSpeedString(), aTextX, aTextY, FONT_HOUSEOFTERROR16, Color(237, 241, 170), DS_ALIGN_CENTER);
+		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * 3.14159f);
+	}
+
+	int aPosX = mSpeedupButton->mX + mSpeedupButton->mWidth + 10;
+	int aPosY = mSpeedupButton->mY + 22;
+
+	if (aScale == 1.0f)
+	{
+		TodDrawString(g, aSpeedStr, aPosX, aPosY, aFont, Color::White, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 	else
 	{
-		aScale = 1.0f + 0.3f * sin(mQECounter / 40.0f * PI);
 		SexyMatrix3 aTransform;
-		TodScaleTransformMatrix(aTransform, aTextX, aTextY, aScale, aScale);
-		TodDrawStringMatrix(g, FONT_HOUSEOFTERROR16, aTransform, GetSpeedString(), Color(237, 241, 170));
+		TodScaleTransformMatrix(aTransform, (float)aPosX, (float)aPosY, aScale, aScale);
+		TodDrawStringMatrix(g, aFont, aTransform, aSpeedStr, Color::White);
 	}
 }
 
 void Board::ButtonDepress(int theId)
 {
-	if (mAllowSpeedMod)
-	{
-		if (theId == SPEEDUP || theId == SLOWDOWN)
-		{
-			if (theId == SPEEDUP)
-			{
-				if (mSpeedMod < SPEED_2_5x)
-					mSpeedMod = (SpeedMod)(mSpeedMod + 1);
-			}
-			else
-			{
-				if (mSpeedMod > SPEED_0_75x)
-					mSpeedMod = (SpeedMod)(mSpeedMod - 1);
-			}
-
-			mQECounter = 40;
-			mApp->PlaySample(theId == SPEEDUP ? Sexy::SOUND_WAKEUP : Sexy::SOUND_REVERSE_WAKEUP);
-			UpdateSpeedButtons();
-		}
-		else if (theId == PAUSE)
-		{
-			mApp->DoPauseDialog();
-		}
-	}
-}
-#else
-float Board::GetSpeedValue()
-{
-	switch (mSpeedMod)
-	{
-	case SPEED_SLOWMO: return 0.5f;
-	case SPEED_1_x: return 1.0f;
-	case SPEED_FAST: return 2.0f;
-	case SPEED_FASTER: return 3.0f;
-	case SPEED_FASTEST: return 5.0f;
-	case SPEED_ULTRAFAST: return 10.0f;
-	default: return 1.0f;
-	}
-}
-
-#ifdef _REPLANTED_SPEED_CONTROL
-std::string Board::GetSpeedString()
-{
-	switch (mSpeedMod)
-	{
-	case SPEED_0_75x: return "0.75x";
-	case SPEED_1_x: return "1.0x";
-	case SPEED_1_5x: return "1.5x";
-	case SPEED_2_x: return "2.0x";
-	case SPEED_2_5x: return "2.5x";
-	default: return "1.0x";
-	}
-}
-#else
-std::string Board::GetSpeedString()
-{
-	switch (mSpeedMod)
-	{
-	case SPEED_SLOWMO: return "0.5x";
-	case SPEED_1_x: return "1.0x";
-	case SPEED_FAST: return "2.0x";
-	case SPEED_FASTER: return "3.0x";
-	case SPEED_FASTEST: return "5.0x";
-	case SPEED_ULTRAFAST: return "10.0x";
-	default: return "1.0x";
-	}
-}
-#endif
-
-void Board::ButtonDepress(int theId)
-{
-#ifdef _REPLANTED_SPEED_CONTROL
-	if (theId == SLOWDOWN)
-	{
-		if (mSpeedMod > SPEED_0_75x)
-		{
-			mSpeedMod = (SpeedMod)(mSpeedMod - 1);
-			mApp->PlaySample(SOUND_REVERSE_WAKEUP);
-		}
-	}
-	else if (theId == SPEEDUP)
-	{
-		if (mSpeedMod < SPEED_2_5x)
-		{
-			mSpeedMod = (SpeedMod)(mSpeedMod + 1);
-			mApp->PlaySample(SOUND_WAKEUP);
-		}
-	}
-	else if (theId == PAUSE)
-	{
-		mApp->DoPauseDialog();
-	}
-
-	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
-	{
-		UpdateSpeedButtons();
-		mQECounter = 40;
-	}
-#else
 	if (theId == SLOWDOWN)
 	{
 		if (mSpeedMod > SPEED_SLOWMO)
@@ -10461,8 +10371,8 @@ void Board::ButtonDepress(int theId)
 
 	if (theId == SLOWDOWN || theId == PAUSE || theId == SPEEDUP)
 	{
-		mApp->PlaySample(SOUND_GRAVEBUTTON);
+		mApp->PlaySample(Sexy::SOUND_GRAVEBUTTON);
 		mQECounter = 40;
+		UpdateSpeedButtons();
 	}
-#endif
 }
