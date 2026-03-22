@@ -1,8 +1,10 @@
 import os
 import sys
+from pathlib import Path
 
 def embed_folder(src_dir, out_cpp):
-    if not os.path.exists(src_dir):
+    src_path = Path(src_dir)
+    if not src_path.exists():
         print(f"Warning: {src_dir} not found. Generating empty loader.")
         with open(out_cpp, "w") as f:
             f.write('#include "PakInterface.h"\n')
@@ -10,12 +12,15 @@ def embed_folder(src_dir, out_cpp):
         return
 
     files = []
-    for root, _, filenames in os.walk(src_dir):
-        for filename in filenames:
-            rel_path = os.path.relpath(os.path.join(root, filename), os.path.dirname(src_dir))
+    # Use rglob('*') to find all files recursively
+    for path in src_path.rglob('*'):
+        if path.is_file():
+            # Get relative path from the parent of src_dir to include the src_dir name in the path
+            # (e.g., assets/properties/logo.png -> properties/logo.png)
+            rel_path = path.relative_to(src_path.parent)
             # Normalize to forward slashes for cross-platform matching
-            rel_path = rel_path.replace("\\", "/")
-            files.append((rel_path, os.path.join(root, filename)))
+            rel_path_str = str(rel_path).replace("\\", "/")
+            files.append((rel_path_str, path))
 
     with open(out_cpp, "w") as f:
         f.write('#include <cstdint>\n')
@@ -34,7 +39,6 @@ def embed_folder(src_dir, out_cpp):
         f.write('void LoadEmbeddedProperties(PakInterface* p) {\n')
         for i, (rel_path, _) in enumerate(files):
             var_name = f"data_{i}"
-            # Load with size from sizeof()
             f.write(f'    p->AddFileMemory("{rel_path}", (void*){var_name}, sizeof({var_name}));\n')
         f.write('}\n')
 
