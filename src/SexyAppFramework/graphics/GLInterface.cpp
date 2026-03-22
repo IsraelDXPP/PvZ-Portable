@@ -220,7 +220,7 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	GLuint shader = glCreateShader(type);
 	if (shader == 0)
 	{
-		TodTrace("%s:%d [%s] glCreateShader returned 0 — GL context may not be current\n",
+		printf("%s:%d [%s] glCreateShader returned 0 - GL context may not be current\n",
 			__FILE__, __LINE__, __func__);
 		if (gSexyAppBase != nullptr) gSexyAppBase->Shutdown();
 		else exit(1);
@@ -238,7 +238,7 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
 		char *log = logLen > 0 ? (char*)malloc(logLen) : nullptr;
 		if (log) { glGetShaderInfoLog(shader, logLen, &logLen, log); }
-		TodTrace("%s:%d [%s] Shader compile error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
+		printf("%s:%d [%s] Shader compile error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
 		printf("Shader error: %s\n%s%s%s\n", log ? log : "(no log)", strings[0], strings[1], strings[2]);
 		fflush(stdout);
 		if (log) free(log);
@@ -268,7 +268,7 @@ static GLuint shaderLoad(const char *src)
 	GLuint prog = glCreateProgram();
 	if (prog == 0)
 	{
-		TodTrace("%s:%d [%s] glCreateProgram returned 0\n", __FILE__, __LINE__, __func__);
+		printf("%s:%d [%s] glCreateProgram returned 0\n", __FILE__, __LINE__, __func__);
 		glDeleteShader(vert);
 		glDeleteShader(frag);
 		return 0;
@@ -290,7 +290,7 @@ static GLuint shaderLoad(const char *src)
 		glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLen);
 		char *log = logLen > 0 ? (char*)malloc(logLen) : nullptr;
 		if (log) { glGetProgramInfoLog(prog, logLen, &logLen, log); }
-		TodTrace("%s:%d [%s] Shader link error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
+		printf("%s:%d [%s] Shader link error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
 		printf("Shader link error: %s\n", log ? log : "(no log)");
 		fflush(stdout);
 		if (log) free(log);
@@ -1215,7 +1215,7 @@ int GLInterface::Init(bool IsWindowed)
 		gProgram = shaderLoad(SHADER_CODE);
 		if (gProgram == 0)
 		{
-			TodTrace("%s:%d [%s] shaderLoad failed — aborting GL init\n", __FILE__, __LINE__, __func__);
+			printf("%s:%d [%s] shaderLoad failed - aborting GL init\n", __FILE__, __LINE__, __func__);
 			return 0;
 		}
 
