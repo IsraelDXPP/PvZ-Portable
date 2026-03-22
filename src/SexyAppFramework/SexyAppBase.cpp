@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
+#include "Sexy.TodLib/TodDebug.h"
 
 #include <SDL.h>
 

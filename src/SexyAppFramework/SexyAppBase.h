@@ -519,7 +519,7 @@ public:
 	
 //	virtual bool			CheckSignature(const Buffer& theBuffer, const std::string& theFileName);
 	virtual bool			DrawDirtyStuff();
-	virtual void			Redraw(Rect* theClipRect);
+	virtual bool			Redraw(Rect* theClipRect);
 
 	// Properties access methods
 	bool					LoadProperties(const std::string& theFileName, bool required, bool checkSig);
