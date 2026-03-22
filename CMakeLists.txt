@@ -396,6 +396,18 @@ if(APPLE)
         INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 endif()
 
+# Properties Embedding (Cross-platform)
+set(PROPERTIES_EMBED_CPP "${CMAKE_CURRENT_BINARY_DIR}/properties_embed.cpp")
+add_custom_command(
+    OUTPUT "${PROPERTIES_EMBED_CPP}"
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py" 
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets/properties" "${PROPERTIES_EMBED_CPP}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py"
+    COMMENT "Embedding properties folder..."
+)
+target_sources(pvz-portable PRIVATE "${PROPERTIES_EMBED_CPP}")
+target_include_directories(pvz-portable PRIVATE src/SexyAppFramework/paklib)
+
 # Asset Automation (Download)
 # If 'main.pak' is missing from 'assets', download it from Google Drive.
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")

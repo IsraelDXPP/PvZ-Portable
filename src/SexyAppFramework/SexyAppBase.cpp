@@ -47,6 +47,8 @@ extern "C" const uint8_t main_pak_data[];
 extern "C" const uint64_t main_pak_size;
 #endif
 
+extern void LoadEmbeddedProperties(class PakInterface* p);
+
 #ifdef __SWITCH__
 #include <switch.h>
 #include <locale>
@@ -3225,6 +3227,8 @@ void SexyAppBase::Init()
 #if defined(__SWITCH__) || defined(__3DS__)
 	SetResourceFolder("romfs:/");
 #endif
+
+	LoadEmbeddedProperties(gPakInterface);
 
 	gPakInterface->AddPakFile(GetResourcePath("main.pak"));
 

@@ -169,6 +169,27 @@ bool PakInterface::ParsePakData(PakCollection* aPakCollection, BinaryReader& aRe
 	return true;
 }
 
+bool PakInterface::AddFileMemory(const std::string& theFileName, void* theData, size_t theSize)
+{
+	if (theData == nullptr || theSize == 0)
+		return false;
+
+	mPakCollectionList.emplace_back(theSize);
+	PakCollection* aPakCollection = &mPakCollectionList.back();
+	memcpy(aPakCollection->mDataPtr, theData, theSize);
+
+	std::string aKey = NormalizePakPath(theFileName);
+	auto aRecordItr = mPakRecordMap.emplace(aKey, PakRecord()).first;
+	PakRecord* aPakRecord = &aRecordItr->second;
+	aPakRecord->mCollection = aPakCollection;
+	aPakRecord->mFileName = aKey;
+	aPakRecord->mStartPos = 0;
+	aPakRecord->mSize = static_cast<int>(theSize);
+	aPakRecord->mFileTime = 0;
+
+	return true;
+}
+
 bool PakInterface::AddPakFile(const std::string& theFileName)
 {
 	FILE *aFileHandle = fcaseopen(theFileName.c_str(), "rb");
