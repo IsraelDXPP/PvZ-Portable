@@ -97,6 +97,7 @@ jobs:
       run: |
         sudo -u builder bash -lc '
           mkdir -p build
+          rm -f build/CMakeCache.txt
           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
           cmake --build build
 
@@ -150,6 +151,7 @@ jobs:
       shell: msys2 {0}
       run: |
         mkdir -p build
+        rm -f build/CMakeCache.txt
         cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
         
@@ -194,6 +196,7 @@ jobs:
     - name: Compile PvZ-Portable for Windows (MSVC)
       shell: pwsh
       run: |
+        Remove-Item -ErrorAction SilentlyContinue build/CMakeCache.txt
         cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
@@ -256,6 +259,7 @@ jobs:
         run: |
           source $DEVKITPRO/switchvars.sh
           mkdir -p build
+          rm -f build/CMakeCache.txt
           cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
           cmake --build build
 
@@ -300,6 +304,7 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         mkdir -p build
+        rm -f build/CMakeCache.txt
         cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build
 
@@ -570,6 +575,7 @@ jobs:
     - name: Build PvZ-Portable for WebAssembly
       run: |
         mkdir -p build-wasm
+        rm -f build-wasm/CMakeCache.txt
         emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
         cmake --build build-wasm -j$(nproc)
 
