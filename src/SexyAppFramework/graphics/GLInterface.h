@@ -221,6 +221,8 @@ public:
 	bool					Redraw(Rect* theClipRect = nullptr);
 	void					SetVideoOnlyDraw(bool videoOnly);
 
+	bool					mInitialized;
+
 	void					SetCursorPos(int theCursorX, int theCursorY);
 
 public:

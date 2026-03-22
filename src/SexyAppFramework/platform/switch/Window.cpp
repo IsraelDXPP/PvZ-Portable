@@ -124,15 +124,16 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Connect the context to the surface
 	if (eglMakeCurrent(mWindow, mSurface, mSurface, mContext) == EGL_FALSE)
 	{
+		TodTrace("%s:%d [%s] FATAL: eglMakeCurrent failed\n", __FILE__, __LINE__, __func__);
 		eglDestroyContext(mWindow, mContext);
 		mContext = nullptr;
 		eglDestroySurface(mWindow, mSurface);
 		mSurface = nullptr;
 		eglTerminate(mWindow);
 		mWindow = nullptr;
+		mShutdown = true;
 		return;
 	}
 
@@ -143,8 +144,10 @@ void SexyAppBase::MakeWindow()
 		mGLInterface = new GLInterface(this);
 		if (!InitGLInterface())
 		{
+			TodTrace("%s:%d [%s] FATAL: InitGLInterface failed in MakeWindow\n", __FILE__, __LINE__, __func__);
 			delete mGLInterface;
 			mGLInterface = nullptr;
+			mShutdown = true;
 			return;
 		}
 

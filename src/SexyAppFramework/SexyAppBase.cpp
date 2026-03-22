@@ -1581,15 +1581,13 @@ bool SexyAppBase::DoUpdateFrames()
 
 bool gIsFailing = false;
 
-void SexyAppBase::Redraw(Rect* theClipRect)
+bool SexyAppBase::Redraw(Rect* theClipRect)
 {
 	SEXY_AUTO_PERF("SexyAppBase::Redraw");
 
 	// Do mIsDrawing check because we could enter here at a bad time if any windows messages
 	//  are processed during WidgetManager->Draw
 	if ((mIsDrawing) || (mShutdown))
-		return;
-
 	if (gScreenSaverActive)
 		return;
 
@@ -1707,7 +1705,7 @@ bool SexyAppBase::DrawDirtyStuff()
 
 		mDrawTime += aMidTime - aStartTime;
 
-		if (mShowFPS)
+		if (mShowFPS && mGLInterface != nullptr)
 		{
 			Graphics g(mGLInterface->GetScreenImage());
 			g.DrawImage(gFPSImage,mWidth-gFPSImage->GetWidth()-10,mHeight-gFPSImage->GetHeight()-10);
@@ -2161,6 +2159,9 @@ void SexyAppBase::DeleteExtraImageData()
 
 void SexyAppBase::ReInitImages()
 {
+	if (mGLInterface == nullptr)
+		return;
+
 	std::vector<MemoryImage*> imagesToProcess;
 	{
 		std::scoped_lock anAutoCrit(mGLInterface->mCritSect);
@@ -2750,6 +2751,11 @@ int SexyAppBase::InitGLInterface()
 	PreGLInterfaceInitHook();
 	DeleteNativeImageData();
 	int aResult = mGLInterface->Init(mIsPhysWindowed);
+	if (!aResult)
+	{
+		TodTrace("%s:%d [%s] FATAL: mGLInterface->Init failed\n", __FILE__, __LINE__, __func__);
+		mShutdown = true;
+	}
 	DemoSyncRefreshRate();
 	if (aResult)
 	{

@@ -1090,20 +1090,22 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
 	}
 }
 
-GLInterface::GLInterface(SexyAppBase* theApp)
+GLInterface::GLInterface(SexyAppBase* theApp) :
+	mApp(theApp),
+	mWidth(theApp->mWidth),
+	mHeight(theApp->mHeight),
+	mDisplayWidth(theApp->mWidth),
+	mDisplayHeight(theApp->mHeight),
+	mPresentationRect(0, 0, theApp->mWidth, theApp->mHeight),
+	mRefreshRate(60),
+	mMillisecondsPerFrame(1000 / 60),
+	mScreenImage(nullptr),
+	mNextCursorX(0),
+	mNextCursorY(0),
+	mCursorX(0),
+	mCursorY(0),
+	mInitialized(false)
 {
-	mApp = theApp;
-	mWidth  = mApp->mWidth;
-	mHeight = mApp->mHeight;
-	mDisplayWidth  = mWidth;
-	mDisplayHeight = mHeight;
-	mPresentationRect = Rect(0, 0, mWidth, mHeight);
-	mRefreshRate = 60;
-	mMillisecondsPerFrame = 1000 / mRefreshRate;
-	mScreenImage = nullptr;
-	mNextCursorX = mNextCursorY = 0;
-	mCursorX = mCursorY = 0;
-
 	gVertexMode  = (GLenum)-1;
 	gNumVertices = 0;
 	gVertices.clear();
@@ -1207,9 +1209,15 @@ void GLInterface::UpdateViewport()
 
 int GLInterface::Init(bool IsWindowed)
 {
-	// NOTE: 'inited' stays false on failure so a subsequent MakeWindow() can retry.
-	static bool inited = false;
-	if (!inited)
+#ifdef NINTENDO_SWITCH
+	if (eglGetCurrentContext() == EGL_NO_CONTEXT)
+	{
+		TodTrace("%s:%d [%s] FATAL: No current EGL context in GLInterface::Init\n", __FILE__, __LINE__, __func__);
+		return 0;
+	}
+#endif
+
+	if (!mInitialized)
 	{
 		PlatformGLInit();
 
@@ -1221,7 +1229,7 @@ int GLInterface::Init(bool IsWindowed)
 		}
 
 		// Only mark as fully initialised HERE, after everything succeeded.
-		inited = true;
+		mInitialized = true;
 
 		gUfViewProjMtx = glGetUniformLocation(gProgram, "u_viewProj");
 		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
