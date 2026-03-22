@@ -216,7 +216,17 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
 
+	// glCreateShader returns 0 if the GL context is not ready or the type is invalid.
 	GLuint shader = glCreateShader(type);
+	if (shader == 0)
+	{
+		TodTrace("%s:%d [%s] glCreateShader returned 0 — GL context may not be current\n",
+			__FILE__, __LINE__, __func__);
+		if (gSexyAppBase != nullptr) gSexyAppBase->Shutdown();
+		else exit(1);
+		return 0;
+	}
+
 	glShaderSource(shader, 3, strings, lengths);
 	glCompileShader(shader);
 
@@ -224,13 +234,14 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
 	if (!ok)
 	{
-		GLint logLen;
+		GLint logLen = 0;
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
-		char *log = (char*)malloc(logLen);
-		glGetShaderInfoLog(shader, logLen, &logLen, log);
-		printf("Shader error: %s\n%s%s%s\n", log, strings[0], strings[1], strings[2]);
+		char *log = logLen > 0 ? (char*)malloc(logLen) : nullptr;
+		if (log) { glGetShaderInfoLog(shader, logLen, &logLen, log); }
+		TodTrace("%s:%d [%s] Shader compile error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
+		printf("Shader error: %s\n%s%s%s\n", log ? log : "(no log)", strings[0], strings[1], strings[2]);
 		fflush(stdout);
-		free(log);
+		if (log) free(log);
 		glDeleteShader(shader);
 		if (gSexyAppBase != nullptr)
 			gSexyAppBase->Shutdown();
@@ -255,6 +266,13 @@ static GLuint shaderLoad(const char *src)
 	}
 
 	GLuint prog = glCreateProgram();
+	if (prog == 0)
+	{
+		TodTrace("%s:%d [%s] glCreateProgram returned 0\n", __FILE__, __LINE__, __func__);
+		glDeleteShader(vert);
+		glDeleteShader(frag);
+		return 0;
+	}
 	glAttachShader(prog, vert);
 	glAttachShader(prog, frag);
 
@@ -263,9 +281,25 @@ static GLuint shaderLoad(const char *src)
 		glBindAttribLocation(prog, i, attribs[i]);
 
 	glLinkProgram(prog);
+
+	GLint linkOk = 0;
+	glGetProgramiv(prog, GL_LINK_STATUS, &linkOk);
+	if (!linkOk)
+	{
+		GLint logLen = 0;
+		glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLen);
+		char *log = logLen > 0 ? (char*)malloc(logLen) : nullptr;
+		if (log) { glGetProgramInfoLog(prog, logLen, &logLen, log); }
+		TodTrace("%s:%d [%s] Shader link error: %s\n", __FILE__, __LINE__, __func__, log ? log : "(no log)");
+		printf("Shader link error: %s\n", log ? log : "(no log)");
+		fflush(stdout);
+		if (log) free(log);
+		glDeleteProgram(prog);
+	}
+
 	glDeleteShader(vert);
 	glDeleteShader(frag);
-	return prog;
+	return linkOk ? prog : 0;
 }
 
 // Orthographic projection
@@ -1172,15 +1206,22 @@ void GLInterface::UpdateViewport()
 
 int GLInterface::Init(bool IsWindowed)
 {
+	// NOTE: 'inited' stays false on failure so a subsequent MakeWindow() can retry.
 	static bool inited = false;
 	if (!inited)
 	{
-		inited = true;
 		PlatformGLInit();
 
 		gProgram = shaderLoad(SHADER_CODE);
 		if (gProgram == 0)
+		{
+			TodTrace("%s:%d [%s] shaderLoad failed — aborting GL init\n", __FILE__, __LINE__, __func__);
 			return 0;
+		}
+
+		// Only mark as fully initialised HERE, after everything succeeded.
+		inited = true;
+
 		gUfViewProjMtx = glGetUniformLocation(gProgram, "u_viewProj");
 		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
 		gUfUseTexture  = glGetUniformLocation(gProgram, "u_useTexture");
