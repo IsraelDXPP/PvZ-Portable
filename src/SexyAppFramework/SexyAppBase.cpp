@@ -1586,15 +1586,15 @@ bool SexyAppBase::Redraw(Rect* theClipRect)
 {
 	SEXY_AUTO_PERF("SexyAppBase::Redraw");
 
-	// Do mIsDrawing check because we could enter here at a bad time if any windows messages
-	//  are processed during WidgetManager->Draw
-	if ((mIsDrawing) || (mShutdown))
-	if (gScreenSaverActive)
-		return;
+	if ((mIsDrawing) || (mShutdown) || (gScreenSaverActive))
+		return false;
 
-	mGLInterface->Redraw(theClipRect);
+	if (mGLInterface == nullptr)
+		return false;
 
+	bool aResult = mGLInterface->Redraw(theClipRect);
 	mFPSFlipCount++;
+	return aResult;
 }
 
 ///////////////////////////// FPS Stuff
