@@ -195,6 +195,7 @@ Board::Board(LawnApp* theApp)
 	mMenuButton->mDrawStoneButton = true;
 	mStoreButton = nullptr;
 	mIgnoreMouseUp = false;
+	mWantsFocus = true;
 
 #ifdef _REPLANTED_SPEED_CONTROL
 	mSlowdownButton = MakeNewButton(SLOWDOWN, this, "", nullptr, IMAGE_SLOWDOWN_BUTTON, IMAGE_SLOWDOWN_BUTTON_PRESSED, IMAGE_SLOWDOWN_BUTTON_PRESSED);
@@ -8180,12 +8181,12 @@ void Board::KeyChar(char theChar)
 {
 	if (mAllowSpeedMod)
 	{
-		if (theChar == 'q')
+		if (theChar == 'q' && !mLevelAwardSpawned && CanInteractWithBoardButtons())
 		{
 			ButtonDepress(SLOWDOWN);
 			return;
 		}
-		if (theChar == 'e')
+		if (theChar == 'e' && !mLevelAwardSpawned && CanInteractWithBoardButtons())
 		{
 			ButtonDepress(SPEEDUP);
 			return;
