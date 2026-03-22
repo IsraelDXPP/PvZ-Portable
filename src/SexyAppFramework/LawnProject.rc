@@ -57,7 +57,6 @@ END
 
 #ifdef APP_ICON_PATH
 IDI_APP_ICON ICON APP_ICON_PATH
-IDR_MAIN_PAK RCDATA "../../assets/main.pak"
 #endif
 
 #endif    // 中文(简体，中国) resources

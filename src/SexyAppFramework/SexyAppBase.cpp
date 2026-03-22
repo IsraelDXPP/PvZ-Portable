@@ -37,18 +37,6 @@
 
 #include <SDL.h>
 
-#ifdef WIN32
-#include <windows.h>
-#include "resource.h"
-#endif
-
-#if !defined(WIN32) && !defined(__SWITCH__) && !defined(__3DS__) && !defined(__ANDROID__) && !defined(__IPHONEOS__) && !defined(__EMSCRIPTEN__)
-extern "C" const uint8_t main_pak_data[];
-extern "C" const uint64_t main_pak_size;
-#endif
-
-extern void LoadEmbeddedProperties(class PakInterface* p);
-
 #ifdef __SWITCH__
 #include <switch.h>
 #include <locale>
@@ -3204,31 +3192,11 @@ void SexyAppBase::Init()
 	if (mShutdown)
 		return;
 
-
-#ifdef WIN32
-	// Try to load embedded main.pak from resource
-	HRSRC hRes = FindResourceA(NULL, MAKEINTRESOURCEA(104), (LPCSTR)10); // 10 is RT_RCDATA
-	if (hRes) {
-		HGLOBAL hData = LoadResource(NULL, hRes);
-		if (hData) {
-			void* pData = LockResource(hData);
-			DWORD dwSize = SizeofResource(NULL, hRes);
-			gPakInterface->AddPakMemory(pData, dwSize, false, "main.pak");
-		}
+	// Set resource directory (for main.pak, properties/, etc.)
+	if (!ChangeDirHook(mResourceDir.c_str()))
+	{
+		SetResourceFolder(mResourceDir);
 	}
-#endif
-
-#if !defined(WIN32) && !defined(__SWITCH__) && !defined(__3DS__) && !defined(__ANDROID__) && !defined(__IPHONEOS__) && !defined(__EMSCRIPTEN__)
-	if (main_pak_size > 0) {
-		gPakInterface->AddPakMemory((void*)main_pak_data, (size_t)main_pak_size, false, "main.pak");
-	}
-#endif
-
-#if defined(__SWITCH__) || defined(__3DS__)
-	SetResourceFolder("romfs:/");
-#endif
-
-	LoadEmbeddedProperties(gPakInterface);
 
 	gPakInterface->AddPakFile(GetResourcePath("main.pak"));
 

@@ -37,33 +37,6 @@ enum
 	FILEFLAGS_END = 0x80
 };
 
-class BinaryReader
-{
-	const uint8_t* mData;
-	size_t mSize;
-	size_t mPos;
-
-public:
-	BinaryReader(const uint8_t* theData, size_t theSize) : mData(theData), mSize(theSize), mPos(0) {}
-	
-	size_t Remaining() const { return mSize - mPos; }
-	size_t GetPos() const { return mPos; }
-	const uint8_t* GetDataPtr() const { return mData + mPos; }
-	void Skip(size_t n) { mPos += n; }
-
-	uint8_t ReadU8() { return mData[mPos++]; }
-	uint32_t ReadU32() {
-		uint32_t val = *(uint32_t*)(mData + mPos);
-		mPos += 4;
-		return Sexy::FromLE32(val);
-	}
-	uint64_t ReadU64() {
-		uint64_t val = *(uint64_t*)(mData + mPos);
-		mPos += 8;
-		return Sexy::FromLE64(val);
-	}
-};
-
 PakInterface* gPakInterface = new PakInterface();
 
 PakInterface::PakInterface()
@@ -109,87 +82,6 @@ std::string PakInterface::NormalizePakPath(std::string_view theFileName)
 	return aResult;
 }
 
-// Internal helper to parse pak data from a BinaryReader
-bool PakInterface::ParsePakData(PakCollection* aPakCollection, BinaryReader& aReader, const std::string& aPakKey)
-{
-	uint32_t aMagic = aReader.ReadU32();
-	if (aMagic != 0xBAC04AC0)
-		return false;
-
-	uint32_t aVersion = aReader.ReadU32();
-	if (aVersion > 0)
-		return false;
-
-	int aPos = 0;
-	for (;;)
-	{
-		if (aReader.Remaining() < 1) break;
-		uint8_t aFlags = aReader.ReadU8();
-		if (aFlags & FILEFLAGS_END)
-			break;
-
-		if (aReader.Remaining() < 1) break;
-		uint8_t aNameWidth = aReader.ReadU8();
-		if (aReader.Remaining() < aNameWidth) break;
-		
-		char aNameBuffer[256];
-		memcpy(aNameBuffer, aReader.GetDataPtr(), aNameWidth);
-		aNameBuffer[aNameWidth] = 0;
-		aReader.Skip(aNameWidth);
-
-		if (aReader.Remaining() < 4) break;
-		int aSrcSize = static_cast<int>(aReader.ReadU32());
-		if (aReader.Remaining() < 8) break;
-		int64_t aFileTime = static_cast<int64_t>(aReader.ReadU64());
-
-		for (int i = 0; i < aNameWidth; i++)
-		{
-			if (aNameBuffer[i] == '\\')
-				aNameBuffer[i] = '/';
-		}
-
-		std::string aKey = NormalizePakPath(aNameBuffer);
-		auto aRecItr = mPakRecordMap.emplace(aKey, PakRecord()).first;
-		PakRecord* aRec = &aRecItr->second;
-		aRec->mCollection = aPakCollection;
-		aRec->mFileName = aKey;
-		aRec->mStartPos = aPos;
-		aRec->mSize = aSrcSize;
-		aRec->mFileTime = aFileTime;
-
-		aPos += aSrcSize;
-	}
-
-	int anOffset = aReader.GetPos();
-	for (auto& [key, record] : mPakRecordMap)
-	{
-		if (record.mCollection == aPakCollection)
-			record.mStartPos += anOffset;
-	}
-	return true;
-}
-
-bool PakInterface::AddFileMemory(const std::string& theFileName, void* theData, size_t theSize)
-{
-	if (theData == nullptr || theSize == 0)
-		return false;
-
-	mPakCollectionList.emplace_back(theSize);
-	PakCollection* aPakCollection = &mPakCollectionList.back();
-	memcpy(aPakCollection->mDataPtr, theData, theSize);
-
-	std::string aKey = NormalizePakPath(theFileName);
-	auto aRecordItr = mPakRecordMap.emplace(aKey, PakRecord()).first;
-	PakRecord* aPakRecord = &aRecordItr->second;
-	aPakRecord->mCollection = aPakCollection;
-	aPakRecord->mFileName = aKey;
-	aPakRecord->mStartPos = 0;
-	aPakRecord->mSize = static_cast<int>(theSize);
-	aPakRecord->mFileTime = 0;
-
-	return true;
-}
-
 bool PakInterface::AddPakFile(const std::string& theFileName)
 {
 	FILE *aFileHandle = fcaseopen(theFileName.c_str(), "rb");
@@ -220,41 +112,79 @@ bool PakInterface::AddPakFile(const std::string& theFileName)
 	aPakRecord->mCollection = aPakCollection;
 	aPakRecord->mFileName = aPakKey;
 	aPakRecord->mStartPos = 0;
-	aPakRecord->mSize = static_cast<int>(aFileSize);
+	aPakRecord->mSize = aFileSize;
 
-	BinaryReader aReader(static_cast<uint8_t*>(aPakCollection->mDataPtr), aFileSize);
-	return ParsePakData(aPakCollection, aReader, aPakKey);
-}
-
-bool PakInterface::AddPakMemory(void* theData, size_t theSize, bool theOwnsMemory, const std::string& theName)
-{
-	if (theData == nullptr || theSize == 0)
+	PFILE* aFP = FOpen(theFileName.c_str(), "rb");
+	if (aFP == nullptr)
 		return false;
 
-	// Note: We always copy or ensure we have writable memory because we XOR in place
-	void* aDataPtr = malloc(theSize);
-	memcpy(aDataPtr, theData, theSize);
+	uint32_t aMagic = 0;
+	FRead(&aMagic, sizeof(uint32_t), 1, aFP);
+	aMagic = Sexy::FromLE32(aMagic);
+	if (aMagic != 0xBAC04AC0)
+	{
+		FClose(aFP);
+		return false;
+	}
 
-	mPakCollectionList.emplace_back(theSize);
-	PakCollection* aPakCollection = &mPakCollectionList.back();
-	free(aPakCollection->mDataPtr); // Replace default malloc
-	aPakCollection->mDataPtr = aDataPtr;
+	uint32_t aVersion = 0;
+	FRead(&aVersion, sizeof(uint32_t), 1, aFP);
+	aVersion = Sexy::FromLE32(aVersion);
+	if (aVersion > 0)
+	{
+		FClose(aFP);
+		return false;
+	}
 
-	auto* aPtr = static_cast<uint8_t*>(aPakCollection->mDataPtr);
-	for (size_t i = 0; i < theSize; i++)
-		*aPtr++ ^= 0xF7;
+	int aPos = 0;
+	for (;;)
+	{
+		uchar aFlags = 0;
+		int aCount = FRead(&aFlags, 1, 1, aFP);
+		if ((aFlags & FILEFLAGS_END) || (aCount == 0))
+			break;
 
-	std::string aPakKey = NormalizePakPath(theName);
-	auto aRecordItr = mPakRecordMap.emplace(aPakKey, PakRecord()).first;
-	PakRecord* aPakRecord = &aRecordItr->second;
-	aPakRecord->mCollection = aPakCollection;
-	aPakRecord->mFileName = aPakKey;
-	aPakRecord->mStartPos = 0;
-	aPakRecord->mSize = static_cast<int>(theSize);
+		uchar aNameWidth = 0;
+		char aName[256];
+		FRead(&aNameWidth, 1, 1, aFP);
+		FRead(aName, 1, aNameWidth, aFP);
+		aName[aNameWidth] = 0;
+		
+		int aSrcSize = 0;
+		FRead(&aSrcSize, sizeof(int), 1, aFP);
+		aSrcSize = static_cast<int>(Sexy::FromLE32(static_cast<uint32_t>(aSrcSize)));
+		int64_t aFileTime;
+		FRead(&aFileTime, sizeof(int64_t), 1, aFP);
+		aFileTime = static_cast<int64_t>(Sexy::FromLE64(static_cast<uint64_t>(aFileTime)));
 
-	// Parse from memory
-	BinaryReader aReader(static_cast<uint8_t*>(aPakCollection->mDataPtr), theSize);
-	return ParsePakData(aPakCollection, aReader, aPakKey);
+		for (int i = 0; i < aNameWidth; i++)
+		{
+			if (aName[i] == '\\')
+				aName[i] = '/';
+		}
+
+		std::string aKey = NormalizePakPath(aName);
+		auto aRecordItr = mPakRecordMap.emplace(aKey, PakRecord()).first;
+		PakRecord* aPakRecord = &aRecordItr->second;
+		aPakRecord->mCollection = aPakCollection;
+		aPakRecord->mFileName = aKey;
+		aPakRecord->mStartPos = aPos;
+		aPakRecord->mSize = aSrcSize;
+		aPakRecord->mFileTime = aFileTime;
+
+		aPos += aSrcSize;
+	}
+
+	int anOffset = FTell(aFP);
+
+	for (auto& [key, record] : mPakRecordMap)
+	{
+		if (record.mCollection == aPakCollection)
+			record.mStartPos += anOffset;
+	}
+
+	FClose(aFP);
+	return true;
 }
 
 //0x5D85C0

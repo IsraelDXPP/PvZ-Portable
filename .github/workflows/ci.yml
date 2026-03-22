@@ -72,7 +72,6 @@ jobs:
           libvorbis \
           mpg123 \
           ninja \
-          python \
           sdl2-compat \
           sudo
 
@@ -468,7 +467,7 @@ jobs:
     - name: Install Build Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build python3
+        sudo apt-get install -y ninja-build
 
     - name: Build libopenmpt for Emscripten
       run: |
