@@ -109,6 +109,25 @@ void TodAssertFailed(const char* theCondition, const char* theFile, int theLine,
 	exit(0);
 }
 
+#ifdef _PVZ_DEBUG
+void TodLogImpl(const char* file, int line, const char* func, const char* theFormat, ...)
+{
+	char aButter[1024];
+	va_list argList;
+	va_start(argList, theFormat);
+	int aCount = TodVsnprintf(aButter, sizeof(aButter), theFormat, argList);
+	va_end(argList);
+
+	char aFinal[2048];
+	int fCount = snprintf(aFinal, sizeof(aFinal), "[%s:%d %s] %s", file, line, func, aButter);
+	if (fCount > 0 && aFinal[fCount - 1] != '\n')
+	{
+		if (fCount + 1 < 2048) { aFinal[fCount] = '\n'; aFinal[fCount + 1] = '\0'; }
+		else { aFinal[fCount - 1] = '\n'; }
+	}
+	TodLogString(aFinal);
+}
+#else
 void TodLog(const char* theFormat, ...)
 {
 	char aButter[1024];
@@ -132,6 +151,7 @@ void TodLog(const char* theFormat, ...)
 
 	TodLogString(aButter);
 }
+#endif
 
 void TodLogString(const char* theMsg)
 {
@@ -151,6 +171,25 @@ void TodLogString(const char* theMsg)
 #endif
 }
 
+#ifdef _PVZ_DEBUG
+void TodTraceImpl(const char* file, int line, const char* func, const char* theFormat, ...)
+{
+	char aButter[1024];
+	va_list argList;
+	va_start(argList, theFormat);
+	int aCount = TodVsnprintf(aButter, sizeof(aButter), theFormat, argList);
+	va_end(argList);
+
+	char aFinal[2048];
+	int fCount = snprintf(aFinal, sizeof(aFinal), "[%s:%d %s] %s", file, line, func, aButter);
+	if (fCount > 0 && aFinal[fCount - 1] != '\n')
+	{
+		if (fCount + 1 < 2048) { aFinal[fCount] = '\n'; aFinal[fCount + 1] = '\0'; }
+		else { aFinal[fCount - 1] = '\n'; }
+	}
+	printf("%s", aFinal);
+}
+#else
 void TodTrace(const char* theFormat, ...)
 {
 	char aButter[1024];
@@ -174,11 +213,32 @@ void TodTrace(const char* theFormat, ...)
 
 	printf("%s", aButter);
 }
+#endif
 
 void TodHesitationTrace(...)
 {
 }
 
+#ifdef _PVZ_DEBUG
+void TodTraceAndLogImpl(const char* file, int line, const char* func, const char* theFormat, ...)
+{
+	char aButter[1024];
+	va_list argList;
+	va_start(argList, theFormat);
+	int aCount = TodVsnprintf(aButter, sizeof(aButter), theFormat, argList);
+	va_end(argList);
+
+	char aFinal[2048];
+	int fCount = snprintf(aFinal, sizeof(aFinal), "[%s:%d %s] %s", file, line, func, aButter);
+	if (fCount > 0 && aFinal[fCount - 1] != '\n')
+	{
+		if (fCount + 1 < 2048) { aFinal[fCount] = '\n'; aFinal[fCount + 1] = '\0'; }
+		else { aFinal[fCount - 1] = '\n'; }
+	}
+	printf("%s", aFinal);
+	TodLogString(aFinal);
+}
+#else
 void TodTraceAndLog(const char* theFormat, ...)
 {
 	char aButter[1024];
@@ -203,7 +263,33 @@ void TodTraceAndLog(const char* theFormat, ...)
 	printf("%s", aButter);
 	TodLogString(aButter);
 }
+#endif
 
+#ifdef _PVZ_DEBUG
+void TodTraceWithoutSpammingImpl(const char* file, int line, const char* func, const char* theFormat, ...)
+{
+	static uint64_t gLastTraceTime = 0LL;
+	uint64_t aTime = time(nullptr);
+	if (aTime < gLastTraceTime)
+		return;
+
+	gLastTraceTime = aTime;
+	char aButter[1024];
+	va_list argList;
+	va_start(argList, theFormat);
+	int aCount = TodVsnprintf(aButter, sizeof(aButter), theFormat, argList);
+	va_end(argList);
+
+	char aFinal[2048];
+	int fCount = snprintf(aFinal, sizeof(aFinal), "[%s:%d %s] %s", file, line, func, aButter);
+	if (fCount > 0 && aFinal[fCount - 1] != '\n')
+	{
+		if (fCount + 1 < 2048) { aFinal[fCount] = '\n'; aFinal[fCount + 1] = '\0'; }
+		else { aFinal[fCount - 1] = '\n'; }
+	}
+	printf("%s", aFinal);
+}
+#else
 void TodTraceWithoutSpamming(const char* theFormat, ...)
 {
 	static uint64_t gLastTraceTime = 0LL;
@@ -235,6 +321,7 @@ void TodTraceWithoutSpamming(const char* theFormat, ...)
 
 	printf("%s", aButter);
 }
+#endif
 
 void TodAssertInitForApp()
 {

@@ -34,6 +34,25 @@
 
 using namespace Sexy;
 
+#include <stdio.h>
+
+extern "C" void __libnx_exception_handler(ThreadExceptionDump *ctx)
+{
+	FILE* f = fopen("sdmc:/pvz_error_log.txt", "w");
+	if (f)
+	{
+		fprintf(f, "CRASH DETECTED!\n");
+		if (ctx) {
+			fprintf(f, "Error Desc: %x\n", ctx->error_desc);
+			fprintf(f, "pc:  %016llx\n", (unsigned long long)ctx->pc);
+			fprintf(f, "lr:  %016llx\n", (unsigned long long)ctx->lr);
+			fprintf(f, "sp:  %016llx\n", (unsigned long long)ctx->sp);
+			fprintf(f, "fp:  %016llx\n", (unsigned long long)ctx->fp);
+		}
+		fclose(f);
+	}
+}
+
 volatile int wait_for_gdb = 0;
 
 void SexyAppBase::MakeWindow()

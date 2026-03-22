@@ -35,12 +35,25 @@ public:
 	inline void		EndBracket() { ; }
 };
 
+#ifdef _PVZ_DEBUG
+void				TodLogImpl(const char* file, int line, const char* func, const char* theFormat, ...);
+void				TodTraceImpl(const char* file, int line, const char* func, const char* theFormat, ...);
+void				TodTraceAndLogImpl(const char* file, int line, const char* func, const char* theFormat, ...);
+void				TodTraceWithoutSpammingImpl(const char* file, int line, const char* func, const char* theFormat, ...);
+
+#define TodLog(fmt, ...) TodLogImpl(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define TodTrace(fmt, ...) TodTraceImpl(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define TodTraceAndLog(fmt, ...) TodTraceAndLogImpl(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define TodTraceWithoutSpamming(fmt, ...) TodTraceWithoutSpammingImpl(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#else
 void				TodLog(const char* theFormat, ...);
-void				TodLogString(const char* theMsg);
 void				TodTrace(const char* theFormat, ...);
-void				TodTraceMemory();
 void				TodTraceAndLog(const char* theFormat, ...);
 void				TodTraceWithoutSpamming(const char* theFormat, ...);
+#endif
+
+void				TodLogString(const char* theMsg);
+void				TodTraceMemory();
 void				TodHesitationTrace(...);
 void				TodAssertFailed(const char* theCondition, const char* theFile, int theLine, const char* theMsg = "", ...);
 /*inline*/ void		TodErrorMessageBox(const char* theMessage, const char* theTitle);
