@@ -26,13 +26,11 @@
 #define __GLPLATFORM_H__
 
 #ifdef NINTENDO_SWITCH
-
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-
 #else
 
 #ifdef _MSC_VER
@@ -67,6 +65,8 @@ inline void PlatformGLInit()
 {
 #ifndef NINTENDO_SWITCH
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+#else
+	// Switch links GLES2 directly, so function pointers are unnecessary.
 #endif
 }
 

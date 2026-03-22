@@ -410,10 +410,12 @@ int Dialog::WaitForResult(bool autoKill)
 		if (!gSexyAppBase->UpdateAppStep(&updated))
 			break;
 
-		// Prevent web FPS drop and input lag: complete all pending stages and process all events in one rAF.
-		while (gSexyAppBase->mUpdateAppState != UPDATESTATE_PROCESS_DONE || gSexyAppBase->mHasPendingDraw)
+		while (updated || gSexyAppBase->mUpdateAppState == UPDATESTATE_PROCESS_2 || gSexyAppBase->mHasPendingDraw)
 		{
 			if (!gSexyAppBase->UpdateAppStep(&updated))
+				break;
+
+			if (!updated && gSexyAppBase->mUpdateAppState == UPDATESTATE_PROCESS_DONE && !gSexyAppBase->mHasPendingDraw)
 				break;
 		}
 

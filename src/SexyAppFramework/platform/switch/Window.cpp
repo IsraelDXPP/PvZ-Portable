@@ -22,9 +22,8 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <EGL/egl.h>    // EGL library
-#include <EGL/eglext.h> // EGL extensions
-
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <switch.h>
 
 #include "SexyAppBase.h"
@@ -34,111 +33,125 @@
 
 using namespace Sexy;
 
+// -------------------------------
+// Variable global para depuración con GDB
+volatile int wait_for_gdb = 0;
+// -------------------------------
+
 void SexyAppBase::MakeWindow()
 {
-	// Connect to the EGL default display
-	mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	if (!mWindow)
-		return;
+    // Espera hasta que GDB cambie wait_for_gdb a 0
+    while(wait_for_gdb);
 
-	// Initialize the EGL display connection
-	if (eglInitialize(mWindow, nullptr, nullptr) == EGL_FALSE)
-	{
-		eglTerminate(mWindow);
-		return;
-	}
+    // Connect to the EGL default display
+    mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (!mWindow)
+    {
+        printf("MakeWindow: eglGetDisplay failed with error 0x%04X\n", eglGetError());
+        return;
+    }
 
-	// Select OpenGL ES as the desired graphics API
-	if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
-	{
-		eglTerminate(mWindow);
-		return;
-	}
+    if (eglInitialize(mWindow, nullptr, nullptr) == EGL_FALSE)
+    {
+        printf("MakeWindow: eglInitialize failed with error 0x%04X\n", eglGetError());
+        return;
+    }
 
-	// Get an appropriate EGL framebuffer configuration
-	EGLConfig config;
-	EGLint numConfigs;
-	static const EGLint framebufferAttributeList[] =
-	{
-		EGL_RED_SIZE,     8,
-		EGL_GREEN_SIZE,   8,
-		EGL_BLUE_SIZE,    8,
-		EGL_ALPHA_SIZE,   8,
-		EGL_DEPTH_SIZE,   24,
-		EGL_STENCIL_SIZE, 8,
-		EGL_NONE
-	};
-	if (eglChooseConfig(mWindow, framebufferAttributeList, &config, 1, &numConfigs) == EGL_FALSE)
-	{
-		eglTerminate(mWindow);
-		return;
-	}
-	if (numConfigs == 0)
-	{
-		eglTerminate(mWindow);
-		return;
-	}
+    if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
+    {
+        printf("MakeWindow: eglBindAPI failed with error 0x%04X\n", eglGetError());
+        eglTerminate(mWindow);
+        return;
+    }
 
-	// Create an EGL window surface
-	mSurface = eglCreateWindowSurface(mWindow, config, nwindowGetDefault(), nullptr);
-	if (!mSurface)
-	{
-		eglTerminate(mWindow);
-		return;
-	}
+    EGLConfig config;
+    EGLint numConfigs;
+    static const EGLint framebufferAttributeList[] =
+    {
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_SURFACE_TYPE,    EGL_WINDOW_BIT,
+        EGL_RED_SIZE,        8,
+        EGL_GREEN_SIZE,      8,
+        EGL_BLUE_SIZE,       8,
+        EGL_ALPHA_SIZE,      8,
+        EGL_DEPTH_SIZE,      24,
+        EGL_STENCIL_SIZE,    8,
+        EGL_NONE
+    };
 
-	// Create an EGL rendering context (OpenGL ES 2.0)
-	static const EGLint contextAttributeList[] =
-	{
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
-	mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
-	if (!mContext)
-	{
-		eglDestroySurface(mWindow, mSurface);
-		eglTerminate(mWindow);
-		return;
-	}
+    if (eglChooseConfig(mWindow, framebufferAttributeList, &config, 1, &numConfigs) == EGL_FALSE || numConfigs == 0)
+    {
+        printf("MakeWindow: eglChooseConfig failed with error 0x%04X, numConfigs=%d\n", eglGetError(), numConfigs);
+        eglTerminate(mWindow);
+        return;
+    }
 
-	// Connect the context to the surface
-	if (eglMakeCurrent(mWindow, mSurface, mSurface, mContext) == EGL_FALSE)
-	{
-		eglDestroyContext(mWindow, mContext);
-		mContext = nullptr;
-		eglDestroySurface(mWindow, mSurface);
-		mSurface = nullptr;
-		eglTerminate(mWindow);
-		mWindow = nullptr;
-		return;
-	}
+    NWindow* nativeWin = nwindowGetDefault();
+    nwindowSetDimensions(nativeWin, 1920, 1080); // Optional: ensure the NWindow is sized
+    
+    mSurface = eglCreateWindowSurface(mWindow, config, nativeWin, nullptr);
+    if (!mSurface)
+    {
+        printf("MakeWindow: eglCreateWindowSurface failed with error 0x%04X\n", eglGetError());
+        eglTerminate(mWindow);
+        return;
+    }
 
-	eglSwapInterval(mWindow, 1);
+    static const EGLint contextAttributeList[] =
+    {
+        EGL_CONTEXT_CLIENT_VERSION, 2,
+        EGL_NONE
+    };
 
-	if (mGLInterface == nullptr)
-	{
-		mGLInterface = new GLInterface(this);
-		if (!InitGLInterface())
-		{
-			delete mGLInterface;
-			mGLInterface = nullptr;
-			return;
-		}
+    mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
+    if (!mContext)
+    {
+        printf("MakeWindow: eglCreateContext failed with error 0x%04X\n", eglGetError());
+        eglDestroySurface(mWindow, mSurface);
+        eglTerminate(mWindow);
+        return;
+    }
 
-		mGLInterface->UpdateViewport();
-		mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
-	}
+    if (eglMakeCurrent(mWindow, mSurface, mSurface, mContext) == EGL_FALSE)
+    {
+        printf("MakeWindow: eglMakeCurrent failed with error 0x%04X\n", eglGetError());
+        eglDestroyContext(mWindow, mContext);
+        eglDestroySurface(mWindow, mSurface);
+        eglTerminate(mWindow);
+        return;
+    }
 
-	bool isActive = mActive;
-	mActive = true;
+    // Verify context loaded
+    if (!glCreateShader) 
+    {
+        printf("MakeWindow: glCreateShader is NULL! GLES2 driver not linked properly.\n");
+    }
 
-	mPhysMinimized = false;
+    eglSwapInterval(mWindow, 1);
 
-	if (isActive != mActive)
-		RehupFocus();
+    if (mGLInterface == nullptr)
+    {
+        mGLInterface = new GLInterface(this);
+        if (!InitGLInterface())
+        {
+            delete mGLInterface;
+            mGLInterface = nullptr;
+            return;
+        }
 
-	ReInitImages();
+        mGLInterface->UpdateViewport();
+        mWidgetManager->Resize(mScreenBounds, mGLInterface->mInputSourceRect);
+    }
 
-	mWidgetManager->mImage = mGLInterface->GetScreenImage();
-	mWidgetManager->MarkAllDirty();
+    bool isActive = mActive;
+    mActive = true;
+    mPhysMinimized = false;
+
+    if (isActive != mActive)
+        RehupFocus();
+
+    ReInitImages();
+
+    mWidgetManager->mImage = mGLInterface->GetScreenImage();
+    mWidgetManager->MarkAllDirty();
 }

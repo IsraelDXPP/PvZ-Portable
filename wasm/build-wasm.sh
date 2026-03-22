@@ -76,6 +76,7 @@ cd "${BUILD_DIR}"
 
 emcmake cmake "${PROJECT_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
+    -DLIMBO_PAGE=OFF \
     -DCMAKE_FIND_ROOT_PATH="${OPENMPT_PREFIX}" \
     -G Ninja
 

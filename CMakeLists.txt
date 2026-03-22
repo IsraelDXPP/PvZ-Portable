@@ -55,7 +55,17 @@ list(REMOVE_ITEM SOURCES
 set(LOW_MEMORY OFF CACHE BOOL "Enable low memory mode")
 set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
-	set(VORBIS_LIB vorbisfile vorbis)
+	find_library(OGG_LIBRARY NAMES ogg libogg REQUIRED)
+	find_library(VORBIS_LIBRARY NAMES vorbis libvorbis REQUIRED)
+	find_library(VORBISFILE_LIBRARY NAMES vorbisfile libvorbisfile REQUIRED)
+	find_library(OPENMPT_LIBRARY NAMES openmpt libopenmpt REQUIRED)
+	find_library(MPG123_LIBRARY NAMES mpg123 libmpg123 REQUIRED)
+
+	set(VORBIS_LIB ${VORBISFILE_LIBRARY} ${VORBIS_LIBRARY})
+	set(OGG_LIB ${OGG_LIBRARY})
+	set(OPENMPT_LIB ${OPENMPT_LIBRARY})
+	set(MPG123_LIB ${MPG123_LIBRARY})
+
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/Window.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/Input.cpp
@@ -238,6 +248,11 @@ if(EMSCRIPTEN)
 		"SHELL:-lidbfs.js"
 		"SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/wasm/shell.html"
 	)
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		target_link_options(pvz-portable PRIVATE "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@/")
+	endif()
+
 	set_target_properties(pvz-portable PROPERTIES SUFFIX ".html")
 else()
 	target_link_libraries(pvz-portable PRIVATE
@@ -265,8 +280,8 @@ if (WIN32)
 	set_source_files_properties(
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/LawnProject.rc
 		PROPERTIES
-			COMPILE_DEFINITIONS "APP_ICON_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/icon.ico\""
-			OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/icon.ico"
+			COMPILE_DEFINITIONS "APP_ICON_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/icon.ico\";EMBED_MAIN_PAK=1"
+			OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/icon.ico;${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak"
 	)
 
 	target_link_libraries(pvz-portable PRIVATE ws2_32 user32 gdi32 winmm imm32 shlwapi)
@@ -281,6 +296,8 @@ if (WIN32)
 	endif()
 elseif (NINTENDO_SWITCH)
 	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
+	target_compile_options(pvz-portable PRIVATE -g -O0) # Keep debug info and optimize
+	target_link_options(pvz-portable PRIVATE -g)
 
 	nx_generate_nacp(pvz-portable.nacp
 		NAME "PvZ Portable"
@@ -291,6 +308,7 @@ elseif (NINTENDO_SWITCH)
 	nx_create_nro(pvz-portable
 		NACP pvz-portable.nacp
 		ICON ${CMAKE_CURRENT_SOURCE_DIR}/icon-switch.jpg
+		ROMFS ${CMAKE_CURRENT_SOURCE_DIR}/assets
 	)
 elseif (NINTENDO_3DS)
 	target_link_libraries(pvz-portable PRIVATE citro3d shaders)
@@ -305,10 +323,19 @@ elseif (NINTENDO_3DS)
 
 	ctr_create_3dsx(pvz-portable
 		SMDH pvz-portable.smdh
+		ROMFS ${CMAKE_CURRENT_SOURCE_DIR}/assets
 	)
 elseif (ANDROID)
 	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL android log)
 	set_target_properties(pvz-portable PROPERTIES OUTPUT_NAME "main")
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		add_custom_command(TARGET pvz-portable POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets"
+			COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets"
+			COMMENT "Syncing assets to Android project"
+		)
+	endif()
 elseif (IOS)
 	target_link_libraries(pvz-portable PRIVATE
 		"-framework Foundation"
@@ -350,4 +377,87 @@ elseif (IOS)
 		set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios/Assets.xcassets"
 			PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 	endif()
+
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+		file(GLOB_RECURSE IOS_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+		target_sources(pvz-portable PRIVATE ${IOS_ASSETS})
+		set_source_files_properties(${IOS_ASSETS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+	endif()
+endif()
+
+# Asset Embedding (Linux/macOS)
+if(UNIX AND NOT ANDROID AND NOT IOS AND NOT APPLE) # APPLE bundle case handled above
+    target_sources(pvz-portable PRIVATE src/SexyAppFramework/paklib/PakEmbed.S)
+    set_source_files_properties(src/SexyAppFramework/paklib/PakEmbed.S PROPERTIES 
+        INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+endif()
+# For macOS non-bundle (binary only)
+if(APPLE)
+     target_sources(pvz-portable PRIVATE src/SexyAppFramework/paklib/PakEmbed.S)
+     set_source_files_properties(src/SexyAppFramework/paklib/PakEmbed.S PROPERTIES 
+        INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+endif()
+
+# Asset Automation (Python discovery)
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(NOT Python3_Interpreter_FOUND)
+	find_program(Python3_EXECUTABLE NAMES python3 python python.exe)
+	if(Python3_EXECUTABLE)
+		set(Python3_Interpreter_FOUND TRUE)
+	endif()
+endif()
+
+# Properties Embedding (Cross-platform)
+set(PROPERTIES_EMBED_CPP "${CMAKE_CURRENT_BINARY_DIR}/properties_embed.cpp")
+if(Python3_Interpreter_FOUND)
+	add_custom_command(
+		OUTPUT "${PROPERTIES_EMBED_CPP}"
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py" 
+				"${CMAKE_CURRENT_SOURCE_DIR}/assets/properties" "${PROPERTIES_EMBED_CPP}"
+		DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py"
+		COMMENT "Embedding properties folder..."
+	)
+else()
+	# Fallback: create an empty loader if Python is missing
+	file(WRITE "${PROPERTIES_EMBED_CPP}" "#include \"PakInterface.h\"\nvoid LoadEmbeddedProperties(PakInterface* p) {}\n")
+endif()
+target_sources(pvz-portable PRIVATE "${PROPERTIES_EMBED_CPP}")
+target_include_directories(pvz-portable PRIVATE src/SexyAppFramework/paklib)
+
+# Asset Automation (Download)
+# If 'main.pak' is missing from 'assets', download it from Google Drive.
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")
+	if(Python3_Interpreter_FOUND)
+		message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive using ${Python3_EXECUTABLE}...")
+		execute_process(
+			COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/download_main_pak.py" "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak"
+			RESULT_VARIABLE DOWNLOAD_RESULT
+			OUTPUT_VARIABLE DOWNLOAD_OUTPUT
+			ERROR_VARIABLE DOWNLOAD_ERROR
+		)
+		if(DOWNLOAD_OUTPUT)
+			message(STATUS "Download output: ${DOWNLOAD_OUTPUT}")
+		endif()
+		if(DOWNLOAD_ERROR)
+			message(STATUS "Download error: ${DOWNLOAD_ERROR}")
+		endif()
+		if(NOT DOWNLOAD_RESULT EQUAL 0)
+			message(WARNING "Asset automation: Failed to download main.pak automatically. Exit code: ${DOWNLOAD_RESULT}")
+		endif()
+	else()
+		message(WARNING "Asset automation: Python3 not found. Cannot download main.pak automatically.")
+	endif()
+endif()
+
+# Asset Automation (Desktop/Consoles)
+# If an 'assets' folder exists in the project root, copy its contents to the build directory.
+# Android, iOS, and WASM have their own specific bundling logic above.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets" AND NOT ANDROID AND NOT IOS AND NOT EMSCRIPTEN)
+	message(STATUS "Asset automation: 'assets' folder found. Implementing post-build deployment.")
+	add_custom_command(TARGET pvz-portable POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_SOURCE_DIR}/assets"
+			"$<TARGET_FILE_DIR:pvz-portable>"
+		COMMENT "Copying assets from source root to build directory"
+	)
 endif()

@@ -37,6 +37,18 @@
 
 #include <SDL.h>
 
+#ifdef WIN32
+#include <windows.h>
+#include "resource.h"
+#endif
+
+#if !defined(WIN32) && !defined(__SWITCH__) && !defined(__3DS__) && !defined(__ANDROID__) && !defined(__IPHONEOS__) && !defined(__EMSCRIPTEN__)
+extern "C" const uint8_t main_pak_data[];
+extern "C" const uint64_t main_pak_size;
+#endif
+
+extern void LoadEmbeddedProperties(class PakInterface* p);
+
 #ifdef __SWITCH__
 #include <switch.h>
 #include <locale>
@@ -287,6 +299,7 @@ SexyAppBase::SexyAppBase()
 	mRecommendedVidMemory3D = 14;
 	mRelaxUpdateBacklogCount = 0;
 	mWidescreenAware = false;
+	mStretchToFit = true;
 	mEnableWindowAspect = false;
 	mWindowAspect.Set(4, 3);
 	mIsWideWindow = false;
@@ -963,6 +976,7 @@ void SexyAppBase::WriteToRegistry()
 	RegistryWriteInteger("PreferredX", mPreferredX);
 	RegistryWriteInteger("PreferredY", mPreferredY);
 	RegistryWriteInteger("CustomCursors", mCustomCursorsEnabled ? 1 : 0);		
+	RegistryWriteBoolean("StretchToFit", mStretchToFit);
 	RegistryWriteInteger("InProgress", 0);
 	RegistryWriteBoolean("WaitForVSync", mWaitForVSync);	
 }
@@ -1210,7 +1224,10 @@ void SexyAppBase::ReadFromRegistry()
 	if (RegistryReadInteger("CustomCursors", &anInt))
 		EnableCustomCursors(anInt != 0);	
 			
-	RegistryReadBoolean("WaitForVSync", &mWaitForVSync);	
+	RegistryReadBoolean("WaitForVSync", &mWaitForVSync);
+#if !defined(__IPHONEOS__) && !(defined(__ANDROID__) && !defined(__TERMUX__)) && !defined(__SWITCH__) && !defined(__3DS__)
+	RegistryReadBoolean("StretchToFit", &mStretchToFit);
+#endif
 
 	if (RegistryReadInteger("InProgress", &anInt))
 		mLastShutdownWasGraceful = anInt == 0;
@@ -1515,7 +1532,8 @@ void SexyAppBase::UpdateFrames()
 			++mFPSDirtyCount;
 	}
 
-	mMusicInterface->Update();	
+	if (mMusicInterface != nullptr)
+		mMusicInterface->Update();	
 	CleanSharedImages();
 }
 
@@ -2614,7 +2632,7 @@ void SexyAppBase::EmscriptenMainLoopCallback()
 	if (app->mWindow != nullptr && app->mGLInterface != nullptr)
 	{
 		app->mGLInterface->UpdateViewport();
-		app->mWidgetManager->Resize(app->mScreenBounds, app->mGLInterface->mPresentationRect);
+		app->mWidgetManager->Resize(app->mScreenBounds, app->mGLInterface->mInputSourceRect);
 	}
 	if (app->mShutdown)
 	{
@@ -2640,10 +2658,13 @@ void SexyAppBase::EmscriptenMainLoopCallback()
 	if (!app->UpdateAppStep(&updated))
 		return;
 
-	// Prevent web FPS drop and input lag: complete all pending stages and process all events in one rAF.
-	while (app->mUpdateAppState != UPDATESTATE_PROCESS_DONE || app->mHasPendingDraw)
+	// Prevent web FPS drop: complete all pending stages in one rAF instead of spreading across frames.
+	while (updated || app->mUpdateAppState == UPDATESTATE_PROCESS_2 || app->mHasPendingDraw)
 	{
 		if (!app->UpdateAppStep(&updated))
+			break;
+
+		if (!updated && app->mUpdateAppState == UPDATESTATE_PROCESS_DONE && !app->mHasPendingDraw)
 			break;
 	}
 }
@@ -2748,7 +2769,7 @@ int SexyAppBase::InitGLInterface()
 		mScreenBounds.mY = ( mHeight - mGLInterface->mHeight ) / 2;
 		mScreenBounds.mWidth = mGLInterface->mWidth;
 		mScreenBounds.mHeight = mGLInterface->mHeight;
-		mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
+		mWidgetManager->Resize(mScreenBounds, mGLInterface->mInputSourceRect);
 		PostGLInterfaceInitHook();
 	}
 	return aResult;
@@ -3183,11 +3204,31 @@ void SexyAppBase::Init()
 	if (mShutdown)
 		return;
 
-	// Set resource directory (for main.pak, properties/, etc.)
-	if (!ChangeDirHook(mResourceDir.c_str()))
-	{
-		SetResourceFolder(mResourceDir);
+
+#ifdef WIN32
+	// Try to load embedded main.pak from resource
+	HRSRC hRes = FindResourceA(NULL, MAKEINTRESOURCEA(104), (LPCSTR)10); // 10 is RT_RCDATA
+	if (hRes) {
+		HGLOBAL hData = LoadResource(NULL, hRes);
+		if (hData) {
+			void* pData = LockResource(hData);
+			DWORD dwSize = SizeofResource(NULL, hRes);
+			gPakInterface->AddPakMemory(pData, dwSize, false, "main.pak");
+		}
 	}
+#endif
+
+#if !defined(WIN32) && !defined(__SWITCH__) && !defined(__3DS__) && !defined(__ANDROID__) && !defined(__IPHONEOS__) && !defined(__EMSCRIPTEN__)
+	if (main_pak_size > 0) {
+		gPakInterface->AddPakMemory((void*)main_pak_data, (size_t)main_pak_size, false, "main.pak");
+	}
+#endif
+
+#if defined(__SWITCH__) || defined(__3DS__)
+	SetResourceFolder("romfs:/");
+#endif
+
+	LoadEmbeddedProperties(gPakInterface);
 
 	gPakInterface->AddPakFile(GetResourcePath("main.pak"));
 

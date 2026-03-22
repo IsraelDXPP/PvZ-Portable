@@ -73,24 +73,6 @@ bool gFastMo = false;  //0x6A9EAB
 LawnApp* gLawnApp = nullptr;  //0x6A9EC0
 int gSlowMoCounter = 0;  //0x6A9EC4
 
-static bool HasUnshownAchievements(PlayerInfo* thePlayerInfo)
-{
-	if (thePlayerInfo == nullptr)
-	{
-		return false;
-	}
-
-	for (int i = 0; i < MAX_ACHIEVEMENTS; i++)
-	{
-		if (thePlayerInfo->mEarnedAchievements[i] && !thePlayerInfo->mShownAchievements[i])
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 //0x44E8A0
 bool LawnGetCloseRequest()
 {
@@ -598,7 +580,7 @@ void LawnApp::KillGameSelector()
 void LawnApp::ShowAwardScreen(AwardType theAwardType, bool theShowAchievements)
 {
 	mGameScene = GameScenes::SCENE_AWARD;
-	mAwardScreen = new AwardScreen(this, theAwardType, theShowAchievements);
+	mAwardScreen = new AwardScreen(this, theAwardType, false);
 	mAwardScreen->Resize(0, 0, mWidth, mHeight);
 	mWidgetManager->AddWidget(mAwardScreen);
 	mWidgetManager->BringToBack(mAwardScreen);
@@ -1490,6 +1472,20 @@ bool LawnApp::UpdatePlayerProfileForFinishingLevel()
 		{
 			mPlayerInfo->mNeedsMagicTacoReward = 1;
 		}
+		
+		// @Patoke: implemented
+		if (mBoard->StageIsDayWithPool() && !mBoard->mPeaShooterUsed) {
+			ReportAchievement::GiveAchievement(this, DontPea, false);
+		}
+		if (mBoard->StageHasRoof() && !mBoard->HasConveyorBeltSeedBank() && !mBoard->mCatapultPlantsUsed) {
+			ReportAchievement::GiveAchievement(this, Grounded, false);
+		}
+		if (mBoard->StageIsNight() && !mBoard->mMushroomsUsed) {
+			ReportAchievement::GiveAchievement(this, NoFungusAmongUs, false);
+		}
+		if (mBoard->StageIsDayWithoutPool() && mBoard->mMushroomAndCoffeeBeansOnly) {
+			ReportAchievement::GiveAchievement(this, GoodMorning, false);
+		}
 	}
 	else if (IsSurvivalMode())
 	{
@@ -1544,22 +1540,10 @@ bool LawnApp::UpdatePlayerProfileForFinishingLevel()
 			}
 		}
 
+		// @Patoke: implemented
 		int aNumTrophies = GetNumTrophies(ChallengePage::CHALLENGE_PAGE_CHALLENGE);
 		if (aNumTrophies == 20)
 			ReportAchievement::GiveAchievement(this, BeyondTheGrave, false);
-	}
-
-	if ((IsAdventureMode() || IsSurvivalMode()) && !IsScaryPotterLevel() && !IsWhackAZombieLevel()) {
-		if (mBoard->StageIsDayWithPool() && !mBoard->mPeaShooterUsed) {
-			ReportAchievement::GiveAchievement(this, DontPea, false);
-		} else if (mBoard->StageHasRoof() && !mBoard->HasConveyorBeltSeedBank() && !mBoard->mCatapultPlantsUsed) {
-			ReportAchievement::GiveAchievement(this, Grounded, false);
-		} else if (mBoard->StageIsDayWithoutPool() && mBoard->mMushroomAndCoffeeBeansOnly) {
-			ReportAchievement::GiveAchievement(this, GoodMorning, false);
-		}
-		if (mBoard->StageIsNight() && !mBoard->mMushroomsUsed) {
-			ReportAchievement::GiveAchievement(this, NoFungusAmongUs, false);
-		}
 	}
 
 	WriteCurrentUserConfig();
@@ -1600,10 +1584,6 @@ void LawnApp::CheckForGameEnd()
 		{
 			ShowAwardScreen(AwardType::AWARD_FORLEVEL, true);
 		}
-		else if (HasUnshownAchievements(mPlayerInfo))
-		{
-			ShowAwardScreen(AwardType::AWARD_ACHIEVEMENTONLY, true);
-		}
 		else
 		{
 			PreNewGame(mGameMode, false);
@@ -1618,10 +1598,6 @@ void LawnApp::CheckForGameEnd()
 			if (aUnlockedNewChallenge && HasFinishedAdventure())
 			{
 				ShowAwardScreen(AwardType::AWARD_FORLEVEL, true);
-			}
-			else if (HasUnshownAchievements(mPlayerInfo))
-			{
-				ShowAwardScreen(AwardType::AWARD_ACHIEVEMENTONLY, true);
 			}
 			else
 			{
@@ -1643,10 +1619,6 @@ void LawnApp::CheckForGameEnd()
 		{
 			ShowAwardScreen(AwardType::AWARD_FORLEVEL, true);
 		}
-		else if (HasUnshownAchievements(mPlayerInfo))
-		{
-			ShowAwardScreen(AwardType::AWARD_ACHIEVEMENTONLY, true);
-		}
 		else
 		{
 			ShowChallengeScreen(ChallengePage::CHALLENGE_PAGE_PUZZLE);
@@ -1659,10 +1631,6 @@ void LawnApp::CheckForGameEnd()
 		if (aUnlockedNewChallenge && HasFinishedAdventure())
 		{
 			ShowAwardScreen(AwardType::AWARD_FORLEVEL, true);
-		}
-		else if (HasUnshownAchievements(mPlayerInfo))
-		{
-			ShowAwardScreen(AwardType::AWARD_ACHIEVEMENTONLY, true);
 		}
 		else
 		{
