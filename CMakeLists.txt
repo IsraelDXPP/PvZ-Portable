@@ -296,7 +296,7 @@ if (WIN32)
 	endif()
 elseif (NINTENDO_SWITCH)
 	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
-	target_compile_options(pvz-portable PRIVATE -g -O2) # Keep debug info and optimize
+	target_compile_options(pvz-portable PRIVATE -g -O0) # Keep debug info and optimize
 	target_link_options(pvz-portable PRIVATE -g)
 
 	nx_generate_nacp(pvz-portable.nacp

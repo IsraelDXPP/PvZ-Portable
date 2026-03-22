@@ -22,9 +22,8 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <EGL/egl.h>    // EGL library
-#include <EGL/eglext.h> // EGL extensions
-
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <switch.h>
 
 #include "SexyAppBase.h"
@@ -34,30 +33,29 @@
 
 using namespace Sexy;
 
+// -------------------------------
+// Variable global para depuración con GDB
+volatile int wait_for_gdb = 1;
+// -------------------------------
+
 void SexyAppBase::MakeWindow()
 {
-    // -------------------------------
-    // Espera para depuración con GDB
-    volatile int wait_for_gdb = 1;
-    while(wait_for_gdb);  // cambia a 0 desde GDB para continuar
-    // -------------------------------
+    // Espera hasta que GDB cambie wait_for_gdb a 0
+    while(wait_for_gdb);
 
     // Connect to the EGL default display
     mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (!mWindow)
         return;
 
-    // Initialize the EGL display connection
     eglInitialize(mWindow, nullptr, nullptr);
 
-    // Select OpenGL ES as the desired graphics API
     if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
     {
         eglTerminate(mWindow);
         return;
     }
 
-    // Get an appropriate EGL framebuffer configuration
     EGLConfig config;
     EGLint numConfigs;
     static const EGLint framebufferAttributeList[] =
@@ -77,7 +75,6 @@ void SexyAppBase::MakeWindow()
         return;
     }
 
-    // Create an EGL window surface
     mSurface = eglCreateWindowSurface(mWindow, config, nwindowGetDefault(), nullptr);
     if (!mSurface)
     {
@@ -85,7 +82,6 @@ void SexyAppBase::MakeWindow()
         return;
     }
 
-    // Create an EGL rendering context (OpenGL ES 2.0)
     static const EGLint contextAttributeList[] =
     {
         EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -99,9 +95,7 @@ void SexyAppBase::MakeWindow()
         return;
     }
 
-    // Connect the context to the surface
     eglMakeCurrent(mWindow, mSurface, mSurface, mContext);
-
     eglSwapInterval(mWindow, 1);
 
     if (mGLInterface == nullptr)
@@ -120,7 +114,6 @@ void SexyAppBase::MakeWindow()
 
     bool isActive = mActive;
     mActive = true;
-
     mPhysMinimized = false;
 
     if (isActive != mActive)
