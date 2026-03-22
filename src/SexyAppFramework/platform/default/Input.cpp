@@ -331,6 +331,17 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 						mWidgetManager->MarkAllDirty();
 						break;
 
+					case SDL_WINDOWEVENT_MINIMIZED:
+						mMinimized = true;
+						RehupFocus();
+						break;
+
+					case SDL_WINDOWEVENT_RESTORED:
+						mMinimized = false;
+						RehupFocus();
+						mWidgetManager->MarkAllDirty();
+						break;
+
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
 					case SDL_WINDOWEVENT_FOCUS_LOST:
 						mActive = event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED;

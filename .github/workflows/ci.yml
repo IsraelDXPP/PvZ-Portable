@@ -7,55 +7,17 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  auto-tag:
-    name: Generate Auto Tag
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.tag.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - id: tag
-        name: Determine next tag
-        run: |
-          LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
-
-          if [ -z "$LAST_TAG" ]; then
-            NEXT_TAG="v1.0.0"
-          else
-            IFS='.' read -r MAJOR MINOR PATCH <<<"${LAST_TAG#v}"
-            PATCH=$((PATCH + 1))
-            NEXT_TAG="v$MAJOR.$MINOR.$PATCH"
-          fi
-
-          echo "tag=$NEXT_TAG" >> $GITHUB_OUTPUT
-
-      - name: Create and push tag
-        run: |
-          git tag -f ${{ steps.tag.outputs.tag }}
-          git push origin ${{ steps.tag.outputs.tag }} --force
-
   build-archlinux:
     name: Build for Arch Linux (x86_64)
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -72,7 +34,6 @@ jobs:
           libvorbis \
           mpg123 \
           ninja \
-          python \
           sdl2-compat \
           sudo
 
@@ -90,18 +51,16 @@ jobs:
       run: |
         sudo -u builder bash -lc '
           mkdir build
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build
 
           mkdir -p dist
           cp build/pvz-portable dist/
-          if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
-            strip dist/pvz-portable
-          fi
+          strip dist/pvz-portable
         '
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-archlinux
         path: dist/
@@ -110,7 +69,7 @@ jobs:
     name: Build for Windows (MSYS2 UCRT64)
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -135,17 +94,15 @@ jobs:
       shell: msys2 {0}
       run: |
         mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON
         cmake --build build
         
         mkdir -p dist
         cp build/pvz-portable.exe dist/
-        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
-          strip dist/pvz-portable.exe
-        fi
+        strip dist/pvz-portable.exe
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-windows-msys2-ucrt64
         path: dist/
@@ -154,7 +111,7 @@ jobs:
     name: Build for Windows (MSVC x64)
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -171,69 +128,59 @@ jobs:
     - name: Compile PvZ-Portable for Windows (MSVC)
       shell: pwsh
       run: |
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static
         cmake --build build
 
         New-Item -ItemType Directory -Force -Path dist | Out-Null
         Copy-Item build/pvz-portable.exe dist/
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-windows-msvc-x64
         path: dist/
 
-  build-switch:
-    name: Build for Switch
-    runs-on: ubuntu-latest
-    container:
-      image: devkitpro/devkita64:latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # build-switch:
+  #   name: Build for Switch
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: devkitpro/devkita64:latest
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Install dependencies
-        run: |
-          dkp-pacman -S --needed --noconfirm \
-            switch-sdl2 \
-            switch-libogg \
-            switch-libvorbis \
-            switch-mpg123 \
-            switch-libpng \
-            switch-libjpeg-turbo \
-            switch-zlib \
-            switch-cmake
+  #     - name: Compile libopenmpt for Switch
+  #       shell: bash
+  #       run: |
+  #         source $DEVKITPRO/switchvars.sh
+  #         git clone https://github.com/OpenMPT/openmpt
+  #         cd openmpt
+  #         make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
 
-      - name: Compile libopenmpt for Switch
-        shell: bash
-        run: |
-          source $DEVKITPRO/switchvars.sh
-          git clone --depth 1 https://github.com/OpenMPT/openmpt
-          cd openmpt
-          make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
+  #     - name: Compile PvZ-Portable for Switch
+  #       shell: bash
+  #       run: |
+  #         source $DEVKITPRO/switchvars.sh
+  #         mkdir build
+  #         cd build
+  #         aarch64-none-elf-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O2
+  #         make
+  #         aarch64-none-elf-strip pvz-portable.elf
 
-      - name: Build PvZ-Portable for Switch
-        shell: bash
-        run: |
-          source $DEVKITPRO/switchvars.sh
-          mkdir build
-          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
-          cmake --build build
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pvz-portable-switch
-          path: |
-            build/pvz-portable.nro
-            build/pvz-portable.elf
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v7
+  #       with:
+  #         name: pvz-portable-switch
+  #         path: |
+  #           ./build/pvz-portable.nro
+  #           ./build/pvz-portable.elf
 
   build-macos:
     name: Build for macOS (aarch64)
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -254,15 +201,13 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         mkdir build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
         cmake --build build
 
         mkdir -p dist
         mkdir -p dist/libs
         cp build/pvz-portable dist/
-        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
-          strip -x dist/pvz-portable
-        fi
+        strip -x dist/pvz-portable
 
         echo "Bundling dependencies..."
         dylibbundler -of -b -x dist/pvz-portable -d dist/libs -p @executable_path/libs/
@@ -270,7 +215,7 @@ jobs:
         codesign --force --deep -s - dist/pvz-portable
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-macos
         path: dist/
@@ -279,7 +224,7 @@ jobs:
     name: Build for Android (arm64-v8a)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -355,8 +300,7 @@ jobs:
           -DANDROID_ABI=$ABI \
           -DANDROID_PLATFORM=android-$ANDROID_API \
           -DSDL2_DIR=$SDL2_PREFIX/lib/cmake/SDL2 \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          -DCMAKE_BUILD_TYPE=Release
 
         cmake --build $BUILD_DIR -j$(nproc)
 
@@ -374,12 +318,11 @@ jobs:
           [ -f "$so" ] && cp -L "$so" $JNILIBS/
         done
 
-        if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
-          STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-          for so in "$JNILIBS"/*.so; do
-            "$STRIP" --strip-unneeded "$so"
-          done
-        fi
+        # Strip debug symbols to reduce APK size
+        STRIP=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+        for so in "$JNILIBS"/*.so; do
+          "$STRIP" --strip-unneeded "$so"
+        done
 
         echo "Collected .so files:"
         ls -lh $JNILIBS/
@@ -399,7 +342,7 @@ jobs:
         find android -name "*.apk" -path "*/release/*" -exec cp {} dist/pvz-portable-android-arm64-v8a.apk \;
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-android
         path: dist/
@@ -410,7 +353,7 @@ jobs:
     env:
       IOS_DEPLOY_TARGET: "15.0"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -431,7 +374,6 @@ jobs:
           -DCMAKE_OSX_DEPLOYMENT_TARGET=$IOS_DEPLOY_TARGET \
           -DCMAKE_OSX_ARCHITECTURES=arm64 \
           -DCMAKE_BUILD_TYPE=Release \
-          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} \
           -G Xcode
 
         cmake --build $BUILD_DIR --config Release -- \
@@ -449,7 +391,7 @@ jobs:
         rm -rf Payload
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-ios
         path: dist/
@@ -458,7 +400,7 @@ jobs:
     name: Build for WebAssembly (Emscripten)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -468,7 +410,7 @@ jobs:
     - name: Install Build Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build python3
+        sudo apt-get install -y ninja-build
 
     - name: Build libopenmpt for Emscripten
       run: |
@@ -497,11 +439,11 @@ jobs:
     - name: Build PvZ-Portable for WebAssembly
       run: |
         mkdir build-wasm
-        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pvz-portable-wasm
         path: |
@@ -511,59 +453,55 @@ jobs:
 
   release:
     name: Release
-    needs: ['auto-tag', 'build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-switch', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
+    needs: ['build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
 
-      - name: Prepare Release Files
-        run: |
-          mkdir -p release_files
+    - name: Prepare Release Files
+      run: |
+        mkdir release_files
 
-          echo "Preparing Arch Linux file..."
-          chmod +x artifacts/pvz-portable-archlinux/pvz-portable
-          mv artifacts/pvz-portable-archlinux/pvz-portable release_files/pvz-portable-archlinux-x86_64
+        echo "Preparing Arch Linux file..."
+        chmod +x artifacts/pvz-portable-archlinux/pvz-portable
+        mv artifacts/pvz-portable-archlinux/pvz-portable release_files/pvz-portable-archlinux-x86_64
 
-          echo "Preparing Windows MSVC file..."
-          mv artifacts/pvz-portable-windows-msvc-x64/pvz-portable.exe release_files/pvz-portable-windows-msvc-x64-static.exe
+        echo "Preparing Windows MSVC file..."
+        mv artifacts/pvz-portable-windows-msvc-x64/pvz-portable.exe release_files/pvz-portable-windows-msvc-x64-static.exe
 
-          echo "Preparing Windows MSYS2 file..."
-          mv artifacts/pvz-portable-windows-msys2-ucrt64/pvz-portable.exe release_files/pvz-portable-windows-ucrt64-static.exe
+        echo "Preparing Windows MSYS2 file..."
+        mv artifacts/pvz-portable-windows-msys2-ucrt64/pvz-portable.exe release_files/pvz-portable-windows-ucrt64-static.exe
 
-          echo "Preparing macOS file..."
-          cd artifacts/pvz-portable-macos
-          chmod +x pvz-portable
-          zip -r -y ../../release_files/pvz-portable-macos-aarch64.zip .
-          cd ../..
+        echo "Preparing macOS file..."
+        cd artifacts/pvz-portable-macos
+        chmod +x pvz-portable
+        zip -r -y ../../release_files/pvz-portable-macos-aarch64.zip .
+        cd ../..
 
-          echo "Preparing Android file..."
-          mv artifacts/pvz-portable-android/pvz-portable-android-arm64-v8a.apk release_files/pvz-portable-android-arm64-v8a.apk
+        echo "Preparing Android file..."
+        mv artifacts/pvz-portable-android/pvz-portable-android-arm64-v8a.apk release_files/pvz-portable-android-arm64-v8a.apk
 
-          echo "Preparing iOS file..."
-          mv artifacts/pvz-portable-ios/pvz-portable-ios-arm64.ipa release_files/pvz-portable-ios-arm64.ipa
+        echo "Preparing iOS file..."
+        mv artifacts/pvz-portable-ios/pvz-portable-ios-arm64.ipa release_files/pvz-portable-ios-arm64.ipa
 
-          echo "Preparing WebAssembly file..."
-          cd artifacts/pvz-portable-wasm
-          zip -r ../../release_files/pvz-portable-wasm.zip .
-          cd ../..
+        echo "Preparing WebAssembly file..."
+        cd artifacts/pvz-portable-wasm
+        zip -r ../../release_files/pvz-portable-wasm.zip .
+        cd ../..
 
-          echo "Preparing Switch files..."
-          mv artifacts/pvz-portable-switch/pvz-portable.nro release_files/pvz-portable.nro
-          mv artifacts/pvz-portable-switch/pvz-portable.elf release_files/pvz-portable.elf
+        echo "Final files:"
+        ls -lh release_files/
 
-          echo "Final files:"
-          ls -lh release_files/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.auto-tag.outputs.tag }}
-          files: release_files/*
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: release_files/*
+        generate_release_notes: true
+        draft: false
+        prerelease: false
