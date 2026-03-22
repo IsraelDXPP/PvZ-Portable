@@ -3,9 +3,33 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later
  *
- * This file is part of PvZ-Portable.
- *
- * PvZ-Portable is free software: you can redistribute it and/or modify
+ * This ### Asset Component
+
+#### [MODIFY] [PakInterface.cpp](file:///c:/Users/nydil/source/repos/PvZ-Portable/src/SexyAppFramework/paklib/PakInterface.cpp)
+- **Memory Loading**: Added `AddPakMemory` and `AddFileMemory` to allow resource registration from embedded byte arrays.
+- **Helper Classes**: Implemented `BinaryReader` to facilitate parsing PAK headers from memory.
+
+#### [NEW] [embed_folder.py](file:///c:/Users/nydil/source/repos/PvZ-Portable/scripts/embed_folder.py)
+- **Automation**: Created a script that converts an entire folder structure into a C++ source file with embedded byte arrays and a loader function.
+
+#### [MODIFY] [CMakeLists.txt](file:///c:/Users/nydil/source/repos/PvZ-Portable/CMakeLists.txt)
+- **Unified Strategy**:
+    - **Windows**: Embeds `main.pak` via `.rc` resource file.
+    - **Linux/macOS**: Embeds `main.pak` via assembly `.incbin`.
+    - **All Platforms**: Embeds the `properties/` folder using the new `embed_folder.py` tool.
+
+#### [MODIFY] [SexyAppBase.cpp](file:///c:/Users/nydil/source/repos/PvZ-Portable/src/SexyAppFramework/SexyAppBase.cpp)
+- **Initialization**: Updated `Init()` to call `LoadEmbeddedProperties()` and load `main.pak` from its respective embedded location.
+
+## Verification Plan
+
+### Automated Tests
+- CI will build the project and verify that `properties_embed.cpp` is generated and compiled.
+
+### Manual Verification
+- Run the compiled binary on a clean machine without any `assets/` folder.
+- Verify the game starts and loads the `partner_logo` correctly.
+vZ-Portable is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -63,7 +87,10 @@ bool Sexy::ExtractResourcesByName(ResourceManager* theResourceManager, const cha
 	if (!strcmp(theName, "LoadingImages")) return ExtractLoadingImagesResources(theResourceManager);
 	if (!strcmp(theName, "LoadingSounds")) return ExtractLoadingSoundsResources(theResourceManager);
 
-	if (!strcmp(theName, "SpeedControl"))
+	if (!strcmp(theName, "# Phase 2: Static Asset Embedding ("Plug and Play")
+
+The user wants the game to be completely self-contained, with all assets embedded into the executable so it can run without an external `assets/` folder.
+"))
 	{
 		ResourceManager& aMgr = *theResourceManager;
 		IMAGE_PAUSE_BUTTON = aMgr.GetImageThrow("IMAGE_PAUSE_BUTTON");

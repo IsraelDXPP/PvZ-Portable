@@ -12,7 +12,7 @@ def embed_folder(src_dir, out_cpp):
     files = []
     for root, _, filenames in os.walk(src_dir):
         for filename in filenames:
-            rel_path = os.relpath(os.path.join(root, filename), os.path.dirname(src_dir))
+            rel_path = os.path.relpath(os.path.join(root, filename), os.path.dirname(src_dir))
             # Normalize to forward slashes for cross-platform matching
             rel_path = rel_path.replace("\\", "/")
             files.append((rel_path, os.path.join(root, filename)))
