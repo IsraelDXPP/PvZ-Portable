@@ -44,10 +44,10 @@ extern "C" void __libnx_exception_handler(ThreadExceptionDump *ctx)
 		fprintf(f, "CRASH DETECTED!\n");
 		if (ctx) {
 			fprintf(f, "Error Desc: %x\n", ctx->error_desc);
-			fprintf(f, "pc:  %016llx\n", (unsigned long long)ctx->pc);
-			fprintf(f, "lr:  %016llx\n", (unsigned long long)ctx->lr);
-			fprintf(f, "sp:  %016llx\n", (unsigned long long)ctx->sp);
-			fprintf(f, "fp:  %016llx\n", (unsigned long long)ctx->fp);
+			fprintf(f, "pc:  %016llx\n", (unsigned long long)ctx->pc.x);
+			fprintf(f, "lr:  %016llx\n", (unsigned long long)ctx->lr.x);
+			fprintf(f, "sp:  %016llx\n", (unsigned long long)ctx->sp.x);
+			fprintf(f, "fp:  %016llx\n", (unsigned long long)ctx->fp.x);
 		}
 		fclose(f);
 	}
