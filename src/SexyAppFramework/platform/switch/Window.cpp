@@ -46,12 +46,20 @@ void SexyAppBase::MakeWindow()
     // Connect to the EGL default display
     mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (!mWindow)
+    {
+        printf("MakeWindow: eglGetDisplay failed with error 0x%04X\n", eglGetError());
         return;
+    }
 
-    eglInitialize(mWindow, nullptr, nullptr);
+    if (eglInitialize(mWindow, nullptr, nullptr) == EGL_FALSE)
+    {
+        printf("MakeWindow: eglInitialize failed with error 0x%04X\n", eglGetError());
+        return;
+    }
 
     if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
     {
+        printf("MakeWindow: eglBindAPI failed with error 0x%04X\n", eglGetError());
         eglTerminate(mWindow);
         return;
     }
@@ -60,24 +68,31 @@ void SexyAppBase::MakeWindow()
     EGLint numConfigs;
     static const EGLint framebufferAttributeList[] =
     {
-        EGL_RED_SIZE,     8,
-        EGL_GREEN_SIZE,   8,
-        EGL_BLUE_SIZE,    8,
-        EGL_ALPHA_SIZE,   8,
-        EGL_DEPTH_SIZE,   24,
-        EGL_STENCIL_SIZE, 8,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_SURFACE_TYPE,    EGL_WINDOW_BIT,
+        EGL_RED_SIZE,        8,
+        EGL_GREEN_SIZE,      8,
+        EGL_BLUE_SIZE,       8,
+        EGL_ALPHA_SIZE,      8,
+        EGL_DEPTH_SIZE,      24,
+        EGL_STENCIL_SIZE,    8,
         EGL_NONE
     };
-    eglChooseConfig(mWindow, framebufferAttributeList, &config, 1, &numConfigs);
-    if (numConfigs == 0)
+
+    if (eglChooseConfig(mWindow, framebufferAttributeList, &config, 1, &numConfigs) == EGL_FALSE || numConfigs == 0)
     {
+        printf("MakeWindow: eglChooseConfig failed with error 0x%04X, numConfigs=%d\n", eglGetError(), numConfigs);
         eglTerminate(mWindow);
         return;
     }
 
-    mSurface = eglCreateWindowSurface(mWindow, config, nwindowGetDefault(), nullptr);
+    NWindow* nativeWin = nwindowGetDefault();
+    nwindowSetDimensions(nativeWin, 1920, 1080); // Optional: ensure the NWindow is sized
+    
+    mSurface = eglCreateWindowSurface(mWindow, config, nativeWin, nullptr);
     if (!mSurface)
     {
+        printf("MakeWindow: eglCreateWindowSurface failed with error 0x%04X\n", eglGetError());
         eglTerminate(mWindow);
         return;
     }
@@ -87,15 +102,31 @@ void SexyAppBase::MakeWindow()
         EGL_CONTEXT_CLIENT_VERSION, 2,
         EGL_NONE
     };
+
     mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
     if (!mContext)
     {
+        printf("MakeWindow: eglCreateContext failed with error 0x%04X\n", eglGetError());
         eglDestroySurface(mWindow, mSurface);
         eglTerminate(mWindow);
         return;
     }
 
-    eglMakeCurrent(mWindow, mSurface, mSurface, mContext);
+    if (eglMakeCurrent(mWindow, mSurface, mSurface, mContext) == EGL_FALSE)
+    {
+        printf("MakeWindow: eglMakeCurrent failed with error 0x%04X\n", eglGetError());
+        eglDestroyContext(mWindow, mContext);
+        eglDestroySurface(mWindow, mSurface);
+        eglTerminate(mWindow);
+        return;
+    }
+
+    // Verify context loaded
+    if (!glCreateShader) 
+    {
+        printf("MakeWindow: glCreateShader is NULL! GLES2 driver not linked properly.\n");
+    }
+
     eglSwapInterval(mWindow, 1);
 
     if (mGLInterface == nullptr)
