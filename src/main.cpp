@@ -40,6 +40,10 @@ extern "C" {
 }
 #endif
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #ifdef __IPHONEOS__
 #include <SDL.h>
 #endif
@@ -99,7 +103,12 @@ static void BuildUtf8ArgsFromWin32(int& argc, char**& argv)
 int main(int argc, char** argv)
 {
 #ifdef __3DS__
+	romfsInit();
 	osSetSpeedupEnable(true);
+#endif
+
+#ifdef __SWITCH__
+	romfsInit();
 #endif
 
 #ifdef _WIN32
@@ -145,6 +154,14 @@ int main(int argc, char** argv)
 	gLawnApp->Shutdown();
 	if (gLawnApp)
 		delete gLawnApp;
+#endif
+
+#ifdef __3DS__
+	romfsExit();
+#endif
+
+#ifdef __SWITCH__
+	romfsExit();
 #endif
 
 	return 0;
