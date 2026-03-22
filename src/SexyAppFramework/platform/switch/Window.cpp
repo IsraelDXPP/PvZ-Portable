@@ -35,7 +35,7 @@ using namespace Sexy;
 
 // -------------------------------
 // Variable global para depuración con GDB
-volatile int wait_for_gdb = 1;
+volatile int wait_for_gdb = 0;
 // -------------------------------
 
 void SexyAppBase::MakeWindow()
