@@ -1,0 +1,789 @@
+diff --git "a/src\\SexyAppFramework\\graphics\\GLInterface.cpp" "b/C:\\Users\\nydil\\Downloads\\GLInterface.cpp"
+index b97833d..3609714 100644
+--- "a/src\\SexyAppFramework\\graphics\\GLInterface.cpp"
++++ "b/C:\\Users\\nydil\\Downloads\\GLInterface.cpp"
+@@ -3,3 +3,3 @@
+  * Copyright (C) 2005-2009 PopCap Games, Inc.
+- *
++ * 
+  * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
+@@ -56,4 +56,4 @@ static inline uint32_t ArgbToRgba(uint32_t argb) noexcept
+ 	uint32_t abgr = (argb & 0xFF00FF00u)
+-		| ((argb >> 16) & 0x000000FFu)
+-		| ((argb << 16) & 0x00FF0000u);
++					| ((argb >> 16) & 0x000000FFu)
++					| ((argb << 16) & 0x00FF0000u);
+ 	return ToLE32(abgr);
+@@ -107,7 +107,7 @@ static void GfxEnd()
+ 
+-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (const void*)0);
++		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
+ 		glEnableVertexAttribArray(0);
+-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (const void*)(sizeof(float) * 3));
++		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE,  GL_TRUE,  sizeof(GLVertex), (const void*)(sizeof(float)*3));
+ 		glEnableVertexAttribArray(1);
+-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (const void*)(sizeof(float) * 3 + sizeof(uint32_t)));
++		glVertexAttribPointer(2, 2, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)(sizeof(float)*3 + sizeof(uint32_t)));
+ 		glEnableVertexAttribArray(2);
+@@ -130,3 +130,3 @@ static void GfxFlushIfOverBudget()
+ 
+-static void GfxAddVertices(const GLVertex* arr, int arrCount)
++static void GfxAddVertices(const GLVertex *arr, int arrCount)
+ {
+@@ -143,3 +143,3 @@ static void GfxAddVertices(const GLVertex* arr, int arrCount)
+ 
+-static void GfxAddVertices(VertexList& arr)
++static void GfxAddVertices(VertexList &arr)
+ {
+@@ -149,3 +149,3 @@ static void GfxAddVertices(VertexList& arr)
+ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int theColor,
+-	float tx, float ty, float aMaxTotalU, float aMaxTotalV)
++                           float tx, float ty, float aMaxTotalU, float aMaxTotalV)
+ {
+@@ -164,7 +164,7 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int
+ 		{
+-			dst[i].sx = v[i].x + tx;
+-			dst[i].sy = v[i].y + ty;
++			dst[i].sx    = v[i].x + tx;
++			dst[i].sy    = v[i].y + ty;
+ 			dst[i].color = GetColorFromTriVertex(v[i], theColor);
+-			dst[i].tu = v[i].u * aMaxTotalU;
+-			dst[i].tv = v[i].v * aMaxTotalV;
++			dst[i].tu    = v[i].u * aMaxTotalU;
++			dst[i].tv    = v[i].v * aMaxTotalV;
+ 		}
+@@ -177,3 +177,3 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int
+ // Unified GLSL body; VERT_IN / V2F / FRAG_OUT / TEX2D macros from GLPlatform.h.
+-static constexpr const char* SHADER_CODE = R"DELIMITER(
++static constexpr const char *SHADER_CODE = R"DELIMITER(
+ V2F vec4 v_color;
+@@ -205,9 +205,9 @@ V2F vec2 v_uv;
+ 
+-static GLuint shaderCompile(const char* src, uint32_t srcLen, GLenum type)
++static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
+ {
+ 	// GLSL ES 1.00 for native ES contexts; GLSL 1.20 for desktop GL fallback.
+-	const char* versionLine = gDesktopGLFallback
++	const char *versionLine = gDesktopGLFallback
+ 		? "#version 120\n"
+ 		: "#version 100\nprecision mediump float;\n";
+-	const char* macros = (type == GL_VERTEX_SHADER)
++	const char *macros = (type == GL_VERTEX_SHADER)
+ 		? GLSL_VERT_MACROS "#define VERTEX\n"
+@@ -215,4 +215,4 @@ static GLuint shaderCompile(const char* src, uint32_t srcLen, GLenum type)
+ 
+-	const GLchar* strings[3] = { versionLine, macros, src };
+-	GLint         lengths[3] = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
++	const GLchar *strings[3]  = { versionLine, macros, src };
++	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
+ 
+@@ -228,3 +228,3 @@ static GLuint shaderCompile(const char* src, uint32_t srcLen, GLenum type)
+ 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+-		char* log = (char*)malloc(logLen);
++		char *log = (char*)malloc(logLen);
+ 		glGetShaderInfoLog(shader, logLen, &logLen, log);
+@@ -243,3 +243,3 @@ static GLuint shaderCompile(const char* src, uint32_t srcLen, GLenum type)
+ 
+-static GLuint shaderLoad(const char* src)
++static GLuint shaderLoad(const char *src)
+ {
+@@ -260,3 +260,3 @@ static GLuint shaderLoad(const char* src)
+ 
+-	const char* attribs[] = { "a_position", "a_color", "a_uv" };
++	const char *attribs[] = { "a_position", "a_color", "a_uv" };
+ 	for (int i = 0; i < 3; i++)
+@@ -273,12 +273,12 @@ static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f
+ {
+-	m[0] = 2.0f / (r - l);  m[1] = 0;                m[2] = 0;                 m[3] = 0;
+-	m[4] = 0;                m[5] = 2.0f / (t - b);   m[6] = 0;                 m[7] = 0;
+-	m[8] = 0;                m[9] = 0;                 m[10] = -2.0f / (f - n);   m[11] = 0;
+-	m[12] = -(r + l) / (r - l);    m[13] = -(t + b) / (t - b);     m[14] = -(f + n) / (f - n);      m[15] = 1;
++	m[0]  = 2.0f / (r - l);  m[1]  = 0;                m[2]  = 0;                 m[3]  = 0;
++	m[4]  = 0;                m[5]  = 2.0f / (t - b);   m[6]  = 0;                 m[7]  = 0;
++	m[8]  = 0;                m[9]  = 0;                 m[10] = -2.0f / (f - n);   m[11] = 0;
++	m[12] = -(r+l)/(r-l);    m[13] = -(t+b)/(t-b);     m[14] = -(f+n)/(f-n);      m[15] = 1;
+ }
+ 
+-static void CopyImageToTexture8888(MemoryImage* img, int offx, int offy,
++static void CopyImageToTexture8888(MemoryImage *img, int offx, int offy,
+ 	int w, int h, int pitch, int dstH, bool padR, bool padB, bool create)
+ {
+-	uint32_t* dst = new uint32_t[pitch * dstH];
++	uint32_t *dst = new uint32_t[pitch * dstH];
+ 
+@@ -286,7 +286,7 @@ static void CopyImageToTexture8888(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint32_t* srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
+-		uint32_t* dstRow = dst;
++		uint32_t *srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
++		uint32_t *dstRow = dst;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint32_t* s = srcRow, * d = dstRow;
++			uint32_t *s = srcRow, *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -300,8 +300,8 @@ static void CopyImageToTexture8888(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint8_t* srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
+-		uint32_t* dstRow = dst;
+-		uint32_t* pal = (uint32_t*)img->mColorTable;
++		uint8_t  *srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
++		uint32_t *dstRow = dst;
++		uint32_t *pal = (uint32_t*)img->mColorTable;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint8_t* s = srcRow; uint32_t* d = dstRow;
++			uint8_t *s = srcRow; uint32_t *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -316,3 +316,3 @@ static void CopyImageToTexture8888(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint32_t* lastRow = dst + pitch * (h - 1);
++		uint32_t *lastRow = dst + pitch * (h - 1);
+ 		for (int y = h; y < dstH; y++)
+@@ -328,6 +328,6 @@ static void CopyImageToTexture8888(MemoryImage* img, int offx, int offy,
+ 
+-static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
++static void CopyImageToTexture4444(MemoryImage *img, int offx, int offy,
+ 	int w, int h, int pitch, int dstH, bool padR, bool padB, bool create)
+ {
+-	uint16_t* dst = new uint16_t[pitch * dstH];
++	uint16_t *dst = new uint16_t[pitch * dstH];
+ 
+@@ -335,5 +335,5 @@ static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
+ 		return static_cast<uint16_t>(
+-			((p >> 8) & 0xF000) | ((p >> 4) & 0x0F00) |
+-			(p & 0x00F0) | ((p >> 28) & 0x000F));
+-		};
++			((p >> 8)  & 0xF000) | ((p >> 4) & 0x0F00) |
++			 (p        & 0x00F0) | ((p >> 28) & 0x000F));
++	};
+ 
+@@ -341,7 +341,7 @@ static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint32_t* srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
+-		uint16_t* dstRow = dst;
++		uint32_t *srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
++		uint16_t *dstRow = dst;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint32_t* s = srcRow; uint16_t* d = dstRow;
++			uint32_t *s = srcRow; uint16_t *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -355,8 +355,8 @@ static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint8_t* srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
+-		uint16_t* dstRow = dst;
+-		uint32_t* pal = (uint32_t*)img->mColorTable;
++		uint8_t  *srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
++		uint16_t *dstRow = dst;
++		uint32_t *pal = (uint32_t*)img->mColorTable;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint8_t* s = srcRow; uint16_t* d = dstRow;
++			uint8_t *s = srcRow; uint16_t *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -371,3 +371,3 @@ static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint16_t* lastRow = dst + pitch * (h - 1);
++		uint16_t *lastRow = dst + pitch * (h - 1);
+ 		for (int y = h; y < dstH; y++)
+@@ -383,6 +383,6 @@ static void CopyImageToTexture4444(MemoryImage* img, int offx, int offy,
+ 
+-static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
++static void CopyImageToTexture565(MemoryImage *img, int offx, int offy,
+ 	int w, int h, int pitch, int dstH, bool padR, bool padB, bool create)
+ {
+-	uint16_t* dst = new uint16_t[pitch * dstH];
++	uint16_t *dst = new uint16_t[pitch * dstH];
+ 
+@@ -391,3 +391,3 @@ static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
+ 			((p >> 8) & 0xF800) | ((p >> 5) & 0x07E0) | ((p >> 3) & 0x001F));
+-		};
++	};
+ 
+@@ -395,7 +395,7 @@ static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint32_t* srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
+-		uint16_t* dstRow = dst;
++		uint32_t *srcRow = (uint32_t*)img->GetBits() + offy * img->GetWidth() + offx;
++		uint16_t *dstRow = dst;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint32_t* s = srcRow; uint16_t* d = dstRow;
++			uint32_t *s = srcRow; uint16_t *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -409,8 +409,8 @@ static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint8_t* srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
+-		uint16_t* dstRow = dst;
+-		uint32_t* pal = (uint32_t*)img->mColorTable;
++		uint8_t  *srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
++		uint16_t *dstRow = dst;
++		uint32_t *pal = (uint32_t*)img->mColorTable;
+ 		for (int y = 0; y < h; y++)
+ 		{
+-			uint8_t* s = srcRow; uint16_t* d = dstRow;
++			uint8_t *s = srcRow; uint16_t *d = dstRow;
+ 			for (int x = 0; x < w; x++)
+@@ -425,3 +425,3 @@ static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint16_t* lastRow = dst + pitch * (h - 1);
++		uint16_t *lastRow = dst + pitch * (h - 1);
+ 		for (int y = h; y < dstH; y++)
+@@ -437,9 +437,9 @@ static void CopyImageToTexture565(MemoryImage* img, int offx, int offy,
+ 
+-static void CopyImageToTexturePalette8(MemoryImage* img, int offx, int offy,
++static void CopyImageToTexturePalette8(MemoryImage *img, int offx, int offy,
+ 	int w, int h, int pitch, int dstH, bool padR, bool padB, bool create)
+ {
+-	uint32_t* dst = new uint32_t[pitch * dstH];
+-	uint8_t* srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
+-	uint32_t* dstRow = dst;
+-	uint32_t* pal = (uint32_t*)img->mColorTable;
++	uint32_t *dst = new uint32_t[pitch * dstH];
++	uint8_t  *srcRow = (uint8_t*)img->mColorIndices + offy * img->GetWidth() + offx;
++	uint32_t *dstRow = dst;
++	uint32_t *pal = (uint32_t*)img->mColorTable;
+ 
+@@ -447,3 +447,3 @@ static void CopyImageToTexturePalette8(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint8_t* s = srcRow; uint32_t* d = dstRow;
++		uint8_t *s = srcRow; uint32_t *d = dstRow;
+ 		for (int x = 0; x < w; x++)
+@@ -457,3 +457,3 @@ static void CopyImageToTexturePalette8(MemoryImage* img, int offx, int offy,
+ 	{
+-		uint32_t* lastRow = dst + pitch * (h - 1);
++		uint32_t *lastRow = dst + pitch * (h - 1);
+ 		for (int y = h; y < dstH; y++)
+@@ -469,3 +469,3 @@ static void CopyImageToTexturePalette8(MemoryImage* img, int offx, int offy,
+ 
+-static void CopyImageToTexture(MemoryImage* img, int offx, int offy,
++static void CopyImageToTexture(MemoryImage *img, int offx, int offy,
+ 	int texW, int texH, PixelFormat fmt, bool create)
+@@ -475,3 +475,3 @@ static void CopyImageToTexture(MemoryImage* img, int offx, int offy,
+ 
+-	int w = std::min(texW, img->GetWidth() - offx);
++	int w = std::min(texW, img->GetWidth()  - offx);
+ 	int h = std::min(texH, img->GetHeight() - offy);
+@@ -483,5 +483,5 @@ static void CopyImageToTexture(MemoryImage* img, int offx, int offy,
+ 		{
+-		case PixelFormat_A8R8G8B8: CopyImageToTexture8888(img, offx, offy, w, h, texW, texH, padR, padB, create); break;
+-		case PixelFormat_A4R4G4B4: CopyImageToTexture4444(img, offx, offy, w, h, texW, texH, padR, padB, create); break;
+-		case PixelFormat_R5G6B5:   CopyImageToTexture565(img, offx, offy, w, h, texW, texH, padR, padB, create); break;
++		case PixelFormat_A8R8G8B8: CopyImageToTexture8888    (img, offx, offy, w, h, texW, texH, padR, padB, create); break;
++		case PixelFormat_A4R4G4B4: CopyImageToTexture4444    (img, offx, offy, w, h, texW, texH, padR, padB, create); break;
++		case PixelFormat_R5G6B5:   CopyImageToTexture565     (img, offx, offy, w, h, texW, texH, padR, padB, create); break;
+ 		case PixelFormat_Palette8: CopyImageToTexturePalette8(img, offx, offy, w, h, texW, texH, padR, padB, create); break;
+@@ -504,3 +504,3 @@ static bool IsPowerOf2(int n)
+ 
+-static void GetBestTextureDimensions(int& w, int& h, bool isEdge, bool usePow2, uint32_t flags)
++static void GetBestTextureDimensions(int &w, int &h, bool isEdge, bool usePow2, uint32_t flags)
+ {
+@@ -536,3 +536,3 @@ static void GetBestTextureDimensions(int& w, int& h, bool isEdge, bool usePow2,
+ 		{
+-			aw = aw >= gMaxTextureWidth ? gMaxTextureWidth : GetClosestPowerOf2Above(aw);
++			aw = aw >= gMaxTextureWidth  ? gMaxTextureWidth  : GetClosestPowerOf2Above(aw);
+ 			ah = ah >= gMaxTextureHeight ? gMaxTextureHeight : GetClosestPowerOf2Above(ah);
+@@ -541,3 +541,3 @@ static void GetBestTextureDimensions(int& w, int& h, bool isEdge, bool usePow2,
+ 		{
+-			aw = aw >= gMaxTextureWidth ? gMaxTextureWidth : sGoodSizes[aw];
++			aw = aw >= gMaxTextureWidth  ? gMaxTextureWidth  : sGoodSizes[aw];
+ 			ah = ah >= gMaxTextureHeight ? gMaxTextureHeight : sGoodSizes[ah];
+@@ -552,4 +552,4 @@ TextureData::TextureData()
+ 	: mWidth(0), mHeight(0), mTexVecWidth(0), mTexVecHeight(0),
+-	mBitsChangedCount(0), mTexMemSize(0), mTexPieceWidth(64), mTexPieceHeight(64),
+-	mPixelFormat(PixelFormat_Unknown), mImageFlags(0)
++	  mBitsChangedCount(0), mTexMemSize(0), mTexPieceWidth(64), mTexPieceHeight(64),
++	  mPixelFormat(PixelFormat_Unknown), mImageFlags(0)
+ {
+@@ -564,3 +564,3 @@ void TextureData::ReleaseTextures()
+ {
+-	for (auto& piece : mTextures)
++	for (auto &piece : mTextures)
+ 		glDeleteTextures(1, &piece.mTexture);
+@@ -570,8 +570,8 @@ void TextureData::ReleaseTextures()
+ 
+-void TextureData::CreateTextureDimensions(MemoryImage* theImage)
++void TextureData::CreateTextureDimensions(MemoryImage *theImage)
+ {
+-	int aWidth = theImage->GetWidth();
++	int aWidth  = theImage->GetWidth();
+ 	int aHeight = theImage->GetHeight();
+ 
+-	mTexPieceWidth = aWidth;
++	mTexPieceWidth  = aWidth;
+ 	mTexPieceHeight = aHeight;
+@@ -579,3 +579,3 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-	int aRightWidth = aWidth % mTexPieceWidth;
++	int aRightWidth  = aWidth % mTexPieceWidth;
+ 	int aRightHeight = mTexPieceHeight;
+@@ -586,3 +586,3 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-	int aBottomWidth = mTexPieceWidth;
++	int aBottomWidth  = mTexPieceWidth;
+ 	int aBottomHeight = aHeight % mTexPieceHeight;
+@@ -593,3 +593,3 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-	int aCornerWidth = aRightWidth;
++	int aCornerWidth  = aRightWidth;
+ 	int aCornerHeight = aBottomHeight;
+@@ -597,3 +597,3 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-	mTexVecWidth = (aWidth + mTexPieceWidth - 1) / mTexPieceWidth;
++	mTexVecWidth  = (aWidth  + mTexPieceWidth  - 1) / mTexPieceWidth;
+ 	mTexVecHeight = (aHeight + mTexPieceHeight - 1) / mTexPieceHeight;
+@@ -601,15 +601,11 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-	for (auto& p : mTextures) { p.mTexture = 0; p.mWidth = mTexPieceWidth; p.mHeight = mTexPieceHeight; }
++	for (auto &p : mTextures)        { p.mTexture = 0; p.mWidth = mTexPieceWidth; p.mHeight = mTexPieceHeight; }
+ 	for (unsigned i = mTexVecWidth - 1; i < mTextures.size(); i += mTexVecWidth)
+-	{
+-		mTextures[i].mWidth = aRightWidth;  mTextures[i].mHeight = aRightHeight;
+-	}
++	                                  { mTextures[i].mWidth = aRightWidth;  mTextures[i].mHeight = aRightHeight; }
+ 	for (unsigned i = mTexVecWidth * (mTexVecHeight - 1); i < mTextures.size(); i++)
+-	{
+-		mTextures[i].mWidth = aBottomWidth; mTextures[i].mHeight = aBottomHeight;
+-	}
+-	mTextures.back().mWidth = aCornerWidth;
++	                                  { mTextures[i].mWidth = aBottomWidth; mTextures[i].mHeight = aBottomHeight; }
++	mTextures.back().mWidth  = aCornerWidth;
+ 	mTextures.back().mHeight = aCornerHeight;
+ 
+-	mMaxTotalU = aWidth / (float)mTexPieceWidth;
++	mMaxTotalU = aWidth  / (float)mTexPieceWidth;
+ 	mMaxTotalV = aHeight / (float)mTexPieceHeight;
+@@ -617,3 +613,3 @@ void TextureData::CreateTextureDimensions(MemoryImage* theImage)
+ 
+-void TextureData::CreateTextures(MemoryImage* theImage)
++void TextureData::CreateTextures(MemoryImage *theImage)
+ {
+@@ -625,4 +621,4 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 	if (!theImage->mHasAlpha && !theImage->mHasTrans
+-		&& (gSupportedPixelFormats & PixelFormat_R5G6B5)
+-		&& !(theImage->mRenderFlags & RenderImageFlag_UseA8R8G8B8))
++	    && (gSupportedPixelFormats & PixelFormat_R5G6B5)
++	    && !(theImage->mRenderFlags & RenderImageFlag_UseA8R8G8B8))
+ 		aFormat = PixelFormat_R5G6B5;
+@@ -630,4 +626,4 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 	if ((theImage->mRenderFlags & RenderImageFlag_UseA4R4G4B4)
+-		&& aFormat == PixelFormat_A8R8G8B8
+-		&& (gSupportedPixelFormats & PixelFormat_A4R4G4B4))
++	    && aFormat == PixelFormat_A8R8G8B8
++	    && (gSupportedPixelFormats & PixelFormat_A4R4G4B4))
+ 		aFormat = PixelFormat_A4R4G4B4;
+@@ -639,4 +635,4 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 	if (mWidth != theImage->mWidth || mHeight != theImage->mHeight
+-		|| aFormat != mPixelFormat
+-		|| (theImage->mRenderFlags & RenderImageFlag_TextureMask) != mImageFlags)
++	    || aFormat != mPixelFormat
++	    || (theImage->mRenderFlags & RenderImageFlag_TextureMask) != mImageFlags)
+ 	{
+@@ -644,3 +640,3 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 		mPixelFormat = aFormat;
+-		mImageFlags = theImage->mRenderFlags & RenderImageFlag_TextureMask;
++		mImageFlags  = theImage->mRenderFlags & RenderImageFlag_TextureMask;
+ 		CreateTextureDimensions(theImage);
+@@ -650,3 +646,3 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 	int aHeight = theImage->GetHeight();
+-	int aWidth = theImage->GetWidth();
++	int aWidth  = theImage->GetWidth();
+ 	int fmtSize = (aFormat == PixelFormat_R5G6B5 || aFormat == PixelFormat_A4R4G4B4) ? 2 : 4;
+@@ -658,3 +654,3 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 		{
+-			TextureDataPiece& piece = mTextures[idx];
++			TextureDataPiece &piece = mTextures[idx];
+ 			if (createTextures)
+@@ -669,3 +665,3 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 
+-	mWidth = theImage->mWidth;
++	mWidth  = theImage->mWidth;
+ 	mHeight = theImage->mHeight;
+@@ -675,8 +671,8 @@ void TextureData::CreateTextures(MemoryImage* theImage)
+ 
+-void TextureData::CheckCreateTextures(MemoryImage* theImage)
++void TextureData::CheckCreateTextures(MemoryImage *theImage)
+ {
+ 	if (mPixelFormat == PixelFormat_Unknown
+-		|| theImage->mWidth != mWidth || theImage->mHeight != mHeight
+-		|| theImage->mBitsChangedCount != mBitsChangedCount
+-		|| (theImage->mRenderFlags & RenderImageFlag_TextureMask) != mImageFlags)
++	    || theImage->mWidth != mWidth || theImage->mHeight != mHeight
++	    || theImage->mBitsChangedCount != mBitsChangedCount
++	    || (theImage->mRenderFlags & RenderImageFlag_TextureMask) != mImageFlags)
+ 		CreateTextures(theImage);
+@@ -684,16 +680,16 @@ void TextureData::CheckCreateTextures(MemoryImage* theImage)
+ 
+-GLuint& TextureData::GetTexture(int x, int y, int& width, int& height,
+-	float& u1, float& v1, float& u2, float& v2,
+-	float* uvBounds)
++GLuint& TextureData::GetTexture(int x, int y, int &width, int &height,
++                                float &u1, float &v1, float &u2, float &v2,
++                                float *uvBounds)
+ {
+ 	int tx = x / mTexPieceWidth, ty = y / mTexPieceHeight;
+-	TextureDataPiece& p = mTextures[ty * mTexVecWidth + tx];
++	TextureDataPiece &p = mTextures[ty * mTexVecWidth + tx];
+ 
+ 	int left = x % mTexPieceWidth, top = y % mTexPieceHeight;
+-	int right = std::min(left + width, p.mWidth);
+-	int bottom = std::min(top + height, p.mHeight);
+-	width = right - left;
++	int right  = std::min(left + width,  p.mWidth);
++	int bottom = std::min(top  + height, p.mHeight);
++	width  = right - left;
+ 	height = bottom - top;
+ 
+-	u1 = (float)left / p.mWidth;  v1 = (float)top / p.mHeight;
++	u1 = (float)left  / p.mWidth;  v1 = (float)top    / p.mHeight;
+ 	u2 = (float)right / p.mWidth;  v2 = (float)bottom / p.mHeight;
+@@ -708,18 +704,18 @@ GLuint& TextureData::GetTexture(int x, int y, int& width, int& height,
+ 
+-GLuint& TextureData::GetTextureF(float x, float y, float& width, float& height,
+-	float& u1, float& v1, float& u2, float& v2,
+-	float* uvBounds)
++GLuint& TextureData::GetTextureF(float x, float y, float &width, float &height,
++                                 float &u1, float &v1, float &u2, float &v2,
++                                 float *uvBounds)
+ {
+ 	int tx = (int)(x / mTexPieceWidth), ty = (int)(y / mTexPieceHeight);
+-	TextureDataPiece& p = mTextures[ty * mTexVecWidth + tx];
++	TextureDataPiece &p = mTextures[ty * mTexVecWidth + tx];
+ 
+-	float left = x - tx * mTexPieceWidth;
+-	float top = y - ty * mTexPieceHeight;
+-	float right = std::min(left + width, (float)p.mWidth);
+-	float bottom = std::min(top + height, (float)p.mHeight);
+-	width = right - left;
++	float left   = x - tx * mTexPieceWidth;
++	float top    = y - ty * mTexPieceHeight;
++	float right  = std::min(left + width,  (float)p.mWidth);
++	float bottom = std::min(top  + height, (float)p.mHeight);
++	width  = right - left;
+ 	height = bottom - top;
+ 
+-	u1 = left / p.mWidth;  v1 = top / p.mHeight;
+-	u2 = right / p.mWidth;  v2 = bottom / p.mHeight;
++	u1 = left   / p.mWidth;  v1 = top    / p.mHeight;
++	u2 = right  / p.mWidth;  v2 = bottom / p.mHeight;
+ 
+@@ -739,3 +735,3 @@ static constexpr float kDefaultUvBounds[4] = { 0.f, 0.f, 1.f, 1.f };
+ 
+-static void GfxBindTexture(GLuint tex, const float* uvBounds = kDefaultUvBounds)
++static void GfxBindTexture(GLuint tex, const float *uvBounds = kDefaultUvBounds)
+ {
+@@ -750,6 +746,6 @@ void TextureData::Blt(float theX, float theY, const Rect& theSrcRect, const Colo
+ {
+-	int srcLeft = theSrcRect.mX;
+-	int srcTop = theSrcRect.mY;
+-	int srcRight = srcLeft + theSrcRect.mWidth;
+-	int srcBottom = srcTop + theSrcRect.mHeight;
++	int srcLeft   = theSrcRect.mX;
++	int srcTop    = theSrcRect.mY;
++	int srcRight  = srcLeft + theSrcRect.mWidth;
++	int srcBottom = srcTop  + theSrcRect.mHeight;
+ 	if (srcLeft >= srcRight || srcTop >= srcBottom) return;
+@@ -773,3 +769,3 @@ void TextureData::Blt(float theX, float theY, const Rect& theSrcRect, const Colo
+ 			w = srcRight - srcX; h = srcBottom - srcY;
+-			GLuint& tex = GetTexture(srcX, srcY, w, h, u1, v1, u2, v2, uvb);
++			GLuint &tex = GetTexture(srcX, srcY, w, h, u1, v1, u2, v2, uvb);
+ 			float x = dstX, y = dstY;
+@@ -802,3 +798,3 @@ static inline float GetCoord(const GLVertex& v, int n)
+ 
+-static inline GLVertex Interpolate(const GLVertex& a, const GLVertex& b, float t)
++static inline GLVertex Interpolate(const GLVertex &a, const GLVertex &b, float t)
+ {
+@@ -813,3 +809,3 @@ static inline GLVertex Interpolate(const GLVertex& a, const GLVertex& b, float t
+ 			return (int)(((a.color >> shift) & 0xff) + t * (((b.color >> shift) & 0xff) - ((a.color >> shift) & 0xff)));
+-			};
++		};
+ 		r.color = (lerp(0)) | (lerp(8) << 8) | (lerp(16) << 16) | (lerp(24) << 24);
+@@ -851,3 +847,3 @@ struct PointClipper
+ 
+-static void DrawPolyClipped(const Rect* clip, const VertexList& list)
++static void DrawPolyClipped(const Rect *clip, const VertexList &list)
+ {
+@@ -859,3 +855,3 @@ static void DrawPolyClipped(const Rect* clip, const VertexList& list)
+ 
+-	VertexList* in = &l1, * out = &l2;
++	VertexList *in = &l1, *out = &l2;
+ 	PointClipper<std::less<float>>          lc;
+@@ -863,5 +859,5 @@ static void DrawPolyClipped(const Rect* clip, const VertexList& list)
+ 
+-	lc.ClipPoints(0, left, *in, *out); std::swap(in, out); out->clear();
+-	lc.ClipPoints(1, top, *in, *out); std::swap(in, out); out->clear();
+-	gc.ClipPoints(0, right, *in, *out); std::swap(in, out); out->clear();
++	lc.ClipPoints(0, left,   *in, *out); std::swap(in, out); out->clear();
++	lc.ClipPoints(1, top,    *in, *out); std::swap(in, out); out->clear();
++	gc.ClipPoints(0, right,  *in, *out); std::swap(in, out); out->clear();
+ 	gc.ClipPoints(1, bottom, *in, *out);
+@@ -876,6 +872,6 @@ static void DrawPolyClipped(const Rect* clip, const VertexList& list)
+ 
+-static void DoPolyTextureClip(VertexList& list)
++static void DoPolyTextureClip(VertexList &list)
+ {
+ 	VertexList l2;
+-	VertexList* in = &list, * out = &l2;
++	VertexList *in = &list, *out = &l2;
+ 	PointClipper<std::less<float>>          lc;
+@@ -889,9 +885,9 @@ static void DoPolyTextureClip(VertexList& list)
+ 
+-void TextureData::BltTransformed(const SexyMatrix3& theTrans, const Rect& theSrcRect,
+-	const Color& theColor, const Rect* theClipRect, float theX, float theY, bool center)
++void TextureData::BltTransformed(const SexyMatrix3 &theTrans, const Rect& theSrcRect,
++	const Color& theColor, const Rect *theClipRect, float theX, float theY, bool center)
+ {
+-	int srcLeft = theSrcRect.mX;
+-	int srcTop = theSrcRect.mY;
+-	int srcRight = srcLeft + theSrcRect.mWidth;
+-	int srcBottom = srcTop + theSrcRect.mHeight;
++	int srcLeft   = theSrcRect.mX;
++	int srcTop    = theSrcRect.mY;
++	int srcRight  = srcLeft + theSrcRect.mWidth;
++	int srcBottom = srcTop  + theSrcRect.mHeight;
+ 	if (srcLeft >= srcRight || srcTop >= srcBottom) return;
+@@ -901,3 +897,3 @@ void TextureData::BltTransformed(const SexyMatrix3& theTrans, const Rect& theSrc
+ 	{
+-		startx = -theSrcRect.mWidth / 2.0f;
++		startx = -theSrcRect.mWidth  / 2.0f;
+ 		starty = -theSrcRect.mHeight / 2.0f;
+@@ -922,6 +918,6 @@ void TextureData::BltTransformed(const SexyMatrix3& theTrans, const Rect& theSrc
+ 			w = srcRight - srcX; h = srcBottom - srcY;
+-			GLuint& tex = GetTexture(srcX, srcY, w, h, u1, v1, u2, v2, uvb);
++			GLuint &tex = GetTexture(srcX, srcY, w, h, u1, v1, u2, v2, uvb);
+ 
+ 			float x = dstX, y = dstY;
+-			SexyVector2 p[4] = { {x, y}, {x, y + h}, {x + w, y}, {x + w, y + h} };
++			SexyVector2 p[4] = { {x, y}, {x, y+h}, {x+w, y}, {x+w, y+h} };
+ 			SexyVector2 tp[4];
+@@ -941,5 +937,3 @@ void TextureData::BltTransformed(const SexyMatrix3& theTrans, const Rect& theSrc
+ 					if (tp[i].x < cl || tp[i].x >= cr || tp[i].y < ct || tp[i].y >= cb)
+-					{
+-						clipped = true; break;
+-					}
++						{ clipped = true; break; }
+ 			}
+@@ -975,3 +969,3 @@ void TextureData::BltTransformed(const SexyMatrix3& theTrans, const Rect& theSrc
+ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTriangles,
+-	unsigned int theColor, float tx, float ty)
++                               unsigned int theColor, float tx, float ty)
+ {
+@@ -1006,5 +1000,5 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
+ 		GLVertex vtx[3] = {
+-			{ tv[0].x + tx, tv[0].y + ty, 0, GetColorFromTriVertex(tv[0], theColor), tv[0].u * mMaxTotalU, tv[0].v * mMaxTotalV },
+-			{ tv[1].x + tx, tv[1].y + ty, 0, GetColorFromTriVertex(tv[1], theColor), tv[1].u * mMaxTotalU, tv[1].v * mMaxTotalV },
+-			{ tv[2].x + tx, tv[2].y + ty, 0, GetColorFromTriVertex(tv[2], theColor), tv[2].u * mMaxTotalU, tv[2].v * mMaxTotalV },
++			{ tv[0].x+tx, tv[0].y+ty, 0, GetColorFromTriVertex(tv[0], theColor), tv[0].u*mMaxTotalU, tv[0].v*mMaxTotalV },
++			{ tv[1].x+tx, tv[1].y+ty, 0, GetColorFromTriVertex(tv[1], theColor), tv[1].u*mMaxTotalU, tv[1].v*mMaxTotalV },
++			{ tv[2].x+tx, tv[2].y+ty, 0, GetColorFromTriVertex(tv[2], theColor), tv[2].u*mMaxTotalU, tv[2].v*mMaxTotalV },
+ 		};
+@@ -1021,8 +1015,8 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
+ 
+-		int aLeft = std::max(0, (int)floorf(minU));
+-		int aTop = std::max(0, (int)floorf(minV));
+-		int aRight = std::min(mTexVecWidth, (int)ceilf(maxU));
++		int aLeft   = std::max(0, (int)floorf(minU));
++		int aTop    = std::max(0, (int)floorf(minV));
++		int aRight  = std::min(mTexVecWidth,  (int)ceilf(maxU));
+ 		int aBottom = std::min(mTexVecHeight, (int)ceilf(maxV));
+ 
+-		TextureDataPiece& std0 = mTextures[0];
++		TextureDataPiece &std0 = mTextures[0];
+ 		for (int i = aTop; i < aBottom; i++)
+@@ -1031,3 +1025,3 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
+ 			{
+-				TextureDataPiece& piece = mTextures[i * mTexVecWidth + j];
++				TextureDataPiece &piece = mTextures[i * mTexVecWidth + j];
+ 				float halfU = 0.5f / piece.mWidth;
+@@ -1066,5 +1060,5 @@ GLInterface::GLInterface(SexyAppBase* theApp)
+ 	mApp = theApp;
+-	mWidth = mApp->mWidth;
++	mWidth  = mApp->mWidth;
+ 	mHeight = mApp->mHeight;
+-	mDisplayWidth = mWidth;
++	mDisplayWidth  = mWidth;
+ 	mDisplayHeight = mHeight;
+@@ -1077,3 +1071,3 @@ GLInterface::GLInterface(SexyAppBase* theApp)
+ 
+-	gVertexMode = (GLenum)-1;
++	gVertexMode  = (GLenum)-1;
+ 	gNumVertices = 0;
+@@ -1086,3 +1080,3 @@ GLInterface::~GLInterface()
+ 	Flush();
+-	for (auto* img : mImageSet)
++	for (auto *img : mImageSet)
+ 	{
+@@ -1138,13 +1132,35 @@ void GLInterface::UpdateViewport()
+ 	vw = width; vh = height;
++	mDisplayWidth = width; mDisplayHeight = height;
++
++	int ww = width, wh = height;
++#ifndef NINTENDO_SWITCH
++	SDL_GetWindowSize((SDL_Window*)mApp->mWindow, &ww, &wh);
++#endif
++
++	int ivx = 0, ivy = 0, ivw = ww, ivh = wh;
+ 
+ 	// Letterbox to 4:3
+-	if (width * 3 > height * 4)
+-	{
+-		vw = height * 4 / 3;
+-		vx = (width - vw) / 2;
+-	}
+-	else if (width * 3 < height * 4)
++	if (!mApp->mStretchToFit)
+ 	{
+-		vh = width * 3 / 4;
+-		vy = (height - vh) / 2;
++		if (width * 3 > height * 4)
++		{
++			vw = height * 4 / 3;
++			vx = (width - vw) / 2;
++		}
++		else if (width * 3 < height * 4)
++		{
++			vh = width * 3 / 4;
++			vy = (height - vh) / 2;
++		}
++
++		if (ww * 3 > wh * 4)
++		{
++			ivw = wh * 4 / 3;
++			ivx = (ww - ivw) / 2;
++		}
++		else if (ww * 3 < wh * 4)
++		{
++			ivh = ww * 3 / 4;
++			ivy = (wh - ivh) / 2;
++		}
+ 	}
+@@ -1153,2 +1169,3 @@ void GLInterface::UpdateViewport()
+ 	mPresentationRect = Rect(vx, vy, vw, vh);
++	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
+ }
+@@ -1167,5 +1184,5 @@ int GLInterface::Init(bool IsWindowed)
+ 		gUfViewProjMtx = glGetUniformLocation(gProgram, "u_viewProj");
+-		gUfTexture = glGetUniformLocation(gProgram, "u_texture");
+-		gUfUseTexture = glGetUniformLocation(gProgram, "u_useTexture");
+-		gUfUvBounds = glGetUniformLocation(gProgram, "u_uvBounds");
++		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
++		gUfUseTexture  = glGetUniformLocation(gProgram, "u_useTexture");
++		gUfUvBounds    = glGetUniformLocation(gProgram, "u_uvBounds");
+ 
+@@ -1184,5 +1201,5 @@ int GLInterface::Init(bool IsWindowed)
+ 	gTextureSizeMustBePow2 = false;
+-	gMinTextureWidth = 8;
++	gMinTextureWidth  = 8;
+ 	gMinTextureHeight = 8;
+-	gMaxTextureWidth = aMaxSize;
++	gMaxTextureWidth  = aMaxSize;
+ 	gMaxTextureHeight = aMaxSize;
+@@ -1204,8 +1221,8 @@ int GLInterface::Init(bool IsWindowed)
+ 
+-	mRGBBits = 32;
+-	mRedBits = 8; mGreenBits = 8; mBlueBits = 8;
+-	mRedShift = 0; mGreenShift = 8; mBlueShift = 16;
+-	mRedMask = 0xFFu << mRedShift;
++	mRGBBits   = 32;
++	mRedBits   = 8; mGreenBits = 8; mBlueBits  = 8;
++	mRedShift  = 0; mGreenShift = 8; mBlueShift = 16;
++	mRedMask   = 0xFFu << mRedShift;
+ 	mGreenMask = 0xFFu << mGreenShift;
+-	mBlueMask = 0xFFu << mBlueShift;
++	mBlueMask  = 0xFFu << mBlueShift;
+ 
+@@ -1225,3 +1242,3 @@ void GLInterface::SetVideoOnlyDraw(bool)
+ 	mScreenImage = new GLImage(this);
+-	mScreenImage->mWidth = mWidth;
++	mScreenImage->mWidth  = mWidth;
+ 	mScreenImage->mHeight = mHeight;
+@@ -1256,3 +1273,3 @@ void GLInterface::Flush()
+ 
+-bool GLInterface::CreateImageTexture(MemoryImage* theImage)
++bool GLInterface::CreateImageTexture(MemoryImage *theImage)
+ {
+@@ -1267,3 +1284,3 @@ bool GLInterface::CreateImageTexture(MemoryImage* theImage)
+ 
+-	TextureData* data = (TextureData*)theImage->mRenderData;
++	TextureData *data = (TextureData*)theImage->mRenderData;
+ 	data->CheckCreateTextures(theImage);
+@@ -1286,6 +1303,6 @@ bool GLInterface::RecoverBits(MemoryImage* theImage)
+ 		{
+-			TextureDataPiece& piece = data->mTextures[row * data->mTexVecWidth + col];
++			TextureDataPiece &piece = data->mTextures[row * data->mTexVecWidth + col];
+ 			int offx = col * data->mTexPieceWidth;
+ 			int offy = row * data->mTexPieceHeight;
+-			int w = std::min(theImage->mWidth - offx, piece.mWidth);
++			int w = std::min(theImage->mWidth  - offx, piece.mWidth);
+ 			int h = std::min(theImage->mHeight - offy, piece.mHeight);
+@@ -1328,3 +1345,3 @@ bool GLInterface::RecoverBits(MemoryImage* theImage)
+ 
+-void GLInterface::PushTransform(const SexyMatrix3& theTransform, bool concatenate)
++void GLInterface::PushTransform(const SexyMatrix3 &theTransform, bool concatenate)
+ {
+@@ -1361,3 +1378,3 @@ void GLInterface::Blt(Image* theImage, float theX, float theY,
+ void GLInterface::BltClipF(Image* theImage, float theX, float theY,
+-	const Rect& theSrcRect, const Rect* theClipRect, const Color& theColor, int theDrawMode, bool linearFilter)
++	const Rect& theSrcRect, const Rect *theClipRect, const Color& theColor, int theDrawMode, bool linearFilter)
+ {
+@@ -1379,6 +1396,6 @@ void GLInterface::BltMirror(Image* theImage, float theX, float theY,
+ void GLInterface::StretchBlt(Image* theImage, const Rect& theDestRect,
+-	const Rect& theSrcRect, const Rect* theClipRect, const Color& theColor,
++	const Rect& theSrcRect, const Rect* theClipRect, const Color &theColor,
+ 	int theDrawMode, bool fastStretch, bool mirror)
+ {
+-	float xs = (float)theDestRect.mWidth / theSrcRect.mWidth;
++	float xs = (float)theDestRect.mWidth  / theSrcRect.mWidth;
+ 	float ys = (float)theDestRect.mHeight / theSrcRect.mHeight;
+@@ -1410,4 +1427,4 @@ void GLInterface::BltRotated(Image* theImage, float theX, float theY,
+ void GLInterface::BltTransformed(Image* theImage, const Rect* theClipRect,
+-	const Color& theColor, int theDrawMode, const Rect& theSrcRect,
+-	const SexyMatrix3& theTransform, bool linearFilter, float theX, float theY, bool center)
++	const Color& theColor, int theDrawMode, const Rect &theSrcRect,
++	const SexyMatrix3 &theTransform, bool linearFilter, float theX, float theY, bool center)
+ {
+@@ -1420,3 +1437,3 @@ void GLInterface::BltTransformed(Image* theImage, const Rect* theClipRect,
+ 	SetLinearFilter(linearFilter);
+-	TextureData* data = (TextureData*)mem->mRenderData;
++	TextureData *data = (TextureData*)mem->mRenderData;
+ 
+@@ -1478,3 +1495,3 @@ void GLInterface::FillRect(const Rect& theRect, const Color& theColor, int theDr
+ 	float x = theRect.mX, y = theRect.mY;
+-	float w = theRect.mWidth, h = theRect.mHeight;
++	float w = theRect.mWidth,     h = theRect.mHeight;
+ 	uint32_t c = theColor.ToGLColor();
+@@ -1490,3 +1507,3 @@ void GLInterface::FillRect(const Rect& theRect, const Color& theColor, int theDr
+ 	{
+-		SexyVector2 p[4] = { {x, y}, {x, y + h}, {x + w, y}, {x + w, y + h} };
++		SexyVector2 p[4] = { {x, y}, {x, y+h}, {x+w, y}, {x+w, y+h} };
+ 		for (int i = 0; i < 4; i++)
+@@ -1505,4 +1522,4 @@ void GLInterface::FillRect(const Rect& theRect, const Color& theColor, int theDr
+ 
+-void GLInterface::DrawTriangle(const TriVertex& p1, const TriVertex& p2, const TriVertex& p3,
+-	const Color& theColor, int theDrawMode)
++void GLInterface::DrawTriangle(const TriVertex &p1, const TriVertex &p2, const TriVertex &p3,
++	const Color &theColor, int theDrawMode)
+ {
+@@ -1524,4 +1541,4 @@ void GLInterface::DrawTriangle(const TriVertex& p1, const TriVertex& p2, const T
+ 
+-void GLInterface::DrawTriangleTex(const TriVertex& p1, const TriVertex& p2, const TriVertex& p3,
+-	const Color& theColor, int theDrawMode, Image* theTexture, bool blend)
++void GLInterface::DrawTriangleTex(const TriVertex &p1, const TriVertex &p2, const TriVertex &p3,
++	const Color &theColor, int theDrawMode, Image *theTexture, bool blend)
+ {
+@@ -1532,3 +1549,3 @@ void GLInterface::DrawTriangleTex(const TriVertex& p1, const TriVertex& p2, cons
+ void GLInterface::DrawTrianglesTex(const TriVertex theVertices[][3], int theNumTriangles,
+-	const Color& theColor, int theDrawMode, Image* theTexture, float tx, float ty, bool blend)
++	const Color &theColor, int theDrawMode, Image *theTexture, float tx, float ty, bool blend)
+ {
+@@ -1547,3 +1564,3 @@ void GLInterface::DrawTrianglesTex(const TriVertex theVertices[][3], int theNumT
+ void GLInterface::DrawTrianglesTexStrip(const TriVertex theVertices[], int theNumTriangles,
+-	const Color& theColor, int theDrawMode, Image* theTexture, float tx, float ty, bool blend)
++	const Color &theColor, int theDrawMode, Image *theTexture, float tx, float ty, bool blend)
+ {
+@@ -1566,3 +1583,3 @@ void GLInterface::DrawTrianglesTexStrip(const TriVertex theVertices[], int theNu
+ void GLInterface::FillPoly(const Point theVertices[], int theNumVertices,
+-	const Rect* theClipRect, const Color& theColor, int theDrawMode, int tx, int ty)
++	const Rect *theClipRect, const Color &theColor, int theDrawMode, int tx, int ty)
+ {

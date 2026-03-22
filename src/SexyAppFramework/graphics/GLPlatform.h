@@ -1,7 +1,7 @@
 /*
  * Portions of this file are based on the PopCap Games Framework
  * Copyright (C) 2005-2009 PopCap Games, Inc.
- * 
+ *
  * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later AND LicenseRef-PopCap
@@ -26,11 +26,13 @@
 #define __GLPLATFORM_H__
 
 #ifdef NINTENDO_SWITCH
+
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
 #else
 
 #ifdef _MSC_VER
@@ -48,7 +50,7 @@
 
 #endif
 
-// Shared macro definitions â€” identical keywords in GLSL ES 1.00 and GLSL 1.20
+ // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
 #define GLSL_VERT_MACROS \
 	"#define VERT_IN attribute\n" \
 	"#define V2F varying\n"
@@ -65,8 +67,6 @@ inline void PlatformGLInit()
 {
 #ifndef NINTENDO_SWITCH
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
-#else
-	// Switch links GLES2 directly, so function pointers are unnecessary.
 #endif
 }
 
