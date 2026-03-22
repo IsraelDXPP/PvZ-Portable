@@ -31,6 +31,7 @@
 #include "graphics/GLInterface.h"
 #include "graphics/GLImage.h"
 #include "widget/WidgetManager.h"
+#include "Sexy.TodLib/TodDebug.h"
 
 using namespace Sexy;
 
