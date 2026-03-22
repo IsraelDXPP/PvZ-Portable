@@ -396,29 +396,35 @@ if(APPLE)
         INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 endif()
 
+# Asset Automation (Python discovery)
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(NOT Python3_Interpreter_FOUND)
+	find_program(Python3_EXECUTABLE NAMES python3 python python.exe)
+	if(Python3_EXECUTABLE)
+		set(Python3_Interpreter_FOUND TRUE)
+	endif()
+endif()
+
 # Properties Embedding (Cross-platform)
 set(PROPERTIES_EMBED_CPP "${CMAKE_CURRENT_BINARY_DIR}/properties_embed.cpp")
-add_custom_command(
-    OUTPUT "${PROPERTIES_EMBED_CPP}"
-    COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py" 
-            "${CMAKE_CURRENT_SOURCE_DIR}/assets/properties" "${PROPERTIES_EMBED_CPP}"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py"
-    COMMENT "Embedding properties folder..."
-)
+if(Python3_Interpreter_FOUND)
+	add_custom_command(
+		OUTPUT "${PROPERTIES_EMBED_CPP}"
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py" 
+				"${CMAKE_CURRENT_SOURCE_DIR}/assets/properties" "${PROPERTIES_EMBED_CPP}"
+		DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_folder.py"
+		COMMENT "Embedding properties folder..."
+	)
+else()
+	# Fallback: create an empty loader if Python is missing
+	file(WRITE "${PROPERTIES_EMBED_CPP}" "#include \"PakInterface.h\"\nvoid LoadEmbeddedProperties(PakInterface* p) {}\n")
+endif()
 target_sources(pvz-portable PRIVATE "${PROPERTIES_EMBED_CPP}")
 target_include_directories(pvz-portable PRIVATE src/SexyAppFramework/paklib)
 
 # Asset Automation (Download)
 # If 'main.pak' is missing from 'assets', download it from Google Drive.
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets/main.pak")
-	find_package(Python3 COMPONENTS Interpreter QUIET)
-	if(NOT Python3_Interpreter_FOUND)
-		find_program(Python3_EXECUTABLE NAMES python3 python python.exe)
-		if(Python3_EXECUTABLE)
-			set(Python3_Interpreter_FOUND TRUE)
-		endif()
-	endif()
-
 	if(Python3_Interpreter_FOUND)
 		message(STATUS "Asset automation: main.pak not found. Attempting download from Google Drive using ${Python3_EXECUTABLE}...")
 		execute_process(
