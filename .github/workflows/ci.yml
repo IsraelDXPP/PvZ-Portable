@@ -107,6 +107,7 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         sudo -u builder bash -lc '
+          set -e
           export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
           mkdir -p build
           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
@@ -702,6 +703,9 @@ jobs:
       - name: Prepare Release Files
         run: |
           mkdir -p release_files
+          
+          echo "Inspecting downloaded artifacts..."
+          ls -R artifacts/
 
           echo "Preparing Arch Linux file..."
           chmod +x artifacts/pvz-portable-archlinux/pvz-portable
