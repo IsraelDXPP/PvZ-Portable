@@ -63,17 +63,19 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build
-        key: ${{ runner.os }}-archlinux-build-${{ github.sha }}
+        key: ${{ runner.os }}-arch-build-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-archlinux-build-
+          ${{ runner.os }}-arch-build-${{ github.ref_name }}-
+          ${{ runner.os }}-arch-build-
  
     - name: ccache
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-archlinux-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-arch-ccache-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-archlinux-ccache-
+          ${{ runner.os }}-arch-ccache-${{ github.ref_name }}-
+          ${{ runner.os }}-arch-ccache-
 
     - name: Install Base Dependencies
       run: |
@@ -135,16 +137,18 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build
-        key: ${{ runner.os }}-msys2-build-${{ github.sha }}
+        key: ${{ runner.os }}-msys2-build-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-msys2-build-${{ github.ref_name }}-
           ${{ runner.os }}-msys2-build-
  
     - name: ccache
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-msys2-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-msys2-ccache-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-msys2-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-msys2-ccache-
 
     - uses: msys2/setup-msys2@v2
@@ -197,8 +201,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build
-        key: ${{ runner.os }}-msvc-build-${{ github.sha }}
+        key: ${{ runner.os }}-msvc-build-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') || github.sha }}
         restore-keys: |
+          ${{ runner.os }}-msvc-build-${{ github.ref_name }}-
           ${{ runner.os }}-msvc-build-
 
     - uses: ilammy/msvc-dev-cmd@v1
@@ -239,23 +244,33 @@ jobs:
       - name: Cache Build and OpenMPT
         uses: actions/cache@v4
         with:
+          key: ${{ runner.os }}-switch-build-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-switch-build-${{ github.ref_name }}-
+            ${{ runner.os }}-switch-build-
+ 
+      - name: Cache libopenmpt (Switch)
+        id: cache-switch-libopenmpt
+        uses: actions/cache@v4
+        with:
           path: |
-            build
             /opt/devkitpro/portlibs/switch/include/libopenmpt
             /opt/devkitpro/portlibs/switch/lib/libopenmpt.a
-          key: ${{ runner.os }}-switch-build-${{ github.sha }}
+          key: ${{ runner.os }}-switch-libopenmpt-v1
           restore-keys: |
-            ${{ runner.os }}-switch-build-
+            ${{ runner.os }}-switch-libopenmpt-
       - name: ccache
         uses: actions/cache@v4
         with:
           path: .ccache
-          key: ${{ runner.os }}-switch-ccache-${{ github.sha }}
+          key: ${{ runner.os }}-switch-ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-switch-ccache-${{ github.ref_name }}-
             ${{ runner.os }}-switch-ccache-
 
       - name: Install dependencies
         run: |
+          pacman -Syu --noconfirm ccache
           dkp-pacman -S --needed --noconfirm \
             switch-sdl2 \
             switch-libogg \
@@ -264,10 +279,10 @@ jobs:
             switch-libpng \
             switch-libjpeg-turbo \
             switch-zlib \
-            switch-cmake \
-            ccache
+            switch-cmake
 
       - name: Compile libopenmpt for Switch
+        if: steps.cache-switch-libopenmpt.outputs.cache-hit != 'true'
         shell: bash
         run: |
           if [ -f "/opt/devkitpro/portlibs/switch/lib/libopenmpt.a" ]; then
@@ -309,16 +324,18 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build
-        key: ${{ runner.os }}-macos-build-${{ github.sha }}
+        key: ${{ runner.os }}-macos-build-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-macos-build-${{ github.ref_name }}-
           ${{ runner.os }}-macos-build-
  
     - name: ccache
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-macos-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-macos-ccache-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-macos-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-macos-ccache-
 
     - name: Install Dependencies
@@ -377,16 +394,18 @@ jobs:
           build-android-*
           build-sdl2
           sdl2-android
-        key: ${{ runner.os }}-android-build-${{ github.sha }}
+        key: ${{ runner.os }}-android-build-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-android-build-${{ github.ref_name }}-
           ${{ runner.os }}-android-build-
  
     - name: ccache
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-android-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-android-ccache-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-android-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-android-ccache-
 
     - name: Set up JDK
@@ -587,8 +606,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-wasm-ccache-${{ github.sha }}
+        key: ${{ runner.os }}-wasm-ccache-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
+          ${{ runner.os }}-wasm-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-wasm-ccache-
  
     - name: Cache wasm-libs
@@ -596,8 +616,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: wasm-libs
-        key: ${{ runner.os }}-wasm-libs-${{ hashFiles('build-wasm/libopenmpt-version.txt') || 'v1' }}
+        key: ${{ runner.os }}-wasm-libs-${{ github.ref_name }}-${{ hashFiles('build-wasm/libopenmpt-version.txt') || 'v1' }}
         restore-keys: |
+          ${{ runner.os }}-wasm-libs-${{ github.ref_name }}-
           ${{ runner.os }}-wasm-libs-
 
     - name: Setup Emscripten
