@@ -409,6 +409,11 @@ jobs:
           ${{ runner.os }}-android-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-android-ccache-
 
+    - name: Install Build Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache
+
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -663,7 +668,14 @@ jobs:
       run: |
         export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
         mkdir -p build-wasm
-        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/wasm-libs
+        emcmake cmake -G Ninja -B build-wasm \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLIMBO_PAGE=OFF \
+          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DOPENMPT_LIBRARY=$GITHUB_WORKSPACE/wasm-libs/lib/libopenmpt.a \
+          -DOPENMPT_INCLUDE_DIR=$GITHUB_WORKSPACE/wasm-libs/include
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact

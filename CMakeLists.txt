@@ -79,8 +79,14 @@ elseif(NINTENDO_3DS)
 	)
 elseif(EMSCRIPTEN)
 	# libopenmpt has no Emscripten port; must be pre-built with emmake.
-	find_library(OPENMPT_LIBRARY NAMES openmpt libopenmpt REQUIRED)
+	if(NOT OPENMPT_LIBRARY)
+		find_library(OPENMPT_LIBRARY NAMES openmpt libopenmpt REQUIRED)
+	endif()
+	if(NOT OPENMPT_INCLUDE_DIR)
+		find_path(OPENMPT_INCLUDE_DIR NAMES libopenmpt/libopenmpt.h REQUIRED)
+	endif()
 	set(OPENMPT_LIB ${OPENMPT_LIBRARY})
+	list(APPEND PLAT_INCLUDES ${OPENMPT_INCLUDE_DIR})
 
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/emscripten/Window.cpp
