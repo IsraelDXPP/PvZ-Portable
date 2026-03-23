@@ -57,13 +57,17 @@ set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
 	# Force full debug symbols and disable optimizations for absolute traceability
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		# Global override of standard flag variables to prevent toolchain defaults
 		set(CMAKE_STRIP "" CACHE STRING "Disable strip" FORCE)
 		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "Disable LTO" FORCE)
 		
 		foreach(lang C CXX)
 			foreach(type "" _DEBUG _RELWITHDEBINFO _RELEASE _MINSIZEREL)
-				set(CMAKE_${lang}_FLAGS${type} "-g3 -O0 -fno-inline -fno-omit-frame-pointer" CACHE STRING "Force debug flags" FORCE)
+				# Use string operations to keep existing defines but force our debug/optimization preferences
+				set(CUR_FLAGS "${CMAKE_${lang}_FLAGS${type}}")
+				string(REPLACE "-O2" "" CUR_FLAGS "${CUR_FLAGS}")
+				string(REPLACE "-O3" "" CUR_FLAGS "${CUR_FLAGS}")
+				string(REPLACE "-Os" "" CUR_FLAGS "${CUR_FLAGS}")
+				set(CMAKE_${lang}_FLAGS${type} "${CUR_FLAGS} -g3 -O0 -fno-inline -fno-omit-frame-pointer" CACHE STRING "Force debug flags" FORCE)
 			endforeach()
 		endforeach()
 	endif()

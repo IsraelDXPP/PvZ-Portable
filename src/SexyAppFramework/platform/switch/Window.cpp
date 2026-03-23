@@ -105,7 +105,7 @@ void SexyAppBase::MakeWindow()
 	}
 
 	// Create an EGL window surface
-	mSurface = eglCreateWindowSurface(mWindow, config, nwindowGetDefault(), nullptr);
+	mSurface = eglCreateWindowSurface(mWindow, config, (EGLNativeWindowType)nwindowGetDefault(), nullptr);
 	if (!mSurface)
 	{
 		eglTerminate(mWindow);
