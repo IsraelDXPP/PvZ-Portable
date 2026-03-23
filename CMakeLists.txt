@@ -55,6 +55,20 @@ list(REMOVE_ITEM SOURCES
 set(LOW_MEMORY OFF CACHE BOOL "Enable low memory mode")
 set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
+	# Force full debug symbols and disable optimizations for absolute traceability
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		add_compile_options(-g3 -O0 -fno-inline -fno-inline-functions -fno-inline-small-functions -fno-omit-frame-pointer)
+		
+		# Explicitly strip optimization flags from base variables to prevent toolchain overrides
+		foreach(lang C CXX)
+			foreach(var CMAKE_${lang}_FLAGS CMAKE_${lang}_FLAGS_DEBUG CMAKE_${lang}_FLAGS_RELWITHDEBINFO)
+				string(REPLACE "-O2" "" ${var} "${${var}}")
+				string(REPLACE "-O3" "" ${var} "${${var}}")
+				string(REPLACE "-Os" "" ${var} "${${var}}")
+			endforeach()
+		endforeach()
+	endif()
+
 	set(VORBIS_LIB vorbisfile vorbis)
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/Window.cpp

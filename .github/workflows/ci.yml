@@ -260,7 +260,7 @@ jobs:
           source $DEVKITPRO/switchvars.sh
           mkdir -p build
           rm -f build/CMakeCache.txt
-          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
           cmake --build build
 
       - name: Upload Artifact
