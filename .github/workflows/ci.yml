@@ -66,6 +66,14 @@ jobs:
         key: ${{ runner.os }}-archlinux-build-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-archlinux-build-
+ 
+    - name: ccache
+      uses: actions/cache@v4
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-archlinux-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-archlinux-ccache-
 
     - name: Install Base Dependencies
       run: |
@@ -81,7 +89,8 @@ jobs:
           mpg123 \
           ninja \
           sdl2-compat \
-          sudo
+          sudo \
+          ccache
 
     - name: Create Builder User
       run: |
@@ -96,8 +105,9 @@ jobs:
     - name: Build PvZ-Portable
       run: |
         sudo -u builder bash -lc '
+          export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
           mkdir -p build
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
 
           mkdir -p dist
@@ -128,6 +138,14 @@ jobs:
         key: ${{ runner.os }}-msys2-build-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-msys2-build-
+ 
+    - name: ccache
+      uses: actions/cache@v4
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-msys2-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-msys2-ccache-
 
     - uses: msys2/setup-msys2@v2
       with:
@@ -145,12 +163,14 @@ jobs:
           mingw-w64-ucrt-x86_64-mpg123
           mingw-w64-ucrt-x86_64-ninja
           mingw-w64-ucrt-x86_64-SDL2
+          mingw-w64-ucrt-x86_64-ccache
 
     - name: Compile PvZ-Portable for Windows
       shell: msys2 {0}
       run: |
+        export CCACHE_DIR=$(cygpath -u "$GITHUB_WORKSPACE")/.ccache
         mkdir -p build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
         
         mkdir -p dist
@@ -226,6 +246,13 @@ jobs:
           key: ${{ runner.os }}-switch-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-switch-build-
+      - name: ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-switch-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-switch-ccache-
 
       - name: Install dependencies
         run: |
@@ -237,7 +264,8 @@ jobs:
             switch-libpng \
             switch-libjpeg-turbo \
             switch-zlib \
-            switch-cmake
+            switch-cmake \
+            ccache
 
       - name: Compile libopenmpt for Switch
         shell: bash
@@ -248,15 +276,17 @@ jobs:
             source $DEVKITPRO/switchvars.sh
             git clone --depth 1 https://github.com/OpenMPT/openmpt
             cd openmpt
-            make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX install 
+            export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
+            make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX CC="ccache $PORTLIBS_PREFIX/bin/arm-none-eabi-gcc" CXX="ccache $PORTLIBS_PREFIX/bin/arm-none-eabi-g++" install 
           fi
 
       - name: Build PvZ-Portable for Switch
         shell: bash
         run: |
           source $DEVKITPRO/switchvars.sh
+          export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
           mkdir -p build
-          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
 
       - name: Upload Artifact
@@ -282,6 +312,14 @@ jobs:
         key: ${{ runner.os }}-macos-build-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-macos-build-
+ 
+    - name: ccache
+      uses: actions/cache@v4
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-macos-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-macos-ccache-
 
     - name: Install Dependencies
       run: |
@@ -295,12 +333,14 @@ jobs:
           libvorbis \
           mpg123 \
           ninja \
-          sdl2
+          sdl2 \
+          ccache
 
     - name: Build PvZ-Portable
       run: |
+        export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
         mkdir -p build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
 
         mkdir -p dist
@@ -330,6 +370,7 @@ jobs:
         fetch-depth: 0
 
     - name: Cache Build
+      id: cache-android
       uses: actions/cache@v4
       with:
         path: |
@@ -339,6 +380,14 @@ jobs:
         key: ${{ runner.os }}-android-build-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-android-build-
+ 
+    - name: ccache
+      uses: actions/cache@v4
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-android-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-android-ccache-
 
     - name: Set up JDK
       uses: actions/setup-java@v5
@@ -365,6 +414,7 @@ jobs:
         fi
 
     - name: Download SDL2 Source
+      if: steps.cache-android.outputs.cache-hit != 'true'
       run: |
         SDL2_TAG=$(git ls-remote --tags https://github.com/libsdl-org/SDL.git 'refs/tags/release-2.*' \
           | sed 's|.*refs/tags/release-||' | sort -V | tail -1)
@@ -382,9 +432,11 @@ jobs:
         vcpkgJsonGlob: vcpkg.json
 
     - name: Build SDL2 Shared Library
+      if: steps.cache-android.outputs.cache-hit != 'true'
       run: |
         # On Android, SDL2 MUST be a shared library because the Java-side
         # SDLActivity loads it via System.loadLibrary("SDL2").
+        export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
         cmake -B build-sdl2 \
           -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
           -DANDROID_ABI=arm64-v8a \
@@ -393,6 +445,8 @@ jobs:
           -DSDL_STATIC=OFF \
           -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/sdl2-android \
           -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           sdl2-src
         cmake --build build-sdl2 -j$(nproc)
         cmake --install build-sdl2
@@ -404,6 +458,7 @@ jobs:
         BUILD_DIR=build-android-$ABI
         SDL2_PREFIX=$GITHUB_WORKSPACE/sdl2-android
 
+        export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
         cmake -B $BUILD_DIR \
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
           -DVCPKG_TARGET_TRIPLET=arm64-android \
@@ -413,7 +468,9 @@ jobs:
           -DANDROID_PLATFORM=android-$ANDROID_API \
           -DSDL2_DIR=$SDL2_PREFIX/lib/cmake/SDL2 \
           -DCMAKE_BUILD_TYPE=Release \
-          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+          -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
         cmake --build $BUILD_DIR -j$(nproc)
 
@@ -533,6 +590,15 @@ jobs:
         key: ${{ runner.os }}-wasm-ccache-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-wasm-ccache-
+ 
+    - name: Cache wasm-libs
+      id: cache-wasm-libs
+      uses: actions/cache@v4
+      with:
+        path: wasm-libs
+        key: ${{ runner.os }}-wasm-libs-${{ hashFiles('build-wasm/libopenmpt-version.txt') || 'v1' }}
+        restore-keys: |
+          ${{ runner.os }}-wasm-libs-
 
     - name: Setup Emscripten
       uses: mymindstorm/setup-emsdk@v14
@@ -543,6 +609,7 @@ jobs:
         sudo apt-get install -y ninja-build ccache
 
     - name: Build libopenmpt for Emscripten
+      if: steps.cache-wasm-libs.outputs.cache-hit != 'true'
       run: |
         SYSROOT="$(em-config EMSCRIPTEN_ROOT)/cache/sysroot"
         OPENMPT_TAG=$(git ls-remote --tags https://github.com/OpenMPT/openmpt.git 'refs/tags/libopenmpt-*' \
@@ -566,7 +633,7 @@ jobs:
         emmake make CONFIG=emscripten \
           STATIC_LIB=1 SHARED_LIB=0 \
           EXAMPLES=0 OPENMPT123=0 TEST=0 \
-          PREFIX="${SYSROOT}" \
+          PREFIX="$GITHUB_WORKSPACE/wasm-libs" \
           CC="ccache emcc" CXX="ccache em++" \
           install
 
@@ -574,7 +641,7 @@ jobs:
       run: |
         export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
         mkdir -p build-wasm
-        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        emcmake cmake -G Ninja -B build-wasm -DCMAKE_BUILD_TYPE=Release -DLIMBO_PAGE=OFF -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/wasm-libs
         cmake --build build-wasm -j$(nproc)
 
     - name: Upload Artifact
