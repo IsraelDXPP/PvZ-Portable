@@ -57,14 +57,13 @@ set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
 	# Force full debug symbols and disable optimizations for absolute traceability
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		add_compile_options(-g3 -O0 -fno-inline -fno-inline-functions -fno-inline-small-functions -fno-omit-frame-pointer)
+		# Global override of standard flag variables to prevent toolchain defaults
+		set(CMAKE_STRIP "" CACHE STRING "Disable strip" FORCE)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "Disable LTO" FORCE)
 		
-		# Explicitly strip optimization flags from base variables to prevent toolchain overrides
 		foreach(lang C CXX)
-			foreach(var CMAKE_${lang}_FLAGS CMAKE_${lang}_FLAGS_DEBUG CMAKE_${lang}_FLAGS_RELWITHDEBINFO)
-				string(REPLACE "-O2" "" ${var} "${${var}}")
-				string(REPLACE "-O3" "" ${var} "${${var}}")
-				string(REPLACE "-Os" "" ${var} "${${var}}")
+			foreach(type "" _DEBUG _RELWITHDEBINFO _RELEASE _MINSIZEREL)
+				set(CMAKE_${lang}_FLAGS${type} "-g3 -O0 -fno-inline -fno-omit-frame-pointer" CACHE STRING "Force debug flags" FORCE)
 			endforeach()
 		endforeach()
 	endif()
@@ -309,6 +308,12 @@ elseif (NINTENDO_SWITCH)
 		NACP pvz-portable.nacp
 		ICON ${CMAKE_CURRENT_SOURCE_DIR}/icon-switch.jpg
 	)
+
+	# Final target-level override for maximum safety
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		target_compile_options(pvz-portable PRIVATE -g3 -O0 -fno-inline -fno-inline-functions -fno-inline-small-functions -fno-omit-frame-pointer)
+		set_target_properties(pvz-portable PROPERTIES LINK_FLAGS "-g")
+	endif()
 elseif (NINTENDO_3DS)
 	target_link_libraries(pvz-portable PRIVATE citro3d shaders)
 
