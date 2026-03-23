@@ -106,13 +106,15 @@ jobs:
 
     - name: Build PvZ-Portable
       run: |
-        sudo -u builder bash -lc '
+        # Export GITHUB_WORKSPACE explicitly so the builder user can access it
+        export GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+        sudo -E -u builder bash -lc '
           set -e
-          export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
           mkdir -p build
           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
-
+          
           mkdir -p dist
           cp build/pvz-portable dist/
           if [ "${{ env.PVZ_DEBUG }}" = "OFF" ]; then
