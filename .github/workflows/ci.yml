@@ -241,9 +241,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache Build and OpenMPT
+      - name: Cache Build
         uses: actions/cache@v4
         with:
+          path: build
           key: ${{ runner.os }}-switch-build-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-switch-build-${{ github.ref_name }}-
