@@ -271,7 +271,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm ccache
+          (apt-get update && apt-get install -y ccache) || (pacman -Syu --noconfirm ccache) || true
           dkp-pacman -S --needed --noconfirm \
             switch-sdl2 \
             switch-libogg \
