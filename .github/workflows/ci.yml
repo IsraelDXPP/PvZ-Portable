@@ -293,7 +293,7 @@ jobs:
             git clone --depth 1 https://github.com/OpenMPT/openmpt
             cd openmpt
             export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
-            make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX CC="ccache $PORTLIBS_PREFIX/bin/arm-none-eabi-gcc" CXX="ccache $PORTLIBS_PREFIX/bin/arm-none-eabi-g++" install 
+            make CONFIG=gcc SHARED_LIB=0 DYNLINK=0 EXAMPLES=0 OPENMPT123=0 TEST=0 PREFIX=$PORTLIBS_PREFIX CC="ccache aarch64-none-elf-gcc" CXX="ccache aarch64-none-elf-g++" install 
           fi
 
       - name: Build PvZ-Portable for Switch
