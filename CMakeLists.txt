@@ -57,17 +57,19 @@ set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
 	# Force full debug symbols and disable optimizations for absolute traceability
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(CMAKE_STRIP "" CACHE STRING "Disable strip" FORCE)
-		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "Disable LTO" FORCE)
+		# Kill all optimization and strip flags at the root
+		set(CMAKE_STRIP "" CACHE STRING "Force disable strip" FORCE)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "Force disable LTO" FORCE)
+		set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose output" FORCE)
+
+		# Clear linker flags to avoid hidden -s (strip) or -O flags
+		set(CMAKE_EXE_LINKER_FLAGS "-g" CACHE STRING "Force debug linker flags" FORCE)
+		set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-g" CACHE STRING "Force debug linker flags" FORCE)
 		
 		foreach(lang C CXX)
 			foreach(type "" _DEBUG _RELWITHDEBINFO _RELEASE _MINSIZEREL)
-				# Use string operations to keep existing defines but force our debug/optimization preferences
-				set(CUR_FLAGS "${CMAKE_${lang}_FLAGS${type}}")
-				string(REPLACE "-O2" "" CUR_FLAGS "${CUR_FLAGS}")
-				string(REPLACE "-O3" "" CUR_FLAGS "${CUR_FLAGS}")
-				string(REPLACE "-Os" "" CUR_FLAGS "${CUR_FLAGS}")
-				set(CMAKE_${lang}_FLAGS${type} "${CUR_FLAGS} -g3 -O0 -fno-inline -fno-omit-frame-pointer" CACHE STRING "Force debug flags" FORCE)
+				# Use -gdwarf-4 for maximum tool compatibility on older/stable devkitPro environments
+				set(CMAKE_${lang}_FLAGS${type} "-g3 -gdwarf-4 -O0 -fno-inline -fno-omit-frame-pointer" CACHE STRING "Force debug flags" FORCE)
 			endforeach()
 		endforeach()
 	endif()
@@ -315,8 +317,16 @@ elseif (NINTENDO_SWITCH)
 
 	# Final target-level override for maximum safety
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		target_compile_options(pvz-portable PRIVATE -g3 -O0 -fno-inline -fno-inline-functions -fno-inline-small-functions -fno-omit-frame-pointer)
+		target_compile_options(pvz-portable PRIVATE -g3 -gdwarf-4 -O0 -fno-inline -fno-inline-functions -fno-inline-small-functions -fno-omit-frame-pointer)
 		set_target_properties(pvz-portable PROPERTIES LINK_FLAGS "-g")
+
+		# Targeted source protection for graphics initialization
+		set_source_files_properties(
+			src/SexyAppFramework/platform/switch/Window.cpp
+			src/SexyAppFramework/graphics/GLInterface.cpp
+			src/SexyAppFramework/SexyAppBase.cpp
+			PROPERTIES COMPILE_FLAGS "-g3 -gdwarf-4 -O0 -fno-inline"
+		)
 	endif()
 elseif (NINTENDO_3DS)
 	target_link_libraries(pvz-portable PRIVATE citro3d shaders)
