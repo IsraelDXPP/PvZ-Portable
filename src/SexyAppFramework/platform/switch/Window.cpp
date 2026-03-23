@@ -59,6 +59,7 @@ volatile int wait_for_gdb = 0;
 void SexyAppBase::MakeWindow()
 {
     while (wait_for_gdb);
+	asm("brk #0"); // breakpoint a nivel ARM
 
     // Connect to the EGL default display
     mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);
