@@ -1,14 +1,16 @@
 #include "MoreOptionsDialog.h"
-#include "LawnApp.h"
-#include "Resources.h"
-#include "LawnCommon.h"
+#include "../../LawnApp.h"
+#include "../../Resources.h"
+#include "../LawnCommon.h"
 #include "GameButton.h"
 #include "widget/Checkbox.h"
+#include "../../SexyAppFramework/widget/WidgetManager.h"
+#include "../../SexyAppFramework/graphics/Color.h"
 #include "../../Sexy.TodLib/TodStringFile.h"
 #include "../../Sexy.TodLib/TodCommon.h"
 #include "../../Sexy.TodLib/TodDebug.h"
 #include "graphics/Font.h"
-#include "Lawn/System/PlayerInfo.h"
+#include "../System/PlayerInfo.h"
 
 using namespace Sexy;
 

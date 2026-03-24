@@ -28,6 +28,7 @@
 #include "../System/Music.h"
 #include "../../Resources.h"
 #include "NewOptionsDialog.h"
+#include "MoreOptionsDialog.h"
 #include "../../ConstEnums.h"
 #include "../../Sexy.TodLib/TodFoley.h"
 #include "widget/Slider.h"
