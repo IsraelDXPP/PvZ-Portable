@@ -198,48 +198,44 @@ Board::Board(LawnApp* theApp)
 
 #ifdef _REPLANTED_SPEED_CONTROL
 	mSlowdownButton = MakeNewButton(SLOWDOWN, this, "", nullptr, IMAGE_SLOWDOWN_BUTTON, IMAGE_SLOWDOWN_BUTTON_PRESSED, IMAGE_SLOWDOWN_BUTTON_PRESSED);
-	mSlowdownButton->mBtnNoDraw = false;
-	mSlowdownButton->mDoFinger = true;
-	mSlowdownButton->mTranslateX = 0;
-	mSlowdownButton->mTranslateY = 0;
-
 	mPauseButton = MakeNewButton(PAUSE, this, "", nullptr, IMAGE_PAUSE_BUTTON, IMAGE_PAUSE_BUTTON_PRESSED, IMAGE_PAUSE_BUTTON_PRESSED);
-	mPauseButton->mBtnNoDraw = false;
-	mPauseButton->mDoFinger = true;
-	mPauseButton->mTranslateX = 0;
-	mPauseButton->mTranslateY = 0;
-
 	mSpeedupButton = MakeNewButton(SPEEDUP, this, "", nullptr, IMAGE_SPEEDUP_BUTTON, IMAGE_SPEEDUP_BUTTON_PRESSED, IMAGE_SPEEDUP_BUTTON_PRESSED);
-	mSpeedupButton->mBtnNoDraw = false;
-	mSpeedupButton->mDoFinger = true;
-	mSpeedupButton->mTranslateX = 0;
-	mSpeedupButton->mTranslateY = 0;
-	mSpeedMod = SPEED_1_x;
-	UpdateSpeedButtons();
 #else
 	mSlowdownButton = new GameButton(SLOWDOWN);
 	mSlowdownButton->mButtonImage = IMAGE_SLOWDOWN_BUTTON;
 	mSlowdownButton->mDownImage = IMAGE_SLOWDOWN_BUTTON_PRESSED;
 	mSlowdownButton->mOverImage = IMAGE_SLOWDOWN_BUTTON_PRESSED;
-	mSlowdownButton->mLabel = "";
 	mSlowdownButton->mParentWidget = this;
 
 	mPauseButton = new GameButton(PAUSE);
 	mPauseButton->mButtonImage = IMAGE_PAUSE_BUTTON;
 	mPauseButton->mDownImage = IMAGE_PAUSE_BUTTON_PRESSED;
 	mPauseButton->mOverImage = IMAGE_PAUSE_BUTTON_PRESSED;
-	mPauseButton->mLabel = "";
 	mPauseButton->mParentWidget = this;
 
 	mSpeedupButton = new GameButton(SPEEDUP);
 	mSpeedupButton->mButtonImage = IMAGE_SPEEDUP_BUTTON;
 	mSpeedupButton->mDownImage = IMAGE_SPEEDUP_BUTTON_PRESSED;
 	mSpeedupButton->mOverImage = IMAGE_SPEEDUP_BUTTON_PRESSED;
-	mSpeedupButton->mLabel = "";
 	mSpeedupButton->mParentWidget = this;
-	mSpeedMod = SPEED_1_x;
-	UpdateSpeedButtons();
 #endif
+
+	mSlowdownButton->mBtnNoDraw = false;
+	mSlowdownButton->mLabel = "";
+	mPauseButton->mBtnNoDraw = false;
+	mPauseButton->mLabel = "";
+	mSpeedupButton->mBtnNoDraw = false;
+	mSpeedupButton->mLabel = "";
+
+#ifdef _REPLANTED_SPEED_CONTROL
+	mSlowdownButton->mDoFinger = true;
+	mPauseButton->mDoFinger = true;
+	mSpeedupButton->mDoFinger = true;
+	mSpeedMod = SPEED_1_x;
+#else
+	mSpeedMod = SPEED_NORMAL;
+#endif
+	UpdateSpeedButtons();
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
@@ -4658,10 +4654,11 @@ void Board::MouseDown(int x, int y, int theClickCount)
 	Widget::MouseDown(x, y, theClickCount);
 	mIgnoreMouseUp = !CanInteractWithBoardButtons();
 #ifdef _REPLANTED_SPEED_CONTROL
-	if (mAllowSpeedMod && (mSlowdownButton->mIsOver || mPauseButton->mIsOver || mSpeedupButton->mIsOver))
+	bool aIsOver = mSlowdownButton->mIsOver || mPauseButton->mIsOver || mSpeedupButton->mIsOver;
 #else
-	if (mAllowSpeedMod && (mSlowdownButton->IsMouseOver() || mPauseButton->IsMouseOver() || mSpeedupButton->IsMouseOver()))
+	bool aIsOver = mSlowdownButton->IsMouseOver() || mPauseButton->IsMouseOver() || mSpeedupButton->IsMouseOver();
 #endif
+	if (mAllowSpeedMod && aIsOver)
 	{
 		mIgnoreMouseUp = false;
 	}
@@ -6085,32 +6082,26 @@ void Board::Update()
 	{
 #ifdef _REPLANTED_SPEED_CONTROL
 		mSlowMoCounter++;
-		if (mSpeedMod == SPEED_0_75x)
+		switch (mSpeedMod)
 		{
-			aUpdateCount = (mSlowMoCounter % 4 == 0) ? 0 : 1;
-		}
-		else if (mSpeedMod == SPEED_1_x)
-		{
-			aUpdateCount = 1;
-		}
-		else if (mSpeedMod == SPEED_1_5x)
-		{
-			aUpdateCount = (mSlowMoCounter % 2 == 0) ? 1 : 2;
-		}
-		else if (mSpeedMod == SPEED_2_x)
-		{
-			aUpdateCount = 2;
-		}
-		else if (mSpeedMod == SPEED_2_5x)
-		{
-			aUpdateCount = (mSlowMoCounter % 2 == 0) ? 2 : 3;
+		case SPEED_0_25x:	aUpdateCount = (mSlowMoCounter % 4 == 0) ? 1 : 0; break;
+		case SPEED_0_75x:	aUpdateCount = (mSlowMoCounter % 4 == 0) ? 0 : 1; break;
+		case SPEED_1_x:		aUpdateCount = 1; break;
+		case SPEED_1_5x:	aUpdateCount = (mSlowMoCounter % 2 == 0) ? 1 : 2; break;
+		case SPEED_2_x:		aUpdateCount = 2; break;
+		case SPEED_2_5x:	aUpdateCount = (mSlowMoCounter % 2 == 0) ? 2 : 3; break;
+		case SPEED_3_x:		aUpdateCount = 3; break;
 		}
 #else
-		if (mSpeedMod == SPEED_SLOWMO) aUpdateCount = 0;
-		else if (mSpeedMod == SPEED_FAST) aUpdateCount = 2;
-		else if (mSpeedMod == SPEED_FASTER) aUpdateCount = 3;
-		else if (mSpeedMod == SPEED_FASTEST) aUpdateCount = 5;
-		else if (mSpeedMod == SPEED_ULTRAFAST) aUpdateCount = 10;
+		switch (mSpeedMod)
+		{
+		case SPEED_SLOWMO:		aUpdateCount = 0; break;
+		case SPEED_NORMAL:		aUpdateCount = 1; break;
+		case SPEED_FAST:		aUpdateCount = 2; break;
+		case SPEED_FASTER:		aUpdateCount = 3; break;
+		case SPEED_FASTEST:		aUpdateCount = 4; break;
+		case SPEED_ULTRAFAST:	aUpdateCount = 5; break;
+		}
 #endif
 	}
 
@@ -10266,11 +10257,13 @@ float Board::GetSpeedValue(SpeedMod theMod)
 {
 	switch (theMod)
 	{
+	case SPEED_0_25x:	return 0.25f;
 	case SPEED_0_75x:	return 0.75f;
 	case SPEED_1_x:		return 1.0f;
 	case SPEED_1_5x:	return 1.5f;
 	case SPEED_2_x:		return 2.0f;
 	case SPEED_2_5x:	return 2.5f;
+	case SPEED_3_x:		return 3.0f;
 	default:			return 1.0f;
 	}
 }
@@ -10279,11 +10272,13 @@ std::string Board::GetSpeedString()
 {
 	switch (mSpeedMod)
 	{
+	case SPEED_0_25x:	return "0.25x";
 	case SPEED_0_75x:	return "0.75x";
 	case SPEED_1_x:		return "1.0x";
 	case SPEED_1_5x:	return "1.5x";
 	case SPEED_2_x:		return "2.0x";
 	case SPEED_2_5x:	return "2.5x";
+	case SPEED_3_x:		return "3.0x";
 	default:			return "1.0x";
 	}
 }
@@ -10295,11 +10290,16 @@ void Board::UpdateSpeedButtons()
 		mSlowdownButton->mVisible = false;
 		mPauseButton->mVisible = false;
 		mSpeedupButton->mVisible = false;
+
+		if (mSpeedMod != SPEED_1_x)
+		{
+			mSpeedMod = SPEED_1_x;
+		}
 		return;
 	}
 
-	bool aSlowdownHidden = mSpeedMod == SPEED_0_75x;
-	bool aSpeedupHidden = mSpeedMod == SPEED_2_5x;
+	bool aSlowdownHidden = mSpeedMod == SPEED_0_25x;
+	bool aSpeedupHidden = mSpeedMod == SPEED_3_x;
 	bool aDisabled = !CanInteractWithBoardButtons() || mIgnoreMouseUp;
 	mSlowdownButton->mDisabled = aDisabled || aSlowdownHidden;
 	mPauseButton->mDisabled = aDisabled;
@@ -10374,7 +10374,7 @@ void Board::ButtonDepress(int theId)
 			bool aChanged = false;
 			if (theId == SPEEDUP)
 			{
-				if (mSpeedMod < SPEED_2_5x)
+				if (mSpeedMod < SPEED_3_x)
 				{
 					mSpeedMod = (SpeedMod)(mSpeedMod + 1);
 					aChanged = true;
@@ -10382,7 +10382,7 @@ void Board::ButtonDepress(int theId)
 			}
 			else
 			{
-				if (mSpeedMod > SPEED_0_75x)
+				if (mSpeedMod > SPEED_0_25x)
 				{
 					mSpeedMod = (SpeedMod)(mSpeedMod - 1);
 					aChanged = true;
@@ -10408,7 +10408,7 @@ float Board::GetSpeedValue()
 	switch (mSpeedMod)
 	{
 	case SPEED_SLOWMO: return 0.5f;
-	case SPEED_1_x: return 1.0f;
+	case SPEED_NORMAL: return 1.0f;
 	case SPEED_FAST: return 2.0f;
 	case SPEED_FASTER: return 3.0f;
 	case SPEED_FASTEST: return 5.0f;
@@ -10422,7 +10422,7 @@ std::string Board::GetSpeedString()
 	switch (mSpeedMod)
 	{
 	case SPEED_SLOWMO: return "0.5x";
-	case SPEED_1_x: return "1.0x";
+	case SPEED_NORMAL: return "1.0x";
 	case SPEED_FAST: return "2.0x";
 	case SPEED_FASTER: return "3.0x";
 	case SPEED_FASTEST: return "5.0x";

@@ -135,11 +135,13 @@ enum BoardButtonId
 #ifdef _REPLANTED_SPEED_CONTROL
 enum SpeedMod
 {
+	SPEED_0_25x,
 	SPEED_0_75x,
 	SPEED_1_x,
 	SPEED_1_5x,
 	SPEED_2_x,
-	SPEED_2_5x
+	SPEED_2_5x,
+	SPEED_3_x
 };
 #else
 enum SpeedMod
