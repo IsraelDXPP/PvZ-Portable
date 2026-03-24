@@ -136,6 +136,7 @@ enum BoardButtonId
 enum SpeedMod
 {
 	SPEED_0_25x,
+	SPEED_0_5x,
 	SPEED_0_75x,
 	SPEED_1_x,
 	SPEED_1_5x,

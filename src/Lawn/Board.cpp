@@ -6085,6 +6085,7 @@ void Board::Update()
 		switch (mSpeedMod)
 		{
 		case SPEED_0_25x:	aUpdateCount = (mSlowMoCounter % 4 == 0) ? 1 : 0; break;
+		case SPEED_0_5x:	aUpdateCount = (mSlowMoCounter % 2 == 0) ? 1 : 0; break;
 		case SPEED_0_75x:	aUpdateCount = (mSlowMoCounter % 4 == 0) ? 0 : 1; break;
 		case SPEED_1_x:		aUpdateCount = 1; break;
 		case SPEED_1_5x:	aUpdateCount = (mSlowMoCounter % 2 == 0) ? 1 : 2; break;
@@ -10258,6 +10259,7 @@ float Board::GetSpeedValue(SpeedMod theMod)
 	switch (theMod)
 	{
 	case SPEED_0_25x:	return 0.25f;
+	case SPEED_0_5x:	return 0.5f;
 	case SPEED_0_75x:	return 0.75f;
 	case SPEED_1_x:		return 1.0f;
 	case SPEED_1_5x:	return 1.5f;
@@ -10273,6 +10275,7 @@ std::string Board::GetSpeedString()
 	switch (mSpeedMod)
 	{
 	case SPEED_0_25x:	return "0.25x";
+	case SPEED_0_5x:	return "0.5x";
 	case SPEED_0_75x:	return "0.75x";
 	case SPEED_1_x:		return "1.0x";
 	case SPEED_1_5x:	return "1.5x";

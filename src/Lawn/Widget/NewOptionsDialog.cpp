@@ -77,6 +77,8 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 
     mFullscreenCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_Fullscreen, this, !theApp->mIsWindowed);
     mHardwareAccelerationCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_HardwareAcceleration, this, theApp->Is3DAccelerated());
+    mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds, this, theApp->mPlayerInfo->mNoCrazyDaveSeeds);
+    mNoCrazyDaveSeedsCheckbox->SetVisible(false);
 
     if (mFromGameSelector)
     {
@@ -89,6 +91,11 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
         else
         {
             mBackToMainButton->SetVisible(false);
+        }
+
+        if (mApp->HasFinishedAdventure())
+        {
+            mNoCrazyDaveSeedsCheckbox->SetVisible(true);
         }
     }
 
@@ -119,6 +126,7 @@ NewOptionsDialog::~NewOptionsDialog()
     delete mSfxVolumeSlider;
     delete mFullscreenCheckbox;
     delete mHardwareAccelerationCheckbox;
+    delete mNoCrazyDaveSeedsCheckbox;
     delete mAlmanacButton;
     delete mRestartButton;
     delete mBackToMainButton;
@@ -143,6 +151,7 @@ void NewOptionsDialog::AddedToManager(Sexy::WidgetManager* theWidgetManager)
     AddWidget(mSfxVolumeSlider);
     AddWidget(mHardwareAccelerationCheckbox);
     AddWidget(mFullscreenCheckbox);
+    AddWidget(mNoCrazyDaveSeedsCheckbox);
     AddWidget(mBackToGameButton);
 }
 
@@ -155,6 +164,7 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
     RemoveWidget(mSfxVolumeSlider);
     RemoveWidget(mFullscreenCheckbox);
     RemoveWidget(mHardwareAccelerationCheckbox);
+    RemoveWidget(mNoCrazyDaveSeedsCheckbox);
     RemoveWidget(mBackToMainButton);
     RemoveWidget(mBackToGameButton);
     RemoveWidget(mRestartButton);
@@ -168,6 +178,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
     mSfxVolumeSlider->Resize(199, 143, 135, 40);
     mHardwareAccelerationCheckbox->Resize(283, 175, 46, 45);
     mFullscreenCheckbox->Resize(284, 206, 46, 45);
+    mNoCrazyDaveSeedsCheckbox->Resize(284, 237, 46, 45);
     mAlmanacButton->Resize(107, 241, 209, 46);
     mRestartButton->Resize(mAlmanacButton->mX, mAlmanacButton->mY + 43, 209, 46);
     mBackToMainButton->Resize(mRestartButton->mX, mRestartButton->mY + 43, 209, 46);
@@ -179,6 +190,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
         mSfxVolumeSlider->mY += 10;
         mHardwareAccelerationCheckbox->mY += 15;
         mFullscreenCheckbox->mY += 20;
+        mNoCrazyDaveSeedsCheckbox->mY += 25;
     }
 
     if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
@@ -214,6 +226,10 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
     TodDrawString(g, "Sound FX", aSliderLabelsX, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, "3D Acceleration", aCheckboxLabelsX, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, "Full Screen", aCheckboxLabelsX, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    if (mNoCrazyDaveSeedsCheckbox->mVisible)
+    {
+        TodDrawString(g, "No Crazy Dave Seeds", aCheckboxLabelsX, 261 + aFullScreenOffset + 5, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    }
     if (aFontScale != 1.0f)
         g->SetScale(1.0f, 1.0f, 0.0f, 0.0f);
 }
@@ -293,6 +309,10 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
                 );
             }
         }
+        break;
+
+    case NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds:
+        mApp->mPlayerInfo->mNoCrazyDaveSeeds = checked;
         break;
     }
 }
