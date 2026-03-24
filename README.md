@@ -80,3 +80,7 @@ Compatible con Plants vs. Zombies **GOTY Edition 1.2.0.x** en inglés, Steam y v
 * Framework SexyAppFramework usado y modernizado bajo LGPL-3.0.
 
 Agradecimientos a los contribuyentes principales y a la comunidad por mantener el proyecto vivo.
+- **PopCap Games**: For creating the amazing game and releasing their framework to the public with a permissive license.
+- **The SDL Team**: For the amazing cross-platform development library that powers this port.
+- **The OpenMPT Team**: For libopenmpt, enabling high-quality MO3 music playback.
+- All the contributors who have worked or are actively working in this amazing project.

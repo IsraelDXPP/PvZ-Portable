@@ -79,6 +79,9 @@ AwardScreen::AwardScreen(LawnApp* theApp, AwardType theAwardType, bool theShowin
 				aDestY += 76;
 			}
 		}
+		else {
+			mShowingAchievements = false;
+		}
 
 		mApp->WriteCurrentUserConfig();
 	}
