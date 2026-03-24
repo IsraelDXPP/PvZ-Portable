@@ -94,11 +94,6 @@ public:
     int32_t             mNeedsMagicTacoReward;              //+0x340
     int32_t             mHasSeenStinky;                     //+0x344
     int32_t             mHasSeenUpsell;                     //+0x348
-#ifdef _MORE_OPTIONS
-    int32_t             mNoCrazyDaveSeeds;                  //+0x34C
-    int32_t             mAutoCollectSun;                    //+0x350
-    int32_t             mAutoCollectCoins;                  //+0x354
-#endif
     int32_t             mPlaceHolderPlayerStats;            //+0x350
     int32_t             mNumPottedPlants;                   //+0x350
     PottedPlant         mPottedPlant[MAX_POTTED_PLANTS];    //+0x358
@@ -109,6 +104,14 @@ public:
     std::vector<unsigned char> mZombatarData;               // raw 0x48 * count
     unsigned char       mZombatarTrailingUnknown[0x14];     // unknown bytes after Zombatars
     unsigned char       mZombatarCreatedBefore;             // created at least one Zombatar (0/1)
+
+#ifdef _MORE_OPTIONS
+    int32_t             mNoCrazyDaveSeeds;
+    int32_t             mAutoCollectSun;
+    int32_t             mAutoCollectCoins;
+    int32_t             mUnlimitedSun;
+    int32_t             mNoCooldown;
+#endif
 
 public:
     PlayerInfo();

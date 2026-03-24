@@ -6162,6 +6162,10 @@ void Board::Update()
 		UpdateGridItems();
 		UpdateFwoosh();
 #ifdef _MORE_OPTIONS
+		if (mApp->mPlayerInfo->mUnlimitedSun)
+		{
+			AddSunMoney(9990);
+		}
 		if (mApp->mPlayerInfo->mAutoCollectSun || mApp->mPlayerInfo->mAutoCollectCoins)
 		{
 			Coin* aCoin = nullptr;

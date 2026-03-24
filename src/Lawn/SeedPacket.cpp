@@ -171,6 +171,12 @@ void SeedPacket::Update()
 	if (!mActive && mRefreshing)
 	{
 		mRefreshCounter++;
+#ifdef _MORE_OPTIONS
+		if (mApp->mPlayerInfo->mNoCooldown)
+		{
+			mRefreshCounter += 100000;
+		}
+#endif
 		if (mRefreshCounter > mRefreshTime)
 		{
 			mRefreshCounter = 0;

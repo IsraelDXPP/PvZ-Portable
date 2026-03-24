@@ -15,12 +15,16 @@ public:
 	{
 		MoreOptionsDialog_NoCrazyDaveSeeds,
 		MoreOptionsDialog_AutoCollectSun,
-		MoreOptionsDialog_AutoCollectCoins
+		MoreOptionsDialog_AutoCollectCoins,
+		MoreOptionsDialog_UnlimitedSun,
+		MoreOptionsDialog_NoCooldown
 	};
 
 	Sexy::Checkbox*			mNoCrazyDaveSeedsCheckbox;
 	Sexy::Checkbox*			mAutoCollectSunCheckbox;
 	Sexy::Checkbox*			mAutoCollectCoinsCheckbox;
+	Sexy::Checkbox*			mUnlimitedSunCheckbox;
+	Sexy::Checkbox*			mNoCooldownCheckbox;
 	LawnStoneButton*		mBackButton;
 
 public:

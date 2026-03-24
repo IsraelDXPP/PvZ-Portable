@@ -23,10 +23,12 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoCrazyDaveSeeds, this, mApp->mPlayerInfo->mNoCrazyDaveSeeds);
 	mAutoCollectSunCheckbox = MakeNewCheckbox(MoreOptionsDialog_AutoCollectSun, this, mApp->mPlayerInfo->mAutoCollectSun);
 	mAutoCollectCoinsCheckbox = MakeNewCheckbox(MoreOptionsDialog_AutoCollectCoins, this, mApp->mPlayerInfo->mAutoCollectCoins);
+	mUnlimitedSunCheckbox = MakeNewCheckbox(MoreOptionsDialog_UnlimitedSun, this, mApp->mPlayerInfo->mUnlimitedSun);
+	mNoCooldownCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoCooldown, this, mApp->mPlayerInfo->mNoCooldown);
 
 	mBackButton = MakeButton(Dialog::ID_OK, this, "[DIALOG_BUTTON_OK]");
 
-	CalcSize(110, 200);
+	CalcSize(110, 290);
 }
 
 MoreOptionsDialog::~MoreOptionsDialog()
@@ -34,6 +36,8 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mNoCrazyDaveSeedsCheckbox;
 	delete mAutoCollectSunCheckbox;
 	delete mAutoCollectCoinsCheckbox;
+	delete mUnlimitedSunCheckbox;
+	delete mNoCooldownCheckbox;
 	delete mBackButton;
 }
 
@@ -50,6 +54,12 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 		break;
 	case MoreOptionsDialog_AutoCollectCoins:
 		mApp->mPlayerInfo->mAutoCollectCoins = checked;
+		break;
+	case MoreOptionsDialog_UnlimitedSun:
+		mApp->mPlayerInfo->mUnlimitedSun = checked;
+		break;
+	case MoreOptionsDialog_NoCooldown:
+		mApp->mPlayerInfo->mNoCooldown = checked;
 		break;
 	}
 }
@@ -80,8 +90,8 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	LawnDialog::Resize(theX, theY, theWidth, theHeight);
 
 	int aViewX = 50;
-	int aViewY = 75; // Moved up
-	int aStepY = 45;
+	int aViewY = 100; // Reset to 100 to prevent overlapping the title
+	int aStepY = 40;
 
 	if (mApp->HasFinishedAdventure())
 	{
@@ -97,8 +107,12 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mAutoCollectSunCheckbox->Resize(aViewX, aViewY, 46, 45);
 	aViewY += aStepY;
 	mAutoCollectCoinsCheckbox->Resize(aViewX, aViewY, 46, 45);
+	aViewY += aStepY;
+	mUnlimitedSunCheckbox->Resize(aViewX, aViewY, 46, 45);
+	aViewY += aStepY;
+	mNoCooldownCheckbox->Resize(aViewX, aViewY, 46, 45);
 
-	mBackButton->Resize(theWidth / 2 - 104, theHeight - 75, 209, 46); // Centered, higher
+	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -114,6 +128,8 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	}
 	TodDrawString(g, "Auto Collect Sun", aLabelX, mAutoCollectSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	TodDrawString(g, "Auto Collect Coins", aLabelX, mAutoCollectCoinsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	TodDrawString(g, "Unlimited Sun", aLabelX, mUnlimitedSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	TodDrawString(g, "No More Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 }
 
 void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
@@ -122,6 +138,8 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mNoCrazyDaveSeedsCheckbox);
 	AddWidget(mAutoCollectSunCheckbox);
 	AddWidget(mAutoCollectCoinsCheckbox);
+	AddWidget(mUnlimitedSunCheckbox);
+	AddWidget(mNoCooldownCheckbox);
 	AddWidget(mBackButton);
 }
 
@@ -131,5 +149,7 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mNoCrazyDaveSeedsCheckbox);
 	RemoveWidget(mAutoCollectSunCheckbox);
 	RemoveWidget(mAutoCollectCoinsCheckbox);
+	RemoveWidget(mUnlimitedSunCheckbox);
+	RemoveWidget(mNoCooldownCheckbox);
 	RemoveWidget(mBackButton);
 }

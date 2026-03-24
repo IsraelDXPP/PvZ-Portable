@@ -30,7 +30,7 @@
 #include "misc/Buffer.h"
 #include "../../SexyAppFramework/SexyAppBase.h"
 
-static int gUserVersion = 12;
+static int gUserVersion = 13;
 
 // Convert PottedPlant between little-endian file format and native byte order.
 // No-op on little-endian machines (entire function optimized away at compile time).
@@ -118,11 +118,6 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncUInt32(mNeedsMagicTacoReward);
 	theSync.SyncUInt32(mHasSeenStinky);
 	theSync.SyncUInt32(mHasSeenUpsell);
-#ifdef _MORE_OPTIONS
-	theSync.SyncUInt32(mNoCrazyDaveSeeds);
-	theSync.SyncUInt32(mAutoCollectSun);
-	theSync.SyncUInt32(mAutoCollectCoins);
-#endif
 	theSync.SyncUInt32(mPlaceHolderPlayerStats);
 	theSync.SyncUInt32(mNumPottedPlants);
 	
@@ -164,6 +159,27 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncUInt32(mZombatarHeadCount);
 	theSync.SyncBytes(mZombatarTrailingUnknown, sizeof(mZombatarTrailingUnknown));
 	theSync.SyncUInt8(mZombatarCreatedBefore);
+
+	if (aVersion >= 13)
+	{
+#ifdef _MORE_OPTIONS
+		theSync.SyncUInt32(mNoCrazyDaveSeeds);
+		theSync.SyncUInt32(mAutoCollectSun);
+		theSync.SyncUInt32(mAutoCollectCoins);
+		theSync.SyncUInt32(mUnlimitedSun);
+		theSync.SyncUInt32(mNoCooldown);
+#endif
+	}
+	else if (theSync.GetReader())
+	{
+#ifdef _MORE_OPTIONS
+		mNoCrazyDaveSeeds = 0;
+		mAutoCollectSun = 0;
+		mAutoCollectCoins = 0;
+		mUnlimitedSun = 0;
+		mNoCooldown = 0;
+#endif
+	}
 }
 
 //0x469400
@@ -250,6 +266,8 @@ void PlayerInfo::Reset()
 	mNoCrazyDaveSeeds = 0;
 	mAutoCollectSun = 0;
 	mAutoCollectCoins = 0;
+	mUnlimitedSun = 0;
+	mNoCooldown = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));
