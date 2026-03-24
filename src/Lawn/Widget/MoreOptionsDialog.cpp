@@ -26,7 +26,7 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 
 	mBackButton = MakeButton(Dialog::ID_OK, this, "[DIALOG_BUTTON_OK]");
 
-	CalcSize(110, 150);
+	CalcSize(110, 200);
 }
 
 MoreOptionsDialog::~MoreOptionsDialog()
@@ -79,15 +79,26 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 {
 	LawnDialog::Resize(theX, theY, theWidth, theHeight);
 
-	int aViewX = 70;
-	int aViewY = 100;
+	int aViewX = 50;
+	int aViewY = 75; // Moved up
 	int aStepY = 45;
 
-	mNoCrazyDaveSeedsCheckbox->Move(aViewX, aViewY);
-	mAutoCollectSunCheckbox->Move(aViewX, aViewY + aStepY);
-	mAutoCollectCoinsCheckbox->Move(aViewX, aViewY + aStepY * 2);
+	if (mApp->HasFinishedAdventure())
+	{
+		mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45);
+		mNoCrazyDaveSeedsCheckbox->SetVisible(true);
+		aViewY += aStepY;
+	}
+	else
+	{
+		mNoCrazyDaveSeedsCheckbox->SetVisible(false);
+	}
 
-	mBackButton->Resize(theWidth / 2 - 50, theHeight - 50, 100, 33);
+	mAutoCollectSunCheckbox->Resize(aViewX, aViewY, 46, 45);
+	aViewY += aStepY;
+	mAutoCollectCoinsCheckbox->Resize(aViewX, aViewY, 46, 45);
+
+	mBackButton->Resize(theWidth / 2 - 104, theHeight - 75, 209, 46); // Centered, higher
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -95,13 +106,14 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	LawnDialog::Draw(g);
 
 	Color aTextColor(107, 109, 145);
-	int aLabelX = 110;
-	int aBaseY = 120;
-	int aStepY = 45;
+	int aLabelX = 100;
 
-	TodDrawString(g, "No Crazy Dave Seeds", aLabelX, aBaseY, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-	TodDrawString(g, "Auto Collect Sun", aLabelX, aBaseY + aStepY, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-	TodDrawString(g, "Auto Collect Coins", aLabelX, aBaseY + aStepY * 2, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	if (mApp->HasFinishedAdventure())
+	{
+		TodDrawString(g, "No Crazy Dave Seeds", aLabelX, mNoCrazyDaveSeedsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	}
+	TodDrawString(g, "Auto Collect Sun", aLabelX, mAutoCollectSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	TodDrawString(g, "Auto Collect Coins", aLabelX, mAutoCollectCoinsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 }
 
 void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)

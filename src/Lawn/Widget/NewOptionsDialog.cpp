@@ -100,14 +100,7 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
         }
 
 #ifdef _MORE_OPTIONS
-        if (mApp->HasFinishedAdventure())
-        {
-            mMoreOptionsButton->SetVisible(true);
-        }
-        else
-        {
-            mMoreOptionsButton->SetVisible(false);
-        }
+        mMoreOptionsButton->SetVisible(true);
 #else
         if (mApp->HasFinishedAdventure())
         {
