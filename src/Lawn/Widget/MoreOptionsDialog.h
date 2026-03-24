@@ -1,6 +1,7 @@
 #ifndef __MOREOPTIONS_DIALOG_H__
 #define __MOREOPTIONS_DIALOG_H__
 
+#include "../../GameConstants.h"
 #include "LawnDialog.h"
 #include "widget/CheckboxListener.h"
 

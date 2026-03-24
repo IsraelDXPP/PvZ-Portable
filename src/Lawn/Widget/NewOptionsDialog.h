@@ -22,6 +22,7 @@
 #ifndef __NEWOPTIONSDIALOG_H__
 #define __NEWOPTIONSDIALOG_H__
 
+#include "../../GameConstants.h"
 #include "widget/Dialog.h"
 #include "widget/SliderListener.h"
 #include "widget/CheckboxListener.h"

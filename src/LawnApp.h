@@ -22,7 +22,7 @@
 #ifndef __LAWNAPP_H__
 #define __LAWNAPP_H__
 
-#include "ConstEnums.h"
+#include "GameConstants.h"
 #include "SexyAppFramework/SexyApp.h"
 #include "Sexy.TodLib/TodFoley.h"
 
