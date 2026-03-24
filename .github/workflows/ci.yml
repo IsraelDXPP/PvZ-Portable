@@ -408,8 +408,7 @@ jobs:
           build-android-*
           build-sdl2
           sdl2-android
-          build-sdl2
-          sdl2-android
+          sdl2-src
         key: ${{ runner.os }}-android-build-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
           ${{ runner.os }}-android-build-${{ github.ref_name }}-
@@ -454,7 +453,6 @@ jobs:
         fi
 
     - name: Download SDL2 Source
-      if: steps.cache-android.outputs.cache-hit != 'true'
       run: |
         SDL2_TAG=$(git ls-remote --tags https://github.com/libsdl-org/SDL.git 'refs/tags/release-2.*' \
           | sed 's|.*refs/tags/release-||' | sort -V | tail -1)

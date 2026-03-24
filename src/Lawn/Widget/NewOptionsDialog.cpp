@@ -80,6 +80,7 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     mHardwareAccelerationCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_HardwareAcceleration, this, theApp->Is3DAccelerated());
 #ifdef _MORE_OPTIONS
     mMoreOptionsButton = MakeButton(NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds, this, "More Options");
+    mMoreOptionsButton->SetVisible(false);
 #else
     mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds, this, theApp->mPlayerInfo->mNoCrazyDaveSeeds);
     mNoCrazyDaveSeedsCheckbox->SetVisible(false);
@@ -206,12 +207,12 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
     mSfxVolumeSlider->Resize(199, 143, 135, 40);
     mHardwareAccelerationCheckbox->Resize(283, 175, 46, 45);
     mFullscreenCheckbox->Resize(284, 206, 46, 45);
-#ifdef _CRAZY_DAVE_FREE_SEEDS
-    mNoCrazyDaveSeedsCheckbox->Resize(284, 237, 46, 45);
-#endif
     mAlmanacButton->Resize(107, 241, 209, 46);
-    mRestartButton->Resize(mAlmanacButton->mX, mAlmanacButton->mY + 43, 209, 46);
-    mBackToMainButton->Resize(mRestartButton->mX, mRestartButton->mY + 43, 209, 46);
+    mRestartButton->Resize(107, mAlmanacButton->mY + 43, 209, 46);
+#ifdef _MORE_OPTIONS
+    mMoreOptionsButton->Resize(107, mRestartButton->mY, 209, 46);
+#endif
+    mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
 
     if (mFromGameSelector)
@@ -220,9 +221,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
         mSfxVolumeSlider->mY += 10;
         mHardwareAccelerationCheckbox->mY += 15;
         mFullscreenCheckbox->mY += 20;
-#ifdef _MORE_OPTIONS
-        mMoreOptionsButton->mY += 25;
-#else
+#ifndef _MORE_OPTIONS
         mNoCrazyDaveSeedsCheckbox->mY += 25;
 #endif
     }
