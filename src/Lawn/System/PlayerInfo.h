@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <ctime>
 #include <vector>
-#include "../../ConstEnums.h"
+#include "../../GameConstants.h"
 #include "../../SexyAppFramework/Common.h"
 
 class PottedPlant

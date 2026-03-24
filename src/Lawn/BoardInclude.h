@@ -19,6 +19,7 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "../GameConstants.h"
 #include "Coin.h"
 #include "Board.h"
 #include "Plant.h"
@@ -34,7 +35,6 @@
 #include "CursorObject.h"
 #include "ToolTipWidget.h"
 #include "MessageWidget.h"
-#include "../GameConstants.h"
 #include "Widget/GameButton.h"
 #include "misc/Debug.h"
 #include "graphics/Graphics.h"
