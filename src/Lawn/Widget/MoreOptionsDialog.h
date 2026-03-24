@@ -4,7 +4,7 @@
 #include "LawnDialog.h"
 #include "widget/CheckboxListener.h"
 
-class Checkbox;
+
 class LawnStoneButton;
 
 class MoreOptionsDialog : public LawnDialog, public Sexy::CheckboxListener
@@ -17,9 +17,9 @@ public:
 		MoreOptionsDialog_AutoCollectCoins
 	};
 
-	Checkbox*				mNoCrazyDaveSeedsCheckbox;
-	Checkbox*				mAutoCollectSunCheckbox;
-	Checkbox*				mAutoCollectCoinsCheckbox;
+	Sexy::Checkbox*			mNoCrazyDaveSeedsCheckbox;
+	Sexy::Checkbox*			mAutoCollectSunCheckbox;
+	Sexy::Checkbox*			mAutoCollectCoinsCheckbox;
 	LawnStoneButton*		mBackButton;
 
 public:
@@ -30,6 +30,7 @@ public:
 	virtual void			ButtonDepress(int theId);
 	virtual void			KeyDown(KeyCode theKey);
 	virtual void			Update();
+	virtual void			Resize(int theX, int theY, int theWidth, int theHeight);
 	virtual void			Draw(Graphics* g);
 	virtual void			AddedToManager(WidgetManager* theWidgetManager);
 	virtual void			RemovedFromManager(WidgetManager* theWidgetManager);
