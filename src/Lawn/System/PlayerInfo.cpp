@@ -118,8 +118,10 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncUInt32(mNeedsMagicTacoReward);
 	theSync.SyncUInt32(mHasSeenStinky);
 	theSync.SyncUInt32(mHasSeenUpsell);
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
 	theSync.SyncUInt32(mNoCrazyDaveSeeds);
+	theSync.SyncUInt32(mAutoCollectSun);
+	theSync.SyncUInt32(mAutoCollectCoins);
 #endif
 	theSync.SyncUInt32(mPlaceHolderPlayerStats);
 	theSync.SyncUInt32(mNumPottedPlants);
@@ -244,8 +246,10 @@ void PlayerInfo::Reset()
 	mNeedsMagicTacoReward = 0;
 	mHasSeenStinky = 0;
 	mHasSeenUpsell = 0;
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
 	mNoCrazyDaveSeeds = 0;
+	mAutoCollectSun = 0;
+	mAutoCollectCoins = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));

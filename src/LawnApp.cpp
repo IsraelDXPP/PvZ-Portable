@@ -748,6 +748,17 @@ void LawnApp::DoNewOptions(bool theFromGameSelector)
 	mWidgetManager->SetFocus(aDialog);
 }
 
+#ifdef _MORE_OPTIONS
+#include "Lawn/Widget/MoreOptionsDialog.h"
+MoreOptionsDialog* LawnApp::DoMoreOptionsDialog()
+{
+	MoreOptionsDialog* aDialog = new MoreOptionsDialog(this);
+	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+	AddDialog(Dialogs::DIALOG_MORE_OPTIONS, aDialog);
+	return aDialog;
+}
+#endif
+
 //0x450180
 // GOTY @Patoke: 0x453410
 AlmanacDialog* LawnApp::DoAlmanacDialog(SeedType theSeedType, ZombieType theZombieType)

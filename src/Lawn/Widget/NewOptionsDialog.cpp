@@ -77,7 +77,9 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 
     mFullscreenCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_Fullscreen, this, !theApp->mIsWindowed);
     mHardwareAccelerationCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_HardwareAcceleration, this, theApp->Is3DAccelerated());
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+    mMoreOptionsButton = MakeButton(NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds, this, "More Options");
+#else
     mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds, this, theApp->mPlayerInfo->mNoCrazyDaveSeeds);
     mNoCrazyDaveSeedsCheckbox->SetVisible(false);
 #endif
@@ -95,7 +97,16 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
             mBackToMainButton->SetVisible(false);
         }
 
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+        if (mApp->HasFinishedAdventure())
+        {
+            mMoreOptionsButton->SetVisible(true);
+        }
+        else
+        {
+            mMoreOptionsButton->SetVisible(false);
+        }
+#else
         if (mApp->HasFinishedAdventure())
         {
             mNoCrazyDaveSeedsCheckbox->SetVisible(true);
@@ -130,7 +141,9 @@ NewOptionsDialog::~NewOptionsDialog()
     delete mSfxVolumeSlider;
     delete mFullscreenCheckbox;
     delete mHardwareAccelerationCheckbox;
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+    delete mMoreOptionsButton;
+#else
     delete mNoCrazyDaveSeedsCheckbox;
 #endif
     delete mAlmanacButton;
@@ -157,7 +170,9 @@ void NewOptionsDialog::AddedToManager(Sexy::WidgetManager* theWidgetManager)
     AddWidget(mSfxVolumeSlider);
     AddWidget(mHardwareAccelerationCheckbox);
     AddWidget(mFullscreenCheckbox);
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+    AddWidget(mMoreOptionsButton);
+#else
     AddWidget(mNoCrazyDaveSeedsCheckbox);
 #endif
     AddWidget(mBackToGameButton);
@@ -172,7 +187,9 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
     RemoveWidget(mSfxVolumeSlider);
     RemoveWidget(mFullscreenCheckbox);
     RemoveWidget(mHardwareAccelerationCheckbox);
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+    RemoveWidget(mMoreOptionsButton);
+#else
     RemoveWidget(mNoCrazyDaveSeedsCheckbox);
 #endif
     RemoveWidget(mBackToMainButton);
@@ -202,7 +219,9 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
         mSfxVolumeSlider->mY += 10;
         mHardwareAccelerationCheckbox->mY += 15;
         mFullscreenCheckbox->mY += 20;
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+        mMoreOptionsButton->mY += 25;
+#else
         mNoCrazyDaveSeedsCheckbox->mY += 25;
 #endif
     }
@@ -240,7 +259,9 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
     TodDrawString(g, "Sound FX", aSliderLabelsX, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, "3D Acceleration", aCheckboxLabelsX, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, "Full Screen", aCheckboxLabelsX, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-#ifdef _CRAZY_DAVE_FREE_SEEDS
+#ifdef _MORE_OPTIONS
+    // More Options button doesn't need a text label drawn here
+#else
     if (mNoCrazyDaveSeedsCheckbox->mVisible)
     {
         TodDrawString(g, "No Crazy Dave Seeds", aCheckboxLabelsX, 261 + aFullScreenOffset + 5, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
@@ -441,6 +462,12 @@ void NewOptionsDialog::ButtonDepress(int theId)
         }
         break;
     }
+
+#ifdef _MORE_OPTIONS
+    case NewOptionsDialog::NewOptionsDialog_NoCrazyDaveSeeds:
+        mApp->DoMoreOptionsDialog();
+        break;
+#endif
 
     case NewOptionsDialog::NewOptionsDialog_Update:
         mApp->CheckForUpdates();

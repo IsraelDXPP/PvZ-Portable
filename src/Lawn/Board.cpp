@@ -6161,6 +6161,20 @@ void Board::Update()
 
 		UpdateGridItems();
 		UpdateFwoosh();
+#ifdef _MORE_OPTIONS
+		if (mApp->mPlayerInfo->mAutoCollectSun || mApp->mPlayerInfo->mAutoCollectCoins)
+		{
+			Coin* aCoin = nullptr;
+			while (IterateCoins(aCoin))
+			{
+				if (aCoin->mDead || aCoin->mIsBeingCollected) continue;
+				if (mApp->mPlayerInfo->mAutoCollectSun && aCoin->IsSun())
+					aCoin->Collect();
+				else if (mApp->mPlayerInfo->mAutoCollectCoins && aCoin->IsMoney())
+					aCoin->Collect();
+			}
+		}
+#endif
 		UpdateGame();
 		UpdateFog();
 		mChallenge->Update();
@@ -10322,7 +10336,7 @@ void Board::UpdateSpeedButtons()
 
 	if (HasProgressMeter() && mApp->mGameScene == GameScenes::SCENE_PLAYING)
 	{
-		aTargetY = 535; // Above the meter
+		aTargetY = 520; // Above the meter, raised slightly to avoid flags
 	}
 	else
 	{
@@ -10378,6 +10392,7 @@ void Board::ButtonDepress(int theId)
 	{
 		if (theId == SPEEDUP || theId == SLOWDOWN)
 		{
+			if (mLevelAwardSpawned) return;
 			bool aChanged = false;
 			if (theId == SPEEDUP)
 			{

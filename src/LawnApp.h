@@ -194,6 +194,9 @@ public:
 	void							DoBackToMain();
 	void							DoConfirmBackToMain();
 	void							DoNewOptions(bool theFromGameSelector);
+#ifdef _MORE_OPTIONS
+	class MoreOptionsDialog*		DoMoreOptionsDialog();
+#endif
 	void							DoRegister();
 	void							DoRegisterError();
 	bool							CanDoRegisterDialog();
