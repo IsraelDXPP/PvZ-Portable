@@ -94,7 +94,9 @@ public:
     int32_t             mNeedsMagicTacoReward;              //+0x340
     int32_t             mHasSeenStinky;                     //+0x344
     int32_t             mHasSeenUpsell;                     //+0x348
+#ifdef _CRAZY_DAVE_FREE_SEEDS
     int32_t             mNoCrazyDaveSeeds;                  //+0x34C
+#endif
     int32_t             mPlaceHolderPlayerStats;            //+0x350
     int32_t             mNumPottedPlants;                   //+0x350
     PottedPlant         mPottedPlant[MAX_POTTED_PLANTS];    //+0x358

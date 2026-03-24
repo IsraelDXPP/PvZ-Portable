@@ -199,8 +199,13 @@ SeedChooserScreen::SeedChooserScreen()
 		aStarFruit.mSeedIndexInBank = 0;
 		mSeedsInBank++;
 	}
+#ifdef _CRAZY_DAVE_FREE_SEEDS
 	if (mApp->IsAdventureMode() && !mApp->IsFirstTimeAdventureMode() && !mApp->mPlayerInfo->mNoCrazyDaveSeeds)
 		CrazyDavePickSeeds();
+#else
+	if (mApp->IsAdventureMode() && !mApp->IsFirstTimeAdventureMode())
+		CrazyDavePickSeeds();
+#endif
 	UpdateImitaterButton();
 }
 

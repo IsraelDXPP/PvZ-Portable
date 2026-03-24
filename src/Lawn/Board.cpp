@@ -7689,7 +7689,11 @@ void Board::DrawUICoinBank(Graphics* g)
 	int aPosX = 57;
 	int aPosY = 599 - Sexy::IMAGE_COINBANK->GetHeight();
 
+#ifdef _REPLANTED_SPEED_CONTROL
 	if (mApp->mCrazyDaveState != CrazyDaveState::CRAZY_DAVE_OFF)
+#else
+	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mCrazyDaveState != CrazyDaveState::CRAZY_DAVE_OFF)
+#endif
 	{
 		aPosX = 450 - mX;
 	}

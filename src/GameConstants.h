@@ -82,3 +82,4 @@ constexpr const int STORESCREEN_COINBANK_Y = 559;
 constexpr const int STORESCREEN_PAGESTRING_X = 470;
 constexpr const int STORESCREEN_PAGESTRING_Y = 500;
 #define _REPLANTED_SPEED_CONTROL
+#define _CRAZY_DAVE_FREE_SEEDS

@@ -200,19 +200,28 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: ccache
+      uses: actions/cache@v4
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-msvc-ccache-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-msvc-ccache-${{ github.ref_name }}-
+          ${{ runner.os }}-msvc-ccache-
+
     - name: Cache Build
       uses: actions/cache@v4
       with:
         path: build
-        key: ${{ runner.os }}-msvc-build-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') || github.sha }}
+        key: ${{ runner.os }}-msvc-build-${{ github.ref_name }}-${{ hashFiles('vcpkg.json', 'CMakeLists.txt') }}
         restore-keys: |
           ${{ runner.os }}-msvc-build-${{ github.ref_name }}-
           ${{ runner.os }}-msvc-build-
 
     - uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Install Ninja
-      run: choco install ninja -y
+    - name: Install Tools
+      run: choco install ninja ccache -y
 
     - name: Setup vcpkg (manifest mode)
       uses: lukka/run-vcpkg@v11
@@ -222,7 +231,8 @@ jobs:
     - name: Compile PvZ-Portable for Windows (MSVC)
       shell: pwsh
       run: |
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }}
+        $env:CCACHE_DIR = "$(Get-Location)/.ccache"
+        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
 
         New-Item -ItemType Directory -Force -Path dist | Out-Null
@@ -398,7 +408,9 @@ jobs:
           build-android-*
           build-sdl2
           sdl2-android
-        key: ${{ runner.os }}-android-build-${{ github.ref_name }}-${{ github.sha }}
+          build-sdl2
+          sdl2-android
+        key: ${{ runner.os }}-android-build-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
           ${{ runner.os }}-android-build-${{ github.ref_name }}-
           ${{ runner.os }}-android-build-
@@ -407,7 +419,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-android-ccache-${{ github.ref_name }}-${{ github.sha }}
+        key: ${{ runner.os }}-android-ccache-${{ github.ref_name }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
           ${{ runner.os }}-android-ccache-${{ github.ref_name }}-
           ${{ runner.os }}-android-ccache-
