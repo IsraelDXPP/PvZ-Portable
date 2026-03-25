@@ -9937,7 +9937,7 @@ void Zombie::BossStompAttack()
     mBossStompCounter = RandRangeInt(5500, 6500);
 
     int aRowsCount = 0;
-    intptr_t aRowArray[4];
+    int aRowArray[4];
     for (int i = 0; i < 4; i++)
     {
         if (BossCanStompRow(i))

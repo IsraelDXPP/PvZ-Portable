@@ -1592,7 +1592,7 @@ static int start_page_no_capturepattern(vorb *f)
    //if (f->serial != get32(f)) return error(f, VORBIS_incorrect_stream_serial_number);
    // page sequence number
    n = get32(f);
-   f->last_page = n;
+   f->last_page = (int) n;
    // CRC32
    get32(f);
    // page_segments
@@ -3554,7 +3554,7 @@ static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start,
                // negative truncation, that's impossible!
                *len = 0;
             } else {
-               *len = current_end - f->current_loc;
+               *len = (int) (current_end - f->current_loc);
             }
             *len += left_start; // this doesn't seem right, but has no ill effect on my test files
             if (*len > right_end) *len = right_end; // this should never happen
@@ -4850,7 +4850,7 @@ static int get_seek_page_info(stb_vorbis *f, ProbedPage *z)
    z->last_decoded_sample = (int64) get64raw(header + 6);
 
    // restore file state to where we were
-   set_file_offset(f, z->page_start);
+   set_file_offset(f, (unsigned int) z->page_start);
    return 1;
 }
 
@@ -4907,7 +4907,7 @@ static int seek_to_sample_coarse(stb_vorbis *f, int64 sample_number)
    left = f->p_first;
    while (left.last_decoded_sample == -1) {
       // (untested) the first page does not have a 'last_decoded_sample'
-      set_file_offset(f, left.page_end);
+      set_file_offset(f, (unsigned int) left.page_end);
       if (!get_seek_page_info(f, &left)) goto error;
    }
 
@@ -4930,7 +4930,7 @@ static int seek_to_sample_coarse(stb_vorbis *f, int64 sample_number)
       delta = right.page_start - left.page_end;
       if (delta <= 65536) {
          // there's only 64K left to search - handle it linearly
-         set_file_offset(f, left.page_end);
+         set_file_offset(f, (unsigned int) left.page_end);
       } else {
          if (probe < 2) {
             if (probe == 0) {
@@ -4956,7 +4956,7 @@ static int seek_to_sample_coarse(stb_vorbis *f, int64 sample_number)
          } else {
             // binary search for large ranges (offset by 32K to ensure
             // we don't hit the right page)
-            set_file_offset(f, left.page_end + (delta / 2) - 32768);
+            set_file_offset(f, (unsigned int) (left.page_end + (delta / 2) - 32768));
          }
 
          if (!vorbis_find_page(f, NULL, NULL)) goto error;
@@ -4966,7 +4966,7 @@ static int seek_to_sample_coarse(stb_vorbis *f, int64 sample_number)
          if (!get_seek_page_info(f, &mid)) goto error;
          if (mid.last_decoded_sample != -1) break;
          // (untested) no frames end on this page
-         set_file_offset(f, mid.page_end);
+         set_file_offset(f, (unsigned int) mid.page_end);
          assert(mid.page_start < right.page_start);
       }
 
@@ -4986,8 +4986,8 @@ static int seek_to_sample_coarse(stb_vorbis *f, int64 sample_number)
    }
 
    // seek back to start of the last packet
-   page_start = left.page_start;
-   set_file_offset(f, page_start);
+   page_start = (int) left.page_start;
+   set_file_offset(f, (unsigned int) page_start);
    if (!start_page(f)) return error(f, VORBIS_seek_failed);
    end_pos = f->end_seg_with_known_loc;
    assert(end_pos >= 0);
@@ -5111,7 +5111,7 @@ int stb_vorbis_seek(stb_vorbis *f, int64 sample_number)
 
    if (sample_number != f->current_loc) {
       int n;
-      uint32 frame_start = f->current_loc;
+      uint32 frame_start = (uint32) f->current_loc;
       stb_vorbis_get_frame_float(f, &n, NULL);
       assert(sample_number > frame_start);
       assert(f->channel_buffer_start + (int) (sample_number-frame_start) <= f->channel_buffer_end);

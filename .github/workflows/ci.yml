@@ -9,6 +9,7 @@ on:
 
 env:
   PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
