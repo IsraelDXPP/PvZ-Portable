@@ -220,8 +220,12 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
-	mPrevButton->Resize(20, theHeight - 80, 40, 40);
-	mNextButton->Resize(theWidth - 60, theHeight - 80, 40, 40);
+
+	int buttonWidth = 40;
+	int marginRight = 20;
+
+	mPrevButton->Resize(20, theHeight - 80, buttonWidth, 40);
+	mNextButton->Resize(theWidth - marginRight - buttonWidth, theHeight - 80, buttonWidth, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
