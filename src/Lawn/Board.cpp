@@ -2911,9 +2911,15 @@ bool Board::IsIceAt(int theGridX, int theGridY)
 	return theGridX >= PixelToGridXKeepOnBoard(mIceMinX[theGridY] + 12, 0);
 }
 
-//0x40E020
 PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedType)
 {
+#ifdef _MORE_OPTIONS
+	if (mApp->mPlayerInfo->mPlantAnywhere)
+	{
+		return PlantingReason::PLANTING_OK;
+	}
+#endif
+
 	// 目标位置不在场地内，则返回“不能种在那里”
 	if (theGridX < 0 || theGridX >= MAX_GRID_SIZE_X || theGridY < 0 || theGridY >= MAX_GRID_SIZE_Y)
 	{

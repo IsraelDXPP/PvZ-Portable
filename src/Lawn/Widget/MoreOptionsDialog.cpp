@@ -33,8 +33,11 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mPlantAnywhereCheckbox = MakeNewCheckbox(MoreOptionsDialog_PlantAnywhere, this, mApp->mPlayerInfo->mPlantAnywhere);
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
-	mPrevButton = MakeButton(MoreOptionsDialog_PrevPage, this, "");
-	mNextButton = MakeButton(MoreOptionsDialog_NextPage, this, "");
+	mPrevButton = new GameButton(MoreOptionsDialog_PrevPage, this);
+	mNextButton = new GameButton(MoreOptionsDialog_NextPage, this);
+	mNextButton->mButtonImage = IMAGE_ZEN_NEXTGARDEN;
+	mNextButton->mOverImage = IMAGE_ZEN_NEXTGARDEN;
+	mNextButton->mDownImage = IMAGE_ZEN_NEXTGARDEN;
 
 	mLevelSelectorWidget = MakeButton(MoreOptionsDialog_LevelSelector, this, "Level Selector");
 
@@ -125,7 +128,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
 		mApp->mPlayerInfo->mFinishedAdventure = 1;
-		mApp->mPlayerInfo->mLevel = 51;
+		mApp->mPlayerInfo->mLevel = 1;
 		mApp->mPlayerInfo->mHasUnlockedMinigames = 1;
 		mApp->mPlayerInfo->mHasUnlockedPuzzleMode = 1;
 		mApp->mPlayerInfo->mHasUnlockedSurvivalMode = 1;
@@ -165,7 +168,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	LawnDialog::Resize(theX, theY, theWidth, theHeight);
 
 	int aViewX = 50;
-	int aViewY = 90;
+	int aViewY = 110;
 	int aStepY = 32;
 
 	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && mApp->HasFinishedAdventure());
@@ -200,15 +203,15 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		mInvinciblePlantsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mPlantAnywhereCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		
-		mLevelSelectorWidget->Resize(aViewX + 25, aViewY + 5, 150, 36);
-		aViewY += aStepY;
-		mUnlockAllButton->Resize(aViewX + 25, aViewY + 5, 150, 36);
+		mLevelSelectorWidget->Resize(aViewX - 10, aViewY + 5, 209, 46);
+		aViewY += 46 + 10;
+		mUnlockAllButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
 	}
 
 	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 	
-	mPrevButton->Resize(20, theHeight - 65, 40, 40);
-	mNextButton->Resize(theWidth - 60, theHeight - 65, 40, 40);
+	mPrevButton->Resize(20, theHeight - 80, 40, 40);
+	mNextButton->Resize(theWidth - 60, theHeight - 80, 40, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -239,15 +242,8 @@ void MoreOptionsDialog::Draw(Graphics* g)
 
 	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
-	if (mCurrentPage > 0)
-	{
-		g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY, true);
-	}
-	
-	if (mCurrentPage < 1)
-	{
-		g->DrawImage(IMAGE_ZEN_NEXTGARDEN, mNextButton->mX, mNextButton->mY);
-	}
+	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
+	g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY + aPrevOffsetY, true);
 }
 
 void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)

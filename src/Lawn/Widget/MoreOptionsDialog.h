@@ -6,6 +6,7 @@
 #include "widget/CheckboxListener.h"
 
 class LawnStoneButton;
+class GameButton;
 
 class MoreOptionsDialog : public LawnDialog, public Sexy::CheckboxListener
 {
@@ -37,8 +38,8 @@ public:
 	Sexy::Checkbox*			mInvinciblePlantsCheckbox;
 	Sexy::Checkbox*			mPlantAnywhereCheckbox;
 	LawnStoneButton*		mUnlockAllButton;
-	LawnStoneButton*		mPrevButton;
-	LawnStoneButton*		mNextButton;
+	GameButton*				mPrevButton;
+	GameButton*				mNextButton;
 	LawnStoneButton*		mLevelSelectorWidget;
 	LawnStoneButton*		mBackButton;
 	int						mCurrentPage;
