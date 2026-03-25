@@ -116,7 +116,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 		LawnApp* aApp = mApp;
 		aApp->PlaySample(SOUND_BUTTONCLICK);
 		aApp->KillDialog(mId);
-		aApp->KillDialog(Dialogs::DIALOG_NEWOPTIONS);
+		aApp->KillNewOptionsDialog();
 		aApp->DoCheatDialog();
 	}
 	else if (theId == MoreOptionsDialog_PrevPage)
@@ -222,9 +222,10 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mNextButton->SetVisible(mCurrentPage < 1);
 
 	int buttonWidth = 40;
-	int marginRight = 20;
+	int marginLeft = 35;
+	int marginRight = 75;
 
-	mPrevButton->Resize(20, theHeight - 80, buttonWidth, 40);
+	mPrevButton->Resize(marginLeft, theHeight - 80, buttonWidth, 40);
 	mNextButton->Resize(theWidth - marginRight - buttonWidth, theHeight - 80, buttonWidth, 40);
 }
 

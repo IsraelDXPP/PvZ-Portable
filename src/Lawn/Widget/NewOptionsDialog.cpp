@@ -254,8 +254,8 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
 	if (mAutoWinButton && mAutoWinButton->mVisible)
 	{
 		int aTrophyOffsetY = mAutoWinButton->mIsDown ? 1 : 0;
-		// Scale the trophy to 0.7x to be smaller and fit completely
-		TodDrawImageScaledF(g, IMAGE_TROPHY, mAutoWinButton->mX, mAutoWinButton->mY + aTrophyOffsetY, 0.7f, 0.7f);
+		// Scale the trophy to 0.8x to be slightly smaller but clear
+		TodDrawImageScaledF(g, IMAGE_TROPHY, mAutoWinButton->mX, mAutoWinButton->mY + aTrophyOffsetY, 0.8f, 0.8f);
 	}
 #endif
 
