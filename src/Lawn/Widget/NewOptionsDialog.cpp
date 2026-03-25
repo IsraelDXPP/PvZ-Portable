@@ -413,7 +413,6 @@ void NewOptionsDialog::ButtonDepress(int theId)
 		if (mApp->mBoard)
 		{
 			mApp->mBoard->ClearCursor();
-			mApp->mBoard->KillAllZombiesInPool();
 			mApp->mBoard->mLevelComplete = true;
 		}
 		break;
