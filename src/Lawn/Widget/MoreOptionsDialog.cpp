@@ -221,12 +221,11 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
-	int buttonWidth = 40;
-	int marginLeft = 35;
-	int marginRight = 75;
+	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
+	int aSideMargin = 20;
 
-	mPrevButton->Resize(marginLeft, theHeight - 80, buttonWidth, 40);
-	mNextButton->Resize(theWidth - marginRight - buttonWidth, theHeight - 80, buttonWidth, 40);
+	mPrevButton->Resize(aSideMargin, theHeight - 80, aArrowWidth, 40);
+	mNextButton->Resize(theWidth - aSideMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
