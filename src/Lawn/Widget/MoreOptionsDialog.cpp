@@ -33,8 +33,8 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mPlantAnywhereCheckbox = MakeNewCheckbox(MoreOptionsDialog_PlantAnywhere, this, mApp->mPlayerInfo->mPlantAnywhere);
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
-	mPrevButton = new GameButton(MoreOptionsDialog_PrevPage, this);
-	mNextButton = new GameButton(MoreOptionsDialog_NextPage, this);
+	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
+	mNextButton = new Sexy::ButtonWidget(MoreOptionsDialog_NextPage, this);
 	mNextButton->mButtonImage = IMAGE_ZEN_NEXTGARDEN;
 	mNextButton->mOverImage = IMAGE_ZEN_NEXTGARDEN;
 	mNextButton->mDownImage = IMAGE_ZEN_NEXTGARDEN;
