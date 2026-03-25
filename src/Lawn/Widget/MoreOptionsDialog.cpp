@@ -259,7 +259,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	{
 		g->DrawImageMirror(
 			IMAGE_ZEN_NEXTGARDEN,
-			mPrevButton->mX + IMAGE_ZEN_NEXTGARDEN->mWidth,
+			mPrevButton->mX,
 			mPrevButton->mY + aPrevOffsetY,
 			true
 		);
