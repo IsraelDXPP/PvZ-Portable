@@ -9833,6 +9833,8 @@ void Zombie::BossRVAttack()
 }
 
 //0x534B90
+void Zombie::BossRVLanding()
+{
     Plant* aPlant = nullptr;
     while (mBoard->IteratePlants(aPlant))
     {
