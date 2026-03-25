@@ -81,7 +81,7 @@ void ToolTipWidget::GetLines(std::vector<std::string>& theLines)
 
 		if (aChar == U' ')
 		{
-			aBreakDrawLen = aCharStart - aLineStart;
+			aBreakDrawLen = static_cast<int>(aCharStart - aLineStart);
 			aBreakResumePos = aCharEnd;
 		}
 		else if (Sexy::IsAutoBreakChar(aChar) &&

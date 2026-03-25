@@ -25,6 +25,9 @@ public:
 		MoreOptionsDialog_AutoWin,
 		MoreOptionsDialog_NoPlantCooldown,
 		MoreOptionsDialog_RegenPlants,
+		MoreOptionsDialog_ModMenuEnabled,
+		MoreOptionsDialog_HypnotizeAll,
+		MoreOptionsDialog_SummonZomboss,
 		MoreOptionsDialog_UnlockAll,
 		MoreOptionsDialog_LevelSelector,
 		MoreOptionsDialog_PrevPage,
@@ -43,15 +46,19 @@ public:
 	Sexy::Checkbox*			mAutoWinCheckbox;
 	Sexy::Checkbox*			mNoPlantCooldownCheckbox;
 	Sexy::Checkbox*			mRegenPlantsCheckbox;
+	Sexy::Checkbox*			mModMenuEnabledCheckbox;
+	LawnStoneButton*		mHypnotizeAllButton;
+	LawnStoneButton*		mSummonZombossButton;
 	LawnStoneButton*		mUnlockAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;
 	LawnStoneButton*		mLevelSelectorWidget;
 	LawnStoneButton*		mBackButton;
 	int						mCurrentPage;
+	bool					mFromPauseMenu;
 
 public:
-	MoreOptionsDialog(LawnApp* theApp);
+	MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu = false);
 	virtual ~MoreOptionsDialog();
 
 	virtual void			CheckboxChecked(int theId, bool checked);

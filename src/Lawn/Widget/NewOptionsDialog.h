@@ -51,6 +51,7 @@ protected:
 		NewOptionsDialog_HardwareAcceleration,
 		NewOptionsDialog_NoCrazyDaveSeeds,
 		NewOptionsDialog_AutoWin,
+		NewOptionsDialog_ModMenu,
 	};
 
 public:
@@ -62,6 +63,7 @@ public:
 #ifdef _MORE_OPTIONS
 	LawnStoneButton*		mMoreOptionsButton;
 	Sexy::ButtonWidget*		mAutoWinButton;
+	Sexy::ButtonWidget*		mModMenuButton;
 #else
 	Sexy::Checkbox*			mNoCrazyDaveSeedsCheckbox;			// NEW
 #endif

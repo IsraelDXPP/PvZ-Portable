@@ -750,9 +750,9 @@ void LawnApp::DoNewOptions(bool theFromGameSelector)
 
 #ifdef _MORE_OPTIONS
 #include "Lawn/Widget/MoreOptionsDialog.h"
-MoreOptionsDialog* LawnApp::DoMoreOptionsDialog()
+MoreOptionsDialog* LawnApp::DoMoreOptionsDialog(bool theFromPauseMenu)
 {
-	MoreOptionsDialog* aDialog = new MoreOptionsDialog(this);
+	MoreOptionsDialog* aDialog = new MoreOptionsDialog(this, theFromPauseMenu);
 	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
 	AddDialog(Dialogs::DIALOG_MORE_OPTIONS, aDialog);
 	return aDialog;

@@ -195,7 +195,7 @@ public:
 	void							DoConfirmBackToMain();
 	void							DoNewOptions(bool theFromGameSelector);
 #ifdef _MORE_OPTIONS
-	class MoreOptionsDialog*		DoMoreOptionsDialog();
+	class MoreOptionsDialog*		DoMoreOptionsDialog(bool theFromPauseMenu = false);
 #endif
 	void							DoRegister();
 	void							DoRegisterError();

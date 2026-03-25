@@ -177,6 +177,7 @@ void PlayerInfo::LoadDetails()
 		aReader.OpenMemory(aBuffer.GetDataPtr(), aBuffer.GetDataLen(), false);
 		DataSync aSync(aReader);
 		SyncDetails(aSync);
+		LoadCheats();
 	}
 	catch (DataReaderException&)
 	{
@@ -193,10 +194,75 @@ void PlayerInfo::SaveDetails()
 	aWriter.OpenMemory();
 	DataSync aSync(aWriter);
 	SyncDetails(aSync);
+	SaveCheats();
 
 	MkDir(GetAppDataPath("userdata"));
 	std::string aFileName = GetAppDataPath(StrFormat("userdata/user%d.dat", mId));
 	gSexyAppBase->WriteBytesToFile(aFileName, aWriter.GetDataPtr(), aWriter.GetDataLen());
+}
+
+void PlayerInfo::LoadCheats()
+{
+#ifdef _MORE_OPTIONS
+	try
+	{
+		Buffer aBuffer;
+		std::string aFileName = GetAppDataPath(StrFormat("userdata/cheats%d.dat", mId));
+		if (!gSexyAppBase->ReadBufferFromFile(aFileName, &aBuffer, false))
+			return;
+
+		DataReader aReader;
+		aReader.OpenMemory(aBuffer.GetDataPtr(), aBuffer.GetDataLen(), false);
+		int aVersion = aReader.ReadLong();
+		if (aVersion >= 1) {
+			mNoCrazyDaveSeeds = aReader.ReadLong();
+			mAutoCollectSun = aReader.ReadLong();
+			mAutoCollectCoins = aReader.ReadLong();
+			mUnlimitedSun = aReader.ReadLong();
+			mNoCooldown = aReader.ReadLong();
+			mPlantInColumns = aReader.ReadLong();
+			mNoSunCost = aReader.ReadLong();
+			mInvinciblePlants = aReader.ReadLong();
+			mPlantAnywhere = aReader.ReadLong();
+			mAutoWin = aReader.ReadLong();
+			mNoPlantCooldown = aReader.ReadLong();
+			mRegenPlants = aReader.ReadLong();
+		}
+		if (aVersion >= 2) {
+			mModMenuEnabled = aReader.ReadLong();
+		}
+	}
+	catch (DataReaderException&)
+	{
+		TodTrace("Failed to load cheats data\n");
+	}
+#endif
+}
+
+void PlayerInfo::SaveCheats()
+{
+#ifdef _MORE_OPTIONS
+	DataWriter aWriter;
+	aWriter.OpenMemory();
+	aWriter.WriteLong(2); // Version
+	aWriter.WriteLong(mNoCrazyDaveSeeds);
+	aWriter.WriteLong(mAutoCollectSun);
+	aWriter.WriteLong(mAutoCollectCoins);
+	aWriter.WriteLong(mUnlimitedSun);
+	aWriter.WriteLong(mNoCooldown);
+	aWriter.WriteLong(mPlantInColumns);
+	aWriter.WriteLong(mNoSunCost);
+	aWriter.WriteLong(mInvinciblePlants);
+	aWriter.WriteLong(mPlantAnywhere);
+	aWriter.WriteLong(mAutoWin);
+	aWriter.WriteLong(mNoPlantCooldown);
+	aWriter.WriteLong(mRegenPlants);
+	aWriter.WriteLong(mModMenuEnabled);
+
+	MkDir(GetAppDataPath("userdata"));
+	std::string aFileName = GetAppDataPath(StrFormat("userdata/cheats%d.dat", mId));
+	gSexyAppBase->WriteBytesToFile(aFileName, aWriter.GetDataPtr(), aWriter.GetDataLen());
+#endif
 }
 
 //0x469810
@@ -254,6 +320,7 @@ void PlayerInfo::Reset()
 	mAutoWin = 0;
 	mNoPlantCooldown = 0;
 	mRegenPlants = 0;
+	mModMenuEnabled = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));

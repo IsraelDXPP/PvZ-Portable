@@ -236,7 +236,7 @@ Plant* ZenGarden::PlacePottedPlant(intptr_t thePottedPlantIndex)
     }
 
     Plant* aPlant = mBoard->NewPlant(aPottedPlant->mX, aPottedPlant->mY, aSeedType, SeedType::SEED_NONE);
-    aPlant->mPottedPlantIndex = thePottedPlantIndex;
+    aPlant->mPottedPlantIndex = static_cast<int32_t>(thePottedPlantIndex);
     aPlant->mRenderOrder = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_PLANT, 0, aPlant->mY + 1);
     aPlant->mStateCountdown = 0;
 

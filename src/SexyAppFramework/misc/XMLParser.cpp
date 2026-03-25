@@ -405,7 +405,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 					
 					*aStrPtr += c;
 
-					int aLen = aStrPtr->length();
+					int aLen = static_cast<int>(aStrPtr->length());
 
 					if ((c == '>') && (aLen >= 3) && ((*aStrPtr)[aLen - 2] == '-') && ((*aStrPtr)[aLen - 3] == '-'))
 					{
@@ -424,7 +424,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 					
 					*aStrPtr += c;
 
-					int aLen = aStrPtr->length();
+					int aLen = static_cast<int>(aStrPtr->length());
 
 					if ((c == '>') && (aLen >= 2) && ((*aStrPtr)[aLen - 2] == '?'))
 					{
@@ -500,7 +500,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 									{
 										std::string aVal = theElement->mAttributes[aLastAttributeKey];
 
-										int aLen = aVal.length();
+										int aLen = static_cast<int>(aVal.length());
 
 										if ((aLen > 0) && (aVal[aLen-1] == '/'))
 										{
@@ -514,7 +514,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 									}
 									else
 									{
-										int aLen = theElement->mValue.length();
+										int aLen = static_cast<int>(theElement->mValue.length());
 
 										if ((aLen > 0) && (theElement->mValue[aLen-1] == '/'))
 										{
@@ -530,8 +530,8 @@ bool XMLParser::NextElement(XMLElement* theElement)
 								{									
 									std::string anAddString = "</" + theElement->mValue + ">";
 
-									int anOldSize = mBufferedText.size();
-									int anAddLength = anAddString.length();
+									int anOldSize = static_cast<int>(mBufferedText.size());
+									int anAddLength = static_cast<int>(anAddString.length());
 
 									mBufferedText.resize(anOldSize + anAddLength);
 
@@ -554,7 +554,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 							}
 							else if (theElement->mType == XMLElement::TYPE_END)
 							{
-								int aLastSlash = mSection.rfind('/');
+								int aLastSlash = static_cast<int>(mSection.rfind('/'));
 								if ((aLastSlash == -1) && (mSection.length() == 0))
 								{
 									Fail("Unexpected End");

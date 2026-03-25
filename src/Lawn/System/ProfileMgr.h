@@ -56,7 +56,7 @@ public:
 	/*inline*/ void		Clear();
 	void				Load();
 	void				Save();
-	inline int			GetNumProfiles() const { return mProfileMap.size(); }
+	inline int			GetNumProfiles() const { return static_cast<int>(mProfileMap.size()); }
 	PlayerInfo*			GetProfile(const std::string& theName);
 	PlayerInfo*			AddProfile(const std::string& theName);
 	PlayerInfo*			GetAnyProfile();

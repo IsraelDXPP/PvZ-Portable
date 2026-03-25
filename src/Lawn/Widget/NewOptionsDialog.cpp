@@ -50,11 +50,22 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 
 #ifdef _MORE_OPTIONS
 	mAutoWinButton = nullptr;
-	if (mApp->mPlayerInfo && mApp->mPlayerInfo->mAutoWin && mApp->mBoard && !mApp->mBoard->mLevelComplete)
+	mModMenuButton = nullptr;
+	if (mApp->mPlayerInfo && mApp->mBoard && !mApp->mBoard->mLevelComplete)
 	{
-		mAutoWinButton = new Sexy::ButtonWidget(NewOptionsDialog_AutoWin, this);
-		mAutoWinButton->mFrameNoDraw = true;
-		mAutoWinButton->mDoFinger = true;
+		if (mApp->mPlayerInfo->mAutoWin)
+		{
+			mAutoWinButton = new Sexy::ButtonWidget(NewOptionsDialog_AutoWin, this);
+			mAutoWinButton->mFrameNoDraw = true;
+			mAutoWinButton->mDoFinger = true;
+		}
+		
+		if (mApp->mPlayerInfo->mModMenuEnabled)
+		{
+			mModMenuButton = new Sexy::ButtonWidget(NewOptionsDialog_ModMenu, this);
+			mModMenuButton->mFrameNoDraw = true;
+			mModMenuButton->mDoFinger = true;
+		}
 	}
 #endif
 
@@ -144,6 +155,7 @@ NewOptionsDialog::~NewOptionsDialog()
 {
 #ifdef _MORE_OPTIONS
 	if (mAutoWinButton) delete mAutoWinButton;
+	if (mModMenuButton) delete mModMenuButton;
 #endif
     delete mMusicVolumeSlider;
     delete mSfxVolumeSlider;
@@ -186,6 +198,7 @@ void NewOptionsDialog::AddedToManager(Sexy::WidgetManager* theWidgetManager)
     AddWidget(mBackToGameButton);
 #ifdef _MORE_OPTIONS
 	if (mAutoWinButton) AddWidget(mAutoWinButton);
+	if (mModMenuButton) AddWidget(mModMenuButton);
 #endif
 }
 
@@ -208,6 +221,7 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
     RemoveWidget(mRestartButton);
 #ifdef _MORE_OPTIONS
 	if (mAutoWinButton) RemoveWidget(mAutoWinButton);
+	if (mModMenuButton) RemoveWidget(mModMenuButton);
 #endif
 }
 
@@ -224,6 +238,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 #ifdef _MORE_OPTIONS
     mMoreOptionsButton->Resize(107, mRestartButton->mY, 209, 46);
 	if (mAutoWinButton) mAutoWinButton->Resize(20, 20, 50, 50);
+	if (mModMenuButton) mModMenuButton->Resize(330, 20, (int)(IMAGE_CREDITS_PLAYBUTTON->mWidth * 0.8f), (int)(IMAGE_CREDITS_PLAYBUTTON->mHeight * 0.8f));
 #endif
     mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
@@ -256,6 +271,11 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
 		int aTrophyOffsetY = mAutoWinButton->mIsDown ? 1 : 0;
 		// Scale the trophy to 0.8x to be slightly smaller but clear
 		TodDrawImageScaledF(g, IMAGE_TROPHY, mAutoWinButton->mX, mAutoWinButton->mY + aTrophyOffsetY, 0.8f, 0.8f);
+	}
+	if (mModMenuButton && mModMenuButton->mVisible)
+	{
+		int anOffsetY = mModMenuButton->mIsDown ? 1 : 0;
+		TodDrawImageScaledF(g, IMAGE_CREDITS_PLAYBUTTON, mModMenuButton->mX, mModMenuButton->mY + anOffsetY, 0.8f, 0.8f);
 	}
 #endif
 
@@ -422,6 +442,14 @@ void NewOptionsDialog::ButtonDepress(int theId)
 			mApp->mBoard->ClearCursor();
 			mApp->mBoard->mLevelComplete = true;
 		}
+		break;
+	}
+
+	case NewOptionsDialog::NewOptionsDialog_ModMenu:
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		mApp->KillDialog(mId);
+		mApp->DoMoreOptionsDialog(true);
 		break;
 	}
 

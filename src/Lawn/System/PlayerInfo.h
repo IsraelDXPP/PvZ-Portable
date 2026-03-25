@@ -118,6 +118,7 @@ public:
     int32_t             mAutoWin;
     int32_t             mNoPlantCooldown;
     int32_t             mRegenPlants;
+    int32_t             mModMenuEnabled;
 #endif
 
 public:
@@ -128,6 +129,8 @@ public:
     void                SyncSummary(DataSync& theSync);
     void                SyncDetails(DataSync& theSync);
     void                DeleteUserFiles();
+    void                LoadCheats();
+    void                SaveCheats();
     void                LoadDetails();
     void                SaveDetails();
     inline int          GetLevel() const { return mLevel; }

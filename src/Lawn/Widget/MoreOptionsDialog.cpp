@@ -12,14 +12,31 @@
 #include "graphics/Font.h"
 #include "graphics/Graphics.h"
 #include "../System/PlayerInfo.h"
+#include "../Board.h"
+#include "../Zombie.h"
+#include "../Cutscene.h"
 
 using namespace Sexy;
 
-MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
+MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu) :
 	LawnDialog(theApp, Dialogs::DIALOG_MORE_OPTIONS, true, "MORE OPTIONS", "", "", Dialog::BUTTONS_NONE)
 {
 	mApp = theApp;
+	mFromPauseMenu = theFromPauseMenu;
 	mDrawStandardBack = true;
+	mModMenuEnabledCheckbox = nullptr;
+	mHypnotizeAllButton = nullptr;
+	mSummonZombossButton = nullptr;
+
+	if (!mFromPauseMenu)
+	{
+		mModMenuEnabledCheckbox = MakeNewCheckbox(MoreOptionsDialog_ModMenuEnabled, this, mApp->mPlayerInfo->mModMenuEnabled);
+	}
+	else
+	{
+		mHypnotizeAllButton = MakeButton(MoreOptionsDialog_HypnotizeAll, this, "Hypnotize All");
+		mSummonZombossButton = MakeButton(MoreOptionsDialog_SummonZomboss, this, "Summon Zomboss");
+	}
 
 	mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoCrazyDaveSeeds, this, mApp->mPlayerInfo->mNoCrazyDaveSeeds);
 	mAutoCollectSunCheckbox = MakeNewCheckbox(MoreOptionsDialog_AutoCollectSun, this, mApp->mPlayerInfo->mAutoCollectSun);
@@ -64,6 +81,9 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mAutoWinCheckbox;
 	delete mNoPlantCooldownCheckbox;
 	delete mRegenPlantsCheckbox;
+	delete mModMenuEnabledCheckbox;
+	delete mHypnotizeAllButton;
+	delete mSummonZombossButton;
 	delete mUnlockAllButton;
 	delete mPrevButton;
 	delete mNextButton;
@@ -112,7 +132,11 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 	case MoreOptionsDialog_RegenPlants:
 		mApp->mPlayerInfo->mRegenPlants = checked;
 		break;
+	case MoreOptionsDialog_ModMenuEnabled:
+		mApp->mPlayerInfo->mModMenuEnabled = checked;
+		break;
 	}
+	mApp->mPlayerInfo->SaveCheats();
 }
 
 void MoreOptionsDialog::ButtonDepress(int theId)
@@ -125,6 +149,35 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
 		mApp->DoCheatDialog();
+	}
+	else if (theId == MoreOptionsDialog_HypnotizeAll)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		if (mApp->mBoard)
+		{
+			for (int i = 0; i < mApp->mBoard->mZombies.size(); i++)
+			{
+				Zombie* aZombie = mApp->mBoard->mZombies[i];
+				if (!aZombie->mDead && !aZombie->mHypnotized)
+				{
+					aZombie->Hypnotize();
+				}
+			}
+		}
+		mApp->KillDialog(mId);
+	}
+	else if (theId == MoreOptionsDialog_SummonZomboss)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		if (mApp->mBoard)
+		{
+			Zombie* aZombie = mApp->mBoard->AddZombieInRow(ZombieType::ZOMBIE_BOSS, 0, 0);
+			if (aZombie)
+			{
+				aZombie->mHypnotized = true;
+			}
+		}
+		mApp->KillDialog(mId);
 	}
 	else if (theId == MoreOptionsDialog_PrevPage)
 	{
@@ -204,8 +257,11 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPlantInColumnsCheckbox->SetVisible(mCurrentPage == 1);
 	mNoPlantCooldownCheckbox->SetVisible(mCurrentPage == 1);
 	mAutoWinCheckbox->SetVisible(mCurrentPage == 1);
-	mUnlockAllButton->SetVisible(mCurrentPage == 1);
-	mLevelSelectorWidget->SetVisible(mCurrentPage == 1);
+	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
+	mLevelSelectorWidget->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
+	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
+	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 0 && mFromPauseMenu);
+	if (mSummonZombossButton) mSummonZombossButton->SetVisible(mCurrentPage == 0 && mFromPauseMenu);
 
 	if (mCurrentPage == 0)
 	{
@@ -216,7 +272,25 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		mNoCooldownCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		if (mApp->HasFinishedAdventure())
 		{
-			mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45);
+			mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		}
+
+		if (mFromPauseMenu)
+		{
+			if (mHypnotizeAllButton) {
+				mHypnotizeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 41);
+				aViewY += 46;
+			}
+			if (mSummonZombossButton) {
+				mSummonZombossButton->Resize(aViewX - 10, aViewY + 5, 209, 41);
+				aViewY += 46;
+			}
+		}
+		else
+		{
+			if (mModMenuEnabledCheckbox) {
+				mModMenuEnabledCheckbox->Resize(aViewX, aViewY, 46, 45);
+			}
 		}
 	}
 	else if (mCurrentPage == 1)
@@ -262,6 +336,12 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		if (mApp->HasFinishedAdventure())
 		{
 			TodDrawString(g, "No Crazy Dave Seeds", aLabelX, mNoCrazyDaveSeedsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		}
+
+		if (!mFromPauseMenu)
+		{
+			if (mModMenuEnabledCheckbox)
+				TodDrawString(g, "Mod Menu", aLabelX, mModMenuEnabledCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		}
 	}
 	else if (mCurrentPage == 1)
@@ -313,6 +393,9 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mAutoWinCheckbox);
 	AddWidget(mNoPlantCooldownCheckbox);
 	AddWidget(mRegenPlantsCheckbox);
+	if (mModMenuEnabledCheckbox) AddWidget(mModMenuEnabledCheckbox);
+	if (mHypnotizeAllButton) AddWidget(mHypnotizeAllButton);
+	if (mSummonZombossButton) AddWidget(mSummonZombossButton);
 	AddWidget(mUnlockAllButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
@@ -335,6 +418,9 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mAutoWinCheckbox);
 	RemoveWidget(mNoPlantCooldownCheckbox);
 	RemoveWidget(mRegenPlantsCheckbox);
+	if (mModMenuEnabledCheckbox) RemoveWidget(mModMenuEnabledCheckbox);
+	if (mHypnotizeAllButton) RemoveWidget(mHypnotizeAllButton);
+	if (mSummonZombossButton) RemoveWidget(mSummonZombossButton);
 	RemoveWidget(mUnlockAllButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);

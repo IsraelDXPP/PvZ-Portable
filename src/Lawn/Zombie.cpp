@@ -9835,12 +9835,28 @@ void Zombie::BossRVAttack()
 //0x534B90
 void Zombie::BossRVLanding()
 {
-    Plant* aPlant = nullptr;
-    while (mBoard->IteratePlants(aPlant))
+    if (mHypnotized)
     {
-        if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= mTargetCol && aPlant->mPlantCol <= mTargetCol + 2)
+        for (Zombie* aZombie : mBoard->mZombies)
         {
-            aPlant->Squish();
+            if (!aZombie->mDead && !aZombie->mHypnotized &&
+                aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
+                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= mTargetCol &&
+                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) <= mTargetCol + 2)
+            {
+                aZombie->TakeDamage(1800, 0); // Massive damage
+            }
+        }
+    }
+    else
+    {
+        Plant* aPlant = nullptr;
+        while (mBoard->IteratePlants(aPlant))
+        {
+            if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= mTargetCol && aPlant->mPlantCol <= mTargetCol + 2)
+            {
+                aPlant->Squish();
+            }
         }
     }
 
@@ -9927,6 +9943,10 @@ void Zombie::BossSpawnContact()
 
     Zombie* aZombie = mBoard->AddZombieInRow(aZombieType, mTargetRow, 0);
     aZombie->mPosX = 600.0f;
+    if (mHypnotized)
+    {
+        aZombie->Hypnotize();
+    }
 }
 
 //0x534E30
@@ -9982,12 +10002,27 @@ bool Zombie::BossCanStompRow(int theRow)
 //0x534FF0
 void Zombie::BossStompContact()
 {
-    Plant* aPlant = nullptr;
-    while (mBoard->IteratePlants(aPlant))
+    if (mHypnotized)
     {
-        if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= 5)
+        for (Zombie* aZombie : mBoard->mZombies)
         {
-            aPlant->Squish();
+            if (!aZombie->mDead && !aZombie->mHypnotized &&
+                aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
+                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= 5)
+            {
+                aZombie->TakeDamage(1800, 0);
+            }
+        }
+    }
+    else
+    {
+        Plant* aPlant = nullptr;
+        while (mBoard->IteratePlants(aPlant))
+        {
+            if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= 5)
+            {
+                aPlant->Squish();
+            }
         }
     }
 
@@ -10228,26 +10263,49 @@ void Zombie::UpdateBossFireball()
         return;
 
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
-    aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
+    if (mHypnotized)
+        aFireballReanim->mOverlayMatrix.m02 += aSpeed;
+    else
+        aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
     float aPosX = aFireballReanim->mOverlayMatrix.m02;
     float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 90.0f;
     aFireballReanim->mOverlayMatrix.m12 = aPosY;
 
-    if (aPosX < -180.0f)
+    if (mHypnotized && aPosX > 900.0f)
+    {
+        aFireballReanim->ReanimationDie();
+        mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
+    }
+    else if (!mHypnotized && aPosX < -180.0f)
     {
         aFireballReanim->ReanimationDie();
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    SquishAllInSquare(mBoard->PixelToGridX(aPosX + 75, aPosY), mFireballRow, ZombieAttackType::ATTACKTYPE_DRIVE_OVER);
-
-    LawnMower* aLawnMower = nullptr;
-    while (mBoard->IterateLawnMowers(aLawnMower))
+    if (mHypnotized)
     {
-        if (aLawnMower->mMowerState != LawnMowerState::MOWER_SQUISHED && aLawnMower->mRow == mFireballRow && 
-            aLawnMower->mPosX > aPosX && aLawnMower->mPosX < aPosX + 50.0f)
+        for (Zombie* aZombie : mBoard->mZombies)
         {
-            aLawnMower->SquishMower();
+            if (!aZombie->mDead && !aZombie->mHypnotized &&
+                aZombie->mRow == mFireballRow && 
+                aZombie->mPosX > aPosX && aZombie->mPosX < aPosX + 150.0f)
+            {
+                aZombie->TakeDamage(1800, 0);
+            }
+        }
+    }
+    else
+    {
+        SquishAllInSquare(mBoard->PixelToGridX(aPosX + 75, aPosY), mFireballRow, ZombieAttackType::ATTACKTYPE_DRIVE_OVER);
+
+        LawnMower* aLawnMower = nullptr;
+        while (mBoard->IterateLawnMowers(aLawnMower))
+        {
+            if (aLawnMower->mMowerState != LawnMowerState::MOWER_SQUISHED && aLawnMower->mRow == mFireballRow && 
+                aLawnMower->mPosX > aPosX && aLawnMower->mPosX < aPosX + 50.0f)
+            {
+                aLawnMower->SquishMower();
+            }
         }
     }
 

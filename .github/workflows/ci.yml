@@ -7,10 +7,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  PVZ_DEBUG: ON  # Cambia a OFF para deshabilitar debug globalmente
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -19,6 +15,8 @@ jobs:
   auto-tag:
     name: Generate Auto Tag
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
@@ -55,6 +53,9 @@ jobs:
     name: Build for Arch Linux (x86_64)
     runs-on: ubuntu-latest
     container: archlinux:latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -132,6 +133,9 @@ jobs:
   build-windows-msys2-ucrt64:
     name: Build for Windows (MSYS2 UCRT64)
     runs-on: windows-latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -196,6 +200,9 @@ jobs:
   build-windows-msvc-x64:
     name: Build for Windows (MSVC x64)
     runs-on: windows-latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -250,6 +257,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: devkitpro/devkita64:latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -330,6 +340,9 @@ jobs:
   build-macos:
     name: Build for macOS (aarch64)
     runs-on: macos-latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -396,6 +409,9 @@ jobs:
   build-android:
     name: Build for Android (arm64-v8a)
     runs-on: ubuntu-latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -562,6 +578,8 @@ jobs:
     runs-on: macos-latest
     env:
       IOS_DEPLOY_TARGET: "15.0"
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -618,6 +636,9 @@ jobs:
   build-wasm:
     name: Build for WebAssembly (Emscripten)
     runs-on: ubuntu-latest
+    env:
+      PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -705,6 +726,8 @@ jobs:
     name: Release
     needs: ['auto-tag', 'build-archlinux', 'build-windows-msys2-ucrt64', 'build-windows-msvc-x64', 'build-switch', 'build-macos', 'build-android', 'build-ios', 'build-wasm']
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: write
     steps:
