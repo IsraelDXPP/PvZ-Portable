@@ -218,11 +218,11 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
-int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
-int aMargin = 20;
+	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
+	int aMargin = 20;
 
-mPrevButton->Resize(aMargin, theHeight - 80, aArrowWidth, 40);
-mNextButton->Resize(theWidth - aMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
+	mPrevButton->Resize(aMargin, theHeight - 80, aArrowWidth, 40);
+	mNextButton->Resize(theWidth - aMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -257,13 +257,22 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
 	if (mCurrentPage > 0)
 	{
-		g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY + aPrevOffsetY, true);
+		g->DrawImageMirror(
+			IMAGE_ZEN_NEXTGARDEN,
+			mPrevButton->mX + IMAGE_ZEN_NEXTGARDEN->mWidth,
+			mPrevButton->mY + aPrevOffsetY,
+			true
+		);
 	}
 
 	int aNextOffsetY = mNextButton->mIsDown ? 1 : 0;
 	if (mCurrentPage < 1)
 	{
-		g->DrawImage(IMAGE_ZEN_NEXTGARDEN, mNextButton->mX, mNextButton->mY + aNextOffsetY);
+		g->DrawImage(
+			IMAGE_ZEN_NEXTGARDEN,
+			mNextButton->mX,
+			mNextButton->mY + aNextOffsetY
+		);
 	}
 }
 
