@@ -211,22 +211,18 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		mInvinciblePlantsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mPlantAnywhereCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mAutoWinCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
-	}
-	else if (mCurrentPage == 2)
-	{
-		int aViewX2 = 50;
-		int aViewY2 = 110;
-		mLevelSelectorWidget->Resize(aViewX2 - 10, aViewY2 + 5, 209, 46);
-		aViewY2 += 46 + 10;
-		mUnlockAllButton->Resize(aViewX2 - 10, aViewY2 + 5, 209, 46);
+
+		mLevelSelectorWidget->Resize(aViewX - 10, aViewY + 5, 209, 46);
+		aViewY += 46 + 10;
+		mUnlockAllButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
 	}
 
 	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 	
 	mPrevButton->SetVisible(mCurrentPage > 0);
-	mNextButton->SetVisible(mCurrentPage < 2);
-	mPrevButton->Resize(20, theHeight - 80, 40, 40);
-	mNextButton->Resize(theWidth - 70, theHeight - 80, 40, 40);
+	mNextButton->SetVisible(mCurrentPage < 1);
+	mPrevButton->Resize(theWidth / 2 - 130, theHeight - 80, 40, 40);
+	mNextButton->Resize(theWidth / 2 + 90, theHeight - 80, 40, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -256,7 +252,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "Auto Win", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
-	TodDrawString(g, StrFormat("%d / 3", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
+	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
 	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
 	if (mCurrentPage > 0)
@@ -277,6 +273,7 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mNoSunCostCheckbox);
 	AddWidget(mInvinciblePlantsCheckbox);
 	AddWidget(mPlantAnywhereCheckbox);
+	AddWidget(mAutoWinCheckbox);
 	AddWidget(mUnlockAllButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
@@ -296,6 +293,7 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mNoSunCostCheckbox);
 	RemoveWidget(mInvinciblePlantsCheckbox);
 	RemoveWidget(mPlantAnywhereCheckbox);
+	RemoveWidget(mAutoWinCheckbox);
 	RemoveWidget(mUnlockAllButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);
