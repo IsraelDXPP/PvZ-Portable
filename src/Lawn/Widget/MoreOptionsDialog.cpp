@@ -26,7 +26,13 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu) :
 	mDrawStandardBack = true;
 	mModMenuEnabledCheckbox = nullptr;
 	mHypnotizeAllButton = nullptr;
-	mSummonZombossButton = nullptr;
+
+	// Ensure Credits resources (IMAGE_CREDITS_PLAYBUTTON, etc.) are loaded on demand
+	if (!mApp->mResourceManager->IsGroupLoaded("DelayLoad_Credits"))
+	{
+		mApp->mResourceManager->LoadResources("DelayLoad_Credits");
+		Sexy::ExtractDelayLoad_CreditsResources(mApp->mResourceManager);
+	}
 
 	if (!mFromPauseMenu)
 	{
@@ -35,7 +41,6 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu) :
 	else
 	{
 		mHypnotizeAllButton = MakeButton(MoreOptionsDialog_HypnotizeAll, this, "Hypnotize All");
-		mSummonZombossButton = MakeButton(MoreOptionsDialog_SummonZomboss, this, "Summon Zomboss");
 	}
 
 	mNoCrazyDaveSeedsCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoCrazyDaveSeeds, this, mApp->mPlayerInfo->mNoCrazyDaveSeeds);
@@ -83,7 +88,6 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mRegenPlantsCheckbox;
 	delete mModMenuEnabledCheckbox;
 	delete mHypnotizeAllButton;
-	delete mSummonZombossButton;
 	delete mUnlockAllButton;
 	delete mPrevButton;
 	delete mNextButton;
@@ -162,19 +166,6 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 				{
 					aZombie->StartMindControlled();
 				}
-			}
-		}
-		mApp->KillDialog(mId);
-	}
-	else if (theId == MoreOptionsDialog_SummonZomboss)
-	{
-		mApp->PlaySample(SOUND_BUTTONCLICK);
-		if (mApp->mBoard)
-		{
-			Zombie* aZombie = mApp->mBoard->AddZombieInRow(ZombieType::ZOMBIE_BOSS, 0, 0);
-			if (aZombie)
-			{
-				aZombie->StartMindControlled();
 			}
 		}
 		mApp->KillDialog(mId);
@@ -261,7 +252,6 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mLevelSelectorWidget->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
 	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 0 && mFromPauseMenu);
-	if (mSummonZombossButton) mSummonZombossButton->SetVisible(mCurrentPage == 0 && mFromPauseMenu);
 
 	if (mCurrentPage == 0)
 	{
@@ -279,10 +269,6 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		{
 			if (mHypnotizeAllButton) {
 				mHypnotizeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 41);
-				aViewY += 46;
-			}
-			if (mSummonZombossButton) {
-				mSummonZombossButton->Resize(aViewX - 10, aViewY + 5, 209, 41);
 				aViewY += 46;
 			}
 		}
@@ -395,7 +381,6 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mRegenPlantsCheckbox);
 	if (mModMenuEnabledCheckbox) AddWidget(mModMenuEnabledCheckbox);
 	if (mHypnotizeAllButton) AddWidget(mHypnotizeAllButton);
-	if (mSummonZombossButton) AddWidget(mSummonZombossButton);
 	AddWidget(mUnlockAllButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
@@ -420,7 +405,6 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mRegenPlantsCheckbox);
 	if (mModMenuEnabledCheckbox) RemoveWidget(mModMenuEnabledCheckbox);
 	if (mHypnotizeAllButton) RemoveWidget(mHypnotizeAllButton);
-	if (mSummonZombossButton) RemoveWidget(mSummonZombossButton);
 	RemoveWidget(mUnlockAllButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);

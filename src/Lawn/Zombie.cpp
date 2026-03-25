@@ -9833,31 +9833,12 @@ void Zombie::BossRVAttack()
 }
 
 //0x534B90
-void Zombie::BossRVLanding()
-{
-    if (mMindControlled)
+    Plant* aPlant = nullptr;
+    while (mBoard->IteratePlants(aPlant))
     {
-        Zombie* aZombie = nullptr;
-        while (mBoard->IterateZombies(aZombie))
+        if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= mTargetCol && aPlant->mPlantCol <= mTargetCol + 2)
         {
-            if (!aZombie->mDead && !aZombie->mMindControlled &&
-                aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
-                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= mTargetCol &&
-                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) <= mTargetCol + 2)
-            {
-                aZombie->TakeDamage(1800, 0); // Massive damage
-            }
-        }
-    }
-    else
-    {
-        Plant* aPlant = nullptr;
-        while (mBoard->IteratePlants(aPlant))
-        {
-            if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= mTargetCol && aPlant->mPlantCol <= mTargetCol + 2)
-            {
-                aPlant->Squish();
-            }
+            aPlant->Squish();
         }
     }
 
@@ -9944,10 +9925,6 @@ void Zombie::BossSpawnContact()
 
     Zombie* aZombie = mBoard->AddZombieInRow(aZombieType, mTargetRow, 0);
     aZombie->mPosX = 600.0f;
-    if (mMindControlled)
-    {
-        aZombie->StartMindControlled();
-    }
 }
 
 //0x534E30
@@ -10003,28 +9980,12 @@ bool Zombie::BossCanStompRow(int theRow)
 //0x534FF0
 void Zombie::BossStompContact()
 {
-    if (mMindControlled)
+    Plant* aPlant = nullptr;
+    while (mBoard->IteratePlants(aPlant))
     {
-        Zombie* aZombie = nullptr;
-        while (mBoard->IterateZombies(aZombie))
+        if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= 5)
         {
-            if (!aZombie->mDead && !aZombie->mMindControlled &&
-                aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
-                mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= 5)
-            {
-                aZombie->TakeDamage(1800, 0);
-            }
-        }
-    }
-    else
-    {
-        Plant* aPlant = nullptr;
-        while (mBoard->IteratePlants(aPlant))
-        {
-            if (aPlant->mRow >= mTargetRow && aPlant->mRow <= mTargetRow + 1 && aPlant->mPlantCol >= 5)
-            {
-                aPlant->Squish();
-            }
+            aPlant->Squish();
         }
     }
 
@@ -10232,7 +10193,13 @@ void Zombie::BossHeadSpitEffect()
 //0x535A70
 void Zombie::BossHeadSpitContact()
 {
-    TOD_ASSERT(!mApp->ReanimationTryToGet(mBossFireBallReanimID));
+    // Safely clean up any existing fireball animation instead of asserting
+    Reanimation* aExistingFireball = mApp->ReanimationTryToGet(mBossFireBallReanimID);
+    if (aExistingFireball)
+    {
+        aExistingFireball->ReanimationDie();
+        mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
+    }
 
     float aPosY = mBoard->GetPosYBasedOnRow(550.0f, mFireballRow) - 90.0f;
     Reanimation* aFireBallReanim;
@@ -10265,39 +10232,17 @@ void Zombie::UpdateBossFireball()
         return;
 
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
-    if (mMindControlled)
-        aFireballReanim->mOverlayMatrix.m02 += aSpeed;
-    else
-        aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
+    aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
     float aPosX = aFireballReanim->mOverlayMatrix.m02;
     float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 90.0f;
     aFireballReanim->mOverlayMatrix.m12 = aPosY;
 
-    if (mMindControlled && aPosX > 900.0f)
-    {
-        aFireballReanim->ReanimationDie();
-        mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
-    }
-    else if (!mMindControlled && aPosX < -180.0f)
+    if (aPosX < -180.0f)
     {
         aFireballReanim->ReanimationDie();
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    if (mMindControlled)
-    {
-        Zombie* aZombie = nullptr;
-        while (mBoard->IterateZombies(aZombie))
-        {
-            if (!aZombie->mDead && !aZombie->mMindControlled &&
-                aZombie->mRow == mFireballRow && 
-                aZombie->mPosX > aPosX && aZombie->mPosX < aPosX + 150.0f)
-            {
-                aZombie->TakeDamage(1800, 0);
-            }
-        }
-    }
-    else
     {
         SquishAllInSquare(mBoard->PixelToGridX(aPosX + 75, aPosY), mFireballRow, ZombieAttackType::ATTACKTYPE_DRIVE_OVER);
 

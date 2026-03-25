@@ -51,6 +51,7 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 #ifdef _MORE_OPTIONS
 	mAutoWinButton = nullptr;
 	mModMenuButton = nullptr;
+
 	if (mApp->mPlayerInfo && mApp->mBoard && !mApp->mBoard->mLevelComplete)
 	{
 		if (mApp->mPlayerInfo->mAutoWin)
@@ -62,6 +63,13 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 		
 		if (mApp->mPlayerInfo->mModMenuEnabled)
 		{
+			// Load credits resources on demand if they aren't loaded yet, so IMAGE_CREDITS_PLAYBUTTON is available
+			if (!mApp->mResourceManager->IsGroupLoaded("DelayLoad_Credits"))
+			{
+				mApp->mResourceManager->LoadResources("DelayLoad_Credits");
+				Sexy::ExtractDelayLoad_CreditsResources(mApp->mResourceManager);
+			}
+
 			mModMenuButton = new Sexy::ButtonWidget(NewOptionsDialog_ModMenu, this);
 			mModMenuButton->mFrameNoDraw = true;
 			mModMenuButton->mDoFinger = true;

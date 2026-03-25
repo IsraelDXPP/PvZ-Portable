@@ -27,7 +27,6 @@ public:
 		MoreOptionsDialog_RegenPlants,
 		MoreOptionsDialog_ModMenuEnabled,
 		MoreOptionsDialog_HypnotizeAll,
-		MoreOptionsDialog_SummonZomboss,
 		MoreOptionsDialog_UnlockAll,
 		MoreOptionsDialog_LevelSelector,
 		MoreOptionsDialog_PrevPage,
@@ -48,7 +47,6 @@ public:
 	Sexy::Checkbox*			mRegenPlantsCheckbox;
 	Sexy::Checkbox*			mModMenuEnabledCheckbox;
 	LawnStoneButton*		mHypnotizeAllButton;
-	LawnStoneButton*		mSummonZombossButton;
 	LawnStoneButton*		mUnlockAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;
