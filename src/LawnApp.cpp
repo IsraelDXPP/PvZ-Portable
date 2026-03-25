@@ -1123,7 +1123,7 @@ void LawnApp::FinishRestartConfirmDialog()
 
 void LawnApp::DoCheatDialog()
 {
-	KillDialog(Dialogs::DIALOG_MOREOPTIONS);
+	KillDialog(Dialogs::DIALOG_MORE_OPTIONS);
 	KillNewOptionsDialog();
 	KillDialog(Dialogs::DIALOG_CHEAT);
 
