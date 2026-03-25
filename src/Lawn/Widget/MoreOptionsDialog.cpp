@@ -10,7 +10,7 @@
 #include "../../Sexy.TodLib/TodCommon.h"
 #include "../../Sexy.TodLib/TodDebug.h"
 #include "graphics/Font.h"
-#include "Graphics.h"
+#include "graphics/Graphics.h"
 #include "../System/PlayerInfo.h"
 
 using namespace Sexy;
