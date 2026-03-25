@@ -2378,22 +2378,34 @@ void Board::GetPlantsOnLawn(int theGridX, int theGridY, PlantsOnLawn* thePlantOn
 		// 将植物写入 thePlantOnLawn 的记录
 		if (Plant::IsFlying(aSeedType))
 		{
-			TOD_ASSERT(!thePlantOnLawn->mFlyingPlant);
+#ifdef _MORE_OPTIONS
+			if (!mApp->mPlayerInfo->mPlantAnywhere)
+#endif
+				TOD_ASSERT(!thePlantOnLawn->mFlyingPlant);
 			thePlantOnLawn->mFlyingPlant = aPlant;
 		}
 		else if (aSeedType == SeedType::SEED_FLOWERPOT || (aSeedType == SeedType::SEED_LILYPAD && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN))
 		{
-			TOD_ASSERT(!thePlantOnLawn->mUnderPlant);
+#ifdef _MORE_OPTIONS
+			if (!mApp->mPlayerInfo->mPlantAnywhere)
+#endif
+				TOD_ASSERT(!thePlantOnLawn->mUnderPlant);
 			thePlantOnLawn->mUnderPlant = aPlant;
 		}
 		else if (aSeedType == SeedType::SEED_PUMPKINSHELL)
 		{
-			TOD_ASSERT(!thePlantOnLawn->mPumpkinPlant);
+#ifdef _MORE_OPTIONS
+			if (!mApp->mPlayerInfo->mPlantAnywhere)
+#endif
+				TOD_ASSERT(!thePlantOnLawn->mPumpkinPlant);
 			thePlantOnLawn->mPumpkinPlant = aPlant;
 		}
 		else
 		{
-			TOD_ASSERT(!thePlantOnLawn->mNormalPlant);
+#ifdef _MORE_OPTIONS
+			if (!mApp->mPlayerInfo->mPlantAnywhere)
+#endif
+				TOD_ASSERT(!thePlantOnLawn->mNormalPlant);
 			thePlantOnLawn->mNormalPlant = aPlant;
 		}
 	}
@@ -4157,6 +4169,22 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		{
 			if (aRow == aGridY || CanPlantAt(aGridX, aRow, aPlantingSeedType) != PlantingReason::PLANTING_OK)
 				continue;
+
+#ifdef _MORE_OPTIONS
+			if (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_COLUMN)
+			{
+				PlantsOnLawn aPlantOnLawn;
+				GetPlantsOnLawn(aGridX, aRow, &aPlantOnLawn);
+				if (aPlantingSeedType == SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mPumpkinPlant)
+					continue;
+				else if (aPlantingSeedType == SeedType::SEED_LILYPAD || aPlantingSeedType == SeedType::SEED_FLOWERPOT)
+				{
+					if (aPlantOnLawn.mUnderPlant) continue;
+				}
+				else if (aPlantingSeedType != SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mNormalPlant)
+					continue;
+			}
+#endif
 
 			if (aPlantingSeedType == SeedType::SEED_WALLNUT || aPlantingSeedType == SeedType::SEED_TALLNUT)
 			{

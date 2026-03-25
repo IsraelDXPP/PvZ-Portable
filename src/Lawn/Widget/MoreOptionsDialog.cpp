@@ -34,6 +34,7 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
 	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
+	mPrevButton->mFrameNoDraw = true;
 	mNextButton = new Sexy::ButtonWidget(MoreOptionsDialog_NextPage, this);
 	mNextButton->mButtonImage = IMAGE_ZEN_NEXTGARDEN;
 	mNextButton->mOverImage = IMAGE_ZEN_NEXTGARDEN;
@@ -211,7 +212,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 	
 	mPrevButton->Resize(20, theHeight - 80, 40, 40);
-	mNextButton->Resize(theWidth - 60, theHeight - 80, 40, 40);
+	mNextButton->Resize(theWidth - 45, theHeight - 80, 40, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)

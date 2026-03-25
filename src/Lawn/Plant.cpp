@@ -5076,6 +5076,12 @@ PlantDefinition& GetPlantDefinition(SeedType theSeedType)
 //0x467B00
 int Plant::GetCost(SeedType theSeedType, SeedType theImitaterType)
 {
+#ifdef _MORE_OPTIONS
+	if (gLawnApp->mPlayerInfo->mNoSunCost)
+	{
+		return 0;
+	}
+#endif
     if (gLawnApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED || gLawnApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST)
     {
         if (theSeedType == SeedType::SEED_REPEATER)
