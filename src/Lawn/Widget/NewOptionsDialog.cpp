@@ -238,7 +238,12 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 #ifdef _MORE_OPTIONS
     mMoreOptionsButton->Resize(107, mRestartButton->mY, 209, 46);
 	if (mAutoWinButton) mAutoWinButton->Resize(20, 20, 50, 50);
-	if (mModMenuButton) mModMenuButton->Resize(330, 20, (int)(IMAGE_CREDITS_PLAYBUTTON->mWidth * 0.8f), (int)(IMAGE_CREDITS_PLAYBUTTON->mHeight * 0.8f));
+	if (mModMenuButton)
+	{
+		int aWidth = IMAGE_CREDITS_PLAYBUTTON ? (int)(IMAGE_CREDITS_PLAYBUTTON->mWidth * 0.8f) : 60;
+		int aHeight = IMAGE_CREDITS_PLAYBUTTON ? (int)(IMAGE_CREDITS_PLAYBUTTON->mHeight * 0.8f) : 60;
+		mModMenuButton->Resize(330, 20, aWidth, aHeight);
+	}
 #endif
     mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
@@ -275,7 +280,16 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
 	if (mModMenuButton && mModMenuButton->mVisible)
 	{
 		int anOffsetY = mModMenuButton->mIsDown ? 1 : 0;
-		TodDrawImageScaledF(g, IMAGE_CREDITS_PLAYBUTTON, mModMenuButton->mX, mModMenuButton->mY + anOffsetY, 0.8f, 0.8f);
+		if (IMAGE_CREDITS_PLAYBUTTON)
+		{
+			TodDrawImageScaledF(g, IMAGE_CREDITS_PLAYBUTTON, mModMenuButton->mX, mModMenuButton->mY + anOffsetY, 0.8f, 0.8f);
+		}
+		else
+		{
+			// Fallback: draw a small colored box or use a common image
+			g->SetColor(Color(255, 255, 0, 150));
+			g->FillRect(mModMenuButton->mX, mModMenuButton->mY + anOffsetY, mModMenuButton->mWidth, mModMenuButton->mHeight);
+		}
 	}
 #endif
 

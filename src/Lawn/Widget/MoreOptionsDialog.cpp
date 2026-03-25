@@ -312,7 +312,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
-	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
+	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN ? IMAGE_ZEN_NEXTGARDEN->mWidth : 45;
 	int aMargin = 20;
 
 	mPrevButton->Resize(10, theHeight - 80, aArrowWidth, 40);
@@ -357,7 +357,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
 	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
-	if (mCurrentPage > 0)
+	if (mCurrentPage > 0 && IMAGE_ZEN_NEXTGARDEN)
 	{
 		g->DrawImageMirror(
 			IMAGE_ZEN_NEXTGARDEN,
@@ -368,7 +368,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	}
 
 	int aNextOffsetY = mNextButton->mIsDown ? 1 : 0;
-	if (mCurrentPage < 1)
+	if (mCurrentPage < 1 && IMAGE_ZEN_NEXTGARDEN)
 	{
 		g->DrawImage(
 			IMAGE_ZEN_NEXTGARDEN,
