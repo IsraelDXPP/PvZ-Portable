@@ -113,11 +113,8 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	}
 	else if (theId == MoreOptionsDialog_LevelSelector)
 	{
-		LawnApp* aApp = mApp;
-		aApp->PlaySample(SOUND_BUTTONCLICK);
-		aApp->KillDialog(mId);
-		aApp->KillNewOptionsDialog();
-		aApp->DoCheatDialog();
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		mApp->DoCheatDialog();
 	}
 	else if (theId == MoreOptionsDialog_PrevPage)
 	{
@@ -222,10 +219,10 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mNextButton->SetVisible(mCurrentPage < 1);
 
 	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
-	int aSideMargin = 20;
+	int aEdgeOffset = 60; // La punta de la flecha quedará a 20px del borde (20 + 40)
 
-	mPrevButton->Resize(aSideMargin, theHeight - 80, aArrowWidth, 40);
-	mNextButton->Resize(theWidth - aSideMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
+	mPrevButton->Resize(aEdgeOffset - aArrowWidth, theHeight - 80, aArrowWidth, 40);
+	mNextButton->Resize(theWidth - aEdgeOffset, theHeight - 80, aArrowWidth, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
