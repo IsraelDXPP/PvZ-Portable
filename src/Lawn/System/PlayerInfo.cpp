@@ -213,23 +213,23 @@ void PlayerInfo::LoadCheats()
 
 		DataReader aReader;
 		aReader.OpenMemory(aBuffer.GetDataPtr(), aBuffer.GetDataLen(), false);
-		int aVersion = aReader.ReadLong();
+		int aVersion = (int)aReader.ReadUInt32();
 		if (aVersion >= 1) {
-			mNoCrazyDaveSeeds = aReader.ReadLong();
-			mAutoCollectSun = aReader.ReadLong();
-			mAutoCollectCoins = aReader.ReadLong();
-			mUnlimitedSun = aReader.ReadLong();
-			mNoCooldown = aReader.ReadLong();
-			mPlantInColumns = aReader.ReadLong();
-			mNoSunCost = aReader.ReadLong();
-			mInvinciblePlants = aReader.ReadLong();
-			mPlantAnywhere = aReader.ReadLong();
-			mAutoWin = aReader.ReadLong();
-			mNoPlantCooldown = aReader.ReadLong();
-			mRegenPlants = aReader.ReadLong();
+			mNoCrazyDaveSeeds = aReader.ReadBool();
+			mAutoCollectSun = aReader.ReadBool();
+			mAutoCollectCoins = aReader.ReadBool();
+			mUnlimitedSun = aReader.ReadBool();
+			mNoCooldown = aReader.ReadBool();
+			mPlantInColumns = aReader.ReadBool();
+			mNoSunCost = aReader.ReadBool();
+			mInvinciblePlants = aReader.ReadBool();
+			mPlantAnywhere = aReader.ReadBool();
+			mAutoWin = aReader.ReadBool();
+			mNoPlantCooldown = aReader.ReadBool();
+			mRegenPlants = aReader.ReadBool();
 		}
 		if (aVersion >= 2) {
-			mModMenuEnabled = aReader.ReadLong();
+			mModMenuEnabled = aReader.ReadBool();
 		}
 	}
 	catch (DataReaderException&)
@@ -244,20 +244,20 @@ void PlayerInfo::SaveCheats()
 #ifdef _MORE_OPTIONS
 	DataWriter aWriter;
 	aWriter.OpenMemory();
-	aWriter.WriteLong(2); // Version
-	aWriter.WriteLong(mNoCrazyDaveSeeds);
-	aWriter.WriteLong(mAutoCollectSun);
-	aWriter.WriteLong(mAutoCollectCoins);
-	aWriter.WriteLong(mUnlimitedSun);
-	aWriter.WriteLong(mNoCooldown);
-	aWriter.WriteLong(mPlantInColumns);
-	aWriter.WriteLong(mNoSunCost);
-	aWriter.WriteLong(mInvinciblePlants);
-	aWriter.WriteLong(mPlantAnywhere);
-	aWriter.WriteLong(mAutoWin);
-	aWriter.WriteLong(mNoPlantCooldown);
-	aWriter.WriteLong(mRegenPlants);
-	aWriter.WriteLong(mModMenuEnabled);
+	aWriter.WriteUInt32(2); // Version
+	aWriter.WriteBool(mNoCrazyDaveSeeds);
+	aWriter.WriteBool(mAutoCollectSun);
+	aWriter.WriteBool(mAutoCollectCoins);
+	aWriter.WriteBool(mUnlimitedSun);
+	aWriter.WriteBool(mNoCooldown);
+	aWriter.WriteBool(mPlantInColumns);
+	aWriter.WriteBool(mNoSunCost);
+	aWriter.WriteBool(mInvinciblePlants);
+	aWriter.WriteBool(mPlantAnywhere);
+	aWriter.WriteBool(mAutoWin);
+	aWriter.WriteBool(mNoPlantCooldown);
+	aWriter.WriteBool(mRegenPlants);
+	aWriter.WriteBool(mModMenuEnabled);
 
 	MkDir(GetAppDataPath("userdata"));
 	std::string aFileName = GetAppDataPath(StrFormat("userdata/cheats%d.dat", mId));
