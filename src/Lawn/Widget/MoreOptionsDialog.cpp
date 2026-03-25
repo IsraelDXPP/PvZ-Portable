@@ -32,6 +32,8 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mInvinciblePlantsCheckbox = MakeNewCheckbox(MoreOptionsDialog_InvinciblePlants, this, mApp->mPlayerInfo->mInvinciblePlants);
 	mPlantAnywhereCheckbox = MakeNewCheckbox(MoreOptionsDialog_PlantAnywhere, this, mApp->mPlayerInfo->mPlantAnywhere);
 	mAutoWinCheckbox = MakeNewCheckbox(MoreOptionsDialog_AutoWin, this, mApp->mPlayerInfo->mAutoWin);
+	mNoPlantCooldownCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoPlantCooldown, this, mApp->mPlayerInfo->mNoPlantCooldown);
+	mRegenPlantsCheckbox = MakeNewCheckbox(MoreOptionsDialog_RegenPlants, this, mApp->mPlayerInfo->mRegenPlants);
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
 	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
@@ -60,6 +62,8 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mInvinciblePlantsCheckbox;
 	delete mPlantAnywhereCheckbox;
 	delete mAutoWinCheckbox;
+	delete mNoPlantCooldownCheckbox;
+	delete mRegenPlantsCheckbox;
 	delete mUnlockAllButton;
 	delete mPrevButton;
 	delete mNextButton;
@@ -101,6 +105,12 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 		break;
 	case MoreOptionsDialog_AutoWin:
 		mApp->mPlayerInfo->mAutoWin = checked;
+		break;
+	case MoreOptionsDialog_NoPlantCooldown:
+		mApp->mPlayerInfo->mNoPlantCooldown = checked;
+		break;
+	case MoreOptionsDialog_RegenPlants:
+		mApp->mPlayerInfo->mRegenPlants = checked;
 		break;
 	}
 }
@@ -179,37 +189,43 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	int aViewY = 110;
 	int aStepY = 32;
 
-	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && mApp->HasFinishedAdventure());
+	// Page 1 Visibility
 	mAutoCollectSunCheckbox->SetVisible(mCurrentPage == 0);
 	mAutoCollectCoinsCheckbox->SetVisible(mCurrentPage == 0);
 	mUnlimitedSunCheckbox->SetVisible(mCurrentPage == 0);
+	mNoSunCostCheckbox->SetVisible(mCurrentPage == 0);
 	mNoCooldownCheckbox->SetVisible(mCurrentPage == 0);
+	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && mApp->HasFinishedAdventure());
 
-	mPlantInColumnsCheckbox->SetVisible(mCurrentPage == 1);
-	mNoSunCostCheckbox->SetVisible(mCurrentPage == 1);
+	// Page 2 Visibility
 	mInvinciblePlantsCheckbox->SetVisible(mCurrentPage == 1);
+	mRegenPlantsCheckbox->SetVisible(mCurrentPage == 1);
 	mPlantAnywhereCheckbox->SetVisible(mCurrentPage == 1);
+	mPlantInColumnsCheckbox->SetVisible(mCurrentPage == 1);
+	mNoPlantCooldownCheckbox->SetVisible(mCurrentPage == 1);
+	mAutoWinCheckbox->SetVisible(mCurrentPage == 1);
 	mUnlockAllButton->SetVisible(mCurrentPage == 1);
 	mLevelSelectorWidget->SetVisible(mCurrentPage == 1);
 
 	if (mCurrentPage == 0)
 	{
-		if (mApp->HasFinishedAdventure())
-		{
-			mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45);
-			aViewY += aStepY;
-		}
 		mAutoCollectSunCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mAutoCollectCoinsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mUnlimitedSunCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
-		mNoCooldownCheckbox->Resize(aViewX, aViewY, 46, 45);
+		mNoSunCostCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		mNoCooldownCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		if (mApp->HasFinishedAdventure())
+		{
+			mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45);
+		}
 	}
 	else if (mCurrentPage == 1)
 	{
-		mPlantInColumnsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
-		mNoSunCostCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mInvinciblePlantsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		mRegenPlantsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		mNoPlantCooldownCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mPlantAnywhereCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		mPlantInColumnsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mAutoWinCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 
 		mLevelSelectorWidget->Resize(aViewX - 10, aViewY + 5, 209, 46);
@@ -238,21 +254,23 @@ void MoreOptionsDialog::Draw(Graphics* g)
 
 	if (mCurrentPage == 0)
 	{
+		TodDrawString(g, "Auto Collect Sun", aLabelX, mAutoCollectSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Auto Collect Coins", aLabelX, mAutoCollectCoinsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Unlimited Sun", aLabelX, mUnlimitedSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "No Sun Cost", aLabelX, mNoSunCostCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "No More Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		if (mApp->HasFinishedAdventure())
 		{
 			TodDrawString(g, "No Crazy Dave Seeds", aLabelX, mNoCrazyDaveSeedsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		}
-		TodDrawString(g, "Auto Collect Sun", aLabelX, mAutoCollectSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "Auto Collect Coins", aLabelX, mAutoCollectCoinsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "Unlimited Sun", aLabelX, mUnlimitedSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "No More Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 	else if (mCurrentPage == 1)
 	{
-		TodDrawString(g, "Plant in Columns", aLabelX, mPlantInColumnsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "No Sun Cost", aLabelX, mNoSunCostCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Invincible Plants", aLabelX, mInvinciblePlantsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Plant Regeneration", aLabelX, mRegenPlantsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "No Plant Cooldown", aLabelX, mNoPlantCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Plant Anywhere", aLabelX, mPlantAnywhereCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Plant in Columns", aLabelX, mPlantInColumnsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Auto Win", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
@@ -293,6 +311,8 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mInvinciblePlantsCheckbox);
 	AddWidget(mPlantAnywhereCheckbox);
 	AddWidget(mAutoWinCheckbox);
+	AddWidget(mNoPlantCooldownCheckbox);
+	AddWidget(mRegenPlantsCheckbox);
 	AddWidget(mUnlockAllButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
@@ -313,6 +333,8 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mInvinciblePlantsCheckbox);
 	RemoveWidget(mPlantAnywhereCheckbox);
 	RemoveWidget(mAutoWinCheckbox);
+	RemoveWidget(mNoPlantCooldownCheckbox);
+	RemoveWidget(mRegenPlantsCheckbox);
 	RemoveWidget(mUnlockAllButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);

@@ -1713,14 +1713,18 @@ void Plant::UpdateCobCannon()
     else if (mState == PlantState::STATE_COBCANNON_LOADING)
     {
         Reanimation* aBodyReanim = mApp->ReanimationGet(mBodyReanimID);
-        if (aBodyReanim->ShouldTriggerTimedEvent(0.5f))
-        {
-            mApp->PlayFoley(FoleyType::FOLEY_SHOOP);
-        }
+#ifdef _MORE_OPTIONS
+        if (mApp->mPlayerInfo->mNoPlantCooldown || aBodyReanim->mLoopCount > 0)
+#else
         if (aBodyReanim->mLoopCount > 0)
+#endif
         {
             mState = PlantState::STATE_COBCANNON_READY;
             PlayIdleAnim(12.0f);
+        }
+        else if (aBodyReanim->ShouldTriggerTimedEvent(0.5f))
+        {
+            mApp->PlayFoley(FoleyType::FOLEY_SHOOP);
         }
     }
     else if (mState == PlantState::STATE_COBCANNON_READY)
@@ -2589,11 +2593,30 @@ void Plant::UpdateAbilities()
 
     if (mIsAsleep || mSquished || mOnBungeeState != PlantOnBungeeState::NOT_ON_BUNGEE)
         return;
+
+#ifdef _MORE_OPTIONS
+    if (mApp->mPlayerInfo->mRegenPlants && mPlantHealth < mPlantMaxHealth)
+    {
+        if (mBoard->mMainCounter % 100 == 0)
+        {
+            mPlantHealth = std::min(mPlantHealth + (mPlantMaxHealth / 20), mPlantMaxHealth);
+        }
+    }
+#endif
     
     UpdateShooting();
 
     if (mStateCountdown > 0)
-        mStateCountdown--;
+    {
+#ifdef _MORE_OPTIONS
+        if (mApp->mPlayerInfo->mNoPlantCooldown)
+        {
+            mStateCountdown = 0;
+        }
+        else
+#endif
+            mStateCountdown--;
+    }
 
     if (mApp->IsWallnutBowlingLevel())
     {
@@ -5040,6 +5063,20 @@ void Plant::Die()
             aZombie->DieWithLoot();
         }
     }
+
+#ifdef _MORE_OPTIONS
+    if (mApp->mPlayerInfo->mInvinciblePlants && mPlantHealth <= 0)
+    {
+        // Don't block death for instant plants that die after they trigger their effect
+        if (mSeedType != SeedType::SEED_CHERRYBOMB && mSeedType != SeedType::SEED_JALAPENO && 
+            mSeedType != SeedType::SEED_DOOMSHROOM && mSeedType != SeedType::SEED_ICESHROOM &&
+            mSeedType != SeedType::SEED_BLOVER && mSeedType != SeedType::SEED_SQUASH)
+        {
+            mPlantHealth = mPlantMaxHealth;
+            return;
+        }
+    }
+#endif
 
     mDead = true;
     RemoveEffects();

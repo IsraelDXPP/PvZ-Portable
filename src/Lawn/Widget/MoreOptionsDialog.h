@@ -23,6 +23,8 @@ public:
 		MoreOptionsDialog_InvinciblePlants,
 		MoreOptionsDialog_PlantAnywhere,
 		MoreOptionsDialog_AutoWin,
+		MoreOptionsDialog_NoPlantCooldown,
+		MoreOptionsDialog_RegenPlants,
 		MoreOptionsDialog_UnlockAll,
 		MoreOptionsDialog_LevelSelector,
 		MoreOptionsDialog_PrevPage,
@@ -39,6 +41,8 @@ public:
 	Sexy::Checkbox*			mInvinciblePlantsCheckbox;
 	Sexy::Checkbox*			mPlantAnywhereCheckbox;
 	Sexy::Checkbox*			mAutoWinCheckbox;
+	Sexy::Checkbox*			mNoPlantCooldownCheckbox;
+	Sexy::Checkbox*			mRegenPlantsCheckbox;
 	LawnStoneButton*		mUnlockAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;
