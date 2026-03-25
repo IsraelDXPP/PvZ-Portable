@@ -4141,7 +4141,11 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	}
 	
 	// 柱子关卡中，一列种植
-	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)
+	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN
+#ifdef _MORE_OPTIONS
+		|| mApp->mPlayerInfo->mPlantInColumns
+#endif
+	)
 	{
 		for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
 		{
@@ -10032,6 +10036,12 @@ void Board::UpdateGridItems()
 //0x41D7D0
 bool Board::PlantingRequirementsMet(SeedType theSeedType)
 {
+#ifdef _MORE_OPTIONS
+	if (mApp->mPlayerInfo->mPlantAnywhere)
+	{
+		return true;
+	}
+#endif
 	switch (theSeedType)
 	{
 	case SeedType::SEED_GATLINGPEA:			return CountPlantByType(SeedType::SEED_REPEATER);
@@ -10136,6 +10146,12 @@ bool Board::PlantUsesAcceleratedPricing(SeedType theSeedType)
 //0x41DAE0
 int Board::GetCurrentPlantCost(SeedType theSeedType, SeedType theImitaterType)
 {
+#ifdef _MORE_OPTIONS
+	if (mApp->mPlayerInfo->mNoSunCost)
+	{
+		return 0;
+	}
+#endif
 	int aCost = Plant::GetCost(theSeedType, theImitaterType);
 	if (PlantUsesAcceleratedPricing(theSeedType))
 	{

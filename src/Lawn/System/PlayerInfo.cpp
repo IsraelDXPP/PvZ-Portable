@@ -159,27 +159,6 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncUInt32(mZombatarHeadCount);
 	theSync.SyncBytes(mZombatarTrailingUnknown, sizeof(mZombatarTrailingUnknown));
 	theSync.SyncUInt8(mZombatarCreatedBefore);
-
-	if (aVersion >= 13)
-	{
-#ifdef _MORE_OPTIONS
-		theSync.SyncUInt32(mNoCrazyDaveSeeds);
-		theSync.SyncUInt32(mAutoCollectSun);
-		theSync.SyncUInt32(mAutoCollectCoins);
-		theSync.SyncUInt32(mUnlimitedSun);
-		theSync.SyncUInt32(mNoCooldown);
-#endif
-	}
-	else if (theSync.GetReader())
-	{
-#ifdef _MORE_OPTIONS
-		mNoCrazyDaveSeeds = 0;
-		mAutoCollectSun = 0;
-		mAutoCollectCoins = 0;
-		mUnlimitedSun = 0;
-		mNoCooldown = 0;
-#endif
-	}
 }
 
 //0x469400
@@ -268,6 +247,10 @@ void PlayerInfo::Reset()
 	mAutoCollectCoins = 0;
 	mUnlimitedSun = 0;
 	mNoCooldown = 0;
+	mPlantInColumns = 0;
+	mNoSunCost = 0;
+	mInvinciblePlants = 0;
+	mPlantAnywhere = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));

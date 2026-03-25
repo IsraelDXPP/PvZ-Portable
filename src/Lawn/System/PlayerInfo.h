@@ -111,6 +111,10 @@ public:
     int32_t             mAutoCollectCoins;
     int32_t             mUnlimitedSun;
     int32_t             mNoCooldown;
+    int32_t             mPlantInColumns;
+    int32_t             mNoSunCost;
+    int32_t             mInvinciblePlants;
+    int32_t             mPlantAnywhere;
 #endif
 
 public:

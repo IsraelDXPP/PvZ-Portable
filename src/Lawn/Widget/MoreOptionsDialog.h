@@ -5,7 +5,6 @@
 #include "LawnDialog.h"
 #include "widget/CheckboxListener.h"
 
-
 class LawnStoneButton;
 
 class MoreOptionsDialog : public LawnDialog, public Sexy::CheckboxListener
@@ -17,7 +16,15 @@ public:
 		MoreOptionsDialog_AutoCollectSun,
 		MoreOptionsDialog_AutoCollectCoins,
 		MoreOptionsDialog_UnlimitedSun,
-		MoreOptionsDialog_NoCooldown
+		MoreOptionsDialog_NoCooldown,
+		MoreOptionsDialog_PlantInColumns,
+		MoreOptionsDialog_NoSunCost,
+		MoreOptionsDialog_InvinciblePlants,
+		MoreOptionsDialog_PlantAnywhere,
+		MoreOptionsDialog_UnlockAll,
+		MoreOptionsDialog_LevelSelector,
+		MoreOptionsDialog_PrevPage,
+		MoreOptionsDialog_NextPage
 	};
 
 	Sexy::Checkbox*			mNoCrazyDaveSeedsCheckbox;
@@ -25,7 +32,16 @@ public:
 	Sexy::Checkbox*			mAutoCollectCoinsCheckbox;
 	Sexy::Checkbox*			mUnlimitedSunCheckbox;
 	Sexy::Checkbox*			mNoCooldownCheckbox;
+	Sexy::Checkbox*			mPlantInColumnsCheckbox;
+	Sexy::Checkbox*			mNoSunCostCheckbox;
+	Sexy::Checkbox*			mInvinciblePlantsCheckbox;
+	Sexy::Checkbox*			mPlantAnywhereCheckbox;
+	LawnStoneButton*		mUnlockAllButton;
+	LawnStoneButton*		mPrevButton;
+	LawnStoneButton*		mNextButton;
+	LawnStoneButton*		mLevelSelectorWidget;
 	LawnStoneButton*		mBackButton;
+	int						mCurrentPage;
 
 public:
 	MoreOptionsDialog(LawnApp* theApp);

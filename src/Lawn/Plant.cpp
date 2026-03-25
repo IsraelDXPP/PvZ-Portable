@@ -2927,7 +2927,16 @@ void Plant::Update()
         Animate();
 
         if (mPlantHealth < 0)
-            Die();
+        {
+#ifdef _MORE_OPTIONS
+            if (!mBoard->mApp->mPlayerInfo->mInvinciblePlants)
+#endif
+                Die();
+#ifdef _MORE_OPTIONS
+            else
+                mPlantHealth = mPlantMaxHealth; // Restore health on hit
+#endif
+        }
 
         UpdateReanim();
     }
