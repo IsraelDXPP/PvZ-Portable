@@ -9835,11 +9835,12 @@ void Zombie::BossRVAttack()
 //0x534B90
 void Zombie::BossRVLanding()
 {
-    if (mHypnotized)
+    if (mMindControlled)
     {
-        for (Zombie* aZombie : mBoard->mZombies)
+        Zombie* aZombie = nullptr;
+        while (mBoard->IterateZombies(aZombie))
         {
-            if (!aZombie->mDead && !aZombie->mHypnotized &&
+            if (!aZombie->mDead && !aZombie->mMindControlled &&
                 aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
                 mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= mTargetCol &&
                 mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) <= mTargetCol + 2)
@@ -9943,9 +9944,9 @@ void Zombie::BossSpawnContact()
 
     Zombie* aZombie = mBoard->AddZombieInRow(aZombieType, mTargetRow, 0);
     aZombie->mPosX = 600.0f;
-    if (mHypnotized)
+    if (mMindControlled)
     {
-        aZombie->Hypnotize();
+        aZombie->StartMindControlled();
     }
 }
 
@@ -10002,11 +10003,12 @@ bool Zombie::BossCanStompRow(int theRow)
 //0x534FF0
 void Zombie::BossStompContact()
 {
-    if (mHypnotized)
+    if (mMindControlled)
     {
-        for (Zombie* aZombie : mBoard->mZombies)
+        Zombie* aZombie = nullptr;
+        while (mBoard->IterateZombies(aZombie))
         {
-            if (!aZombie->mDead && !aZombie->mHypnotized &&
+            if (!aZombie->mDead && !aZombie->mMindControlled &&
                 aZombie->mRow >= mTargetRow && aZombie->mRow <= mTargetRow + 1 &&
                 mBoard->PixelToGridX(aZombie->mPosX, aZombie->mPosY) >= 5)
             {
@@ -10263,7 +10265,7 @@ void Zombie::UpdateBossFireball()
         return;
 
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
-    if (mHypnotized)
+    if (mMindControlled)
         aFireballReanim->mOverlayMatrix.m02 += aSpeed;
     else
         aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
@@ -10271,22 +10273,23 @@ void Zombie::UpdateBossFireball()
     float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 90.0f;
     aFireballReanim->mOverlayMatrix.m12 = aPosY;
 
-    if (mHypnotized && aPosX > 900.0f)
+    if (mMindControlled && aPosX > 900.0f)
     {
         aFireballReanim->ReanimationDie();
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
-    else if (!mHypnotized && aPosX < -180.0f)
+    else if (!mMindControlled && aPosX < -180.0f)
     {
         aFireballReanim->ReanimationDie();
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    if (mHypnotized)
+    if (mMindControlled)
     {
-        for (Zombie* aZombie : mBoard->mZombies)
+        Zombie* aZombie = nullptr;
+        while (mBoard->IterateZombies(aZombie))
         {
-            if (!aZombie->mDead && !aZombie->mHypnotized &&
+            if (!aZombie->mDead && !aZombie->mMindControlled &&
                 aZombie->mRow == mFireballRow && 
                 aZombie->mPosX > aPosX && aZombie->mPosX < aPosX + 150.0f)
             {
