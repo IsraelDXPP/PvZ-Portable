@@ -218,11 +218,11 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
-	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
-	int aEdgeOffset = 60; // La punta de la flecha quedará a 20px del borde (20 + 40)
+int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
+int aMargin = 20;
 
-	mPrevButton->Resize(60 - aArrowWidth, theHeight - 80, aArrowWidth, 40);
-	mNextButton->Resize(theWidth - 60, theHeight - 80, aArrowWidth, 40);
+mPrevButton->Resize(aMargin, theHeight - 80, aArrowWidth, 40);
+mNextButton->Resize(theWidth - aMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)

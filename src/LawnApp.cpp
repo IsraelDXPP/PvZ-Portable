@@ -1123,8 +1123,6 @@ void LawnApp::FinishRestartConfirmDialog()
 
 void LawnApp::DoCheatDialog()
 {
-	KillDialog(Dialogs::DIALOG_MORE_OPTIONS);
-	KillNewOptionsDialog();
 	KillDialog(Dialogs::DIALOG_CHEAT);
 
 	CheatDialog* aDialog = new CheatDialog(this);
@@ -1146,6 +1144,16 @@ void LawnApp::FinishCheatDialog(bool isYes)
 	{
 		mMusic->StopAllMusic();
 		mBoardResult = BoardResult::BOARDRESULT_CHEAT;
+
+		// Master Cleanup: Cierra todo lo que pueda estar abierto para evitar crasheos
+		KillDialog(Dialogs::DIALOG_MORE_OPTIONS);
+		KillNewOptionsDialog();
+		KillBoard();
+		KillGameSelector();
+		KillChallengeScreen();
+		if (mAwardScreen) KillAwardScreen();
+		if (mSeedChooserScreen) KillSeedChooserScreen();
+
 		PreNewGame(mGameMode, false);
 	}
 }
