@@ -124,15 +124,15 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	else if (theId == MoreOptionsDialog_UnlockAll)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
-		mApp->mPlayerInfo->mHasFinishedAdventure = true;
+		mApp->mPlayerInfo->mFinishedAdventure = 1;
 		mApp->mPlayerInfo->mLevel = 51;
-		mApp->mPlayerInfo->mHasUnlockedMinigames = true;
-		mApp->mPlayerInfo->mHasUnlockedPuzzleMode = true;
-		mApp->mPlayerInfo->mHasUnlockedSurvivalMode = true;
-		mApp->mPlayerInfo->mHasNewMiniGame = true;
-		mApp->mPlayerInfo->mHasNewScaryPotter = true;
-		mApp->mPlayerInfo->mHasNewIZombie = true;
-		mApp->mPlayerInfo->mHasNewSurvival = true;
+		mApp->mPlayerInfo->mHasUnlockedMinigames = 1;
+		mApp->mPlayerInfo->mHasUnlockedPuzzleMode = 1;
+		mApp->mPlayerInfo->mHasUnlockedSurvivalMode = 1;
+		mApp->mPlayerInfo->mHasNewMiniGame = 1;
+		mApp->mPlayerInfo->mHasNewScaryPotter = 1;
+		mApp->mPlayerInfo->mHasNewIZombie = 1;
+		mApp->mPlayerInfo->mHasNewSurvival = 1;
 		mApp->mPlayerInfo->AddCoins(999990); 
 		for (int i = 0; i < 80; i++) {
 			mApp->mPlayerInfo->mPurchases[i] = 1;
@@ -237,7 +237,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "Plant Anywhere", aLabelX, mPlantAnywhereCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
-	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, theHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
+	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
 	if (mCurrentPage > 0)
 	{
