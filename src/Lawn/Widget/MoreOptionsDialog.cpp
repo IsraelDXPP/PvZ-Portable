@@ -155,12 +155,12 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 		mApp->PlaySample(SOUND_BUTTONCLICK);
 		if (mApp->mBoard)
 		{
-			for (int i = 0; i < mApp->mBoard->mZombies.size(); i++)
+			Zombie* aZombie = nullptr;
+			while (mApp->mBoard->IterateZombies(aZombie))
 			{
-				Zombie* aZombie = mApp->mBoard->mZombies[i];
-				if (!aZombie->mDead && !aZombie->mHypnotized)
+				if (!aZombie->mDead && !aZombie->mMindControlled)
 				{
-					aZombie->Hypnotize();
+					aZombie->StartMindControlled();
 				}
 			}
 		}
@@ -174,7 +174,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 			Zombie* aZombie = mApp->mBoard->AddZombieInRow(ZombieType::ZOMBIE_BOSS, 0, 0);
 			if (aZombie)
 			{
-				aZombie->mHypnotized = true;
+				aZombie->StartMindControlled();
 			}
 		}
 		mApp->KillDialog(mId);
