@@ -22,6 +22,7 @@ public:
 		MoreOptionsDialog_NoSunCost,
 		MoreOptionsDialog_InvinciblePlants,
 		MoreOptionsDialog_PlantAnywhere,
+		MoreOptionsDialog_AutoWin,
 		MoreOptionsDialog_UnlockAll,
 		MoreOptionsDialog_LevelSelector,
 		MoreOptionsDialog_PrevPage,
@@ -37,6 +38,7 @@ public:
 	Sexy::Checkbox*			mNoSunCostCheckbox;
 	Sexy::Checkbox*			mInvinciblePlantsCheckbox;
 	Sexy::Checkbox*			mPlantAnywhereCheckbox;
+	Sexy::Checkbox*			mAutoWinCheckbox;
 	LawnStoneButton*		mUnlockAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;

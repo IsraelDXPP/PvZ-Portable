@@ -115,6 +115,7 @@ public:
     int32_t             mNoSunCost;
     int32_t             mInvinciblePlants;
     int32_t             mPlantAnywhere;
+    int32_t             mAutoWin;
 #endif
 
 public:

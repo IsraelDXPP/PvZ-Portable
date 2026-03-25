@@ -31,6 +31,7 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mNoSunCostCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoSunCost, this, mApp->mPlayerInfo->mNoSunCost);
 	mInvinciblePlantsCheckbox = MakeNewCheckbox(MoreOptionsDialog_InvinciblePlants, this, mApp->mPlayerInfo->mInvinciblePlants);
 	mPlantAnywhereCheckbox = MakeNewCheckbox(MoreOptionsDialog_PlantAnywhere, this, mApp->mPlayerInfo->mPlantAnywhere);
+	mAutoWinCheckbox = MakeNewCheckbox(MoreOptionsDialog_AutoWin, this, mApp->mPlayerInfo->mAutoWin);
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
 	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
@@ -60,6 +61,7 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mNoSunCostCheckbox;
 	delete mInvinciblePlantsCheckbox;
 	delete mPlantAnywhereCheckbox;
+	delete mAutoWinCheckbox;
 	delete mUnlockAllButton;
 	delete mPrevButton;
 	delete mNextButton;
@@ -99,6 +101,9 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 	case MoreOptionsDialog_PlantAnywhere:
 		mApp->mPlayerInfo->mPlantAnywhere = checked;
 		break;
+	case MoreOptionsDialog_AutoWin:
+		mApp->mPlayerInfo->mAutoWin = checked;
+		break;
 	}
 }
 
@@ -111,6 +116,8 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	else if (theId == MoreOptionsDialog_LevelSelector)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
+		mApp->KillDialog(mId);
+		mApp->KillDialog(Dialogs::DIALOG_NEWOPTIONS);
 		mApp->DoCheatDialog();
 	}
 	else if (theId == MoreOptionsDialog_PrevPage)
@@ -197,22 +204,29 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		mUnlimitedSunCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mNoCooldownCheckbox->Resize(aViewX, aViewY, 46, 45);
 	}
-	else
+	else if (mCurrentPage == 1)
 	{
 		mPlantInColumnsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mNoSunCostCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mInvinciblePlantsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mPlantAnywhereCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
-		
-		mLevelSelectorWidget->Resize(aViewX - 10, aViewY + 5, 209, 46);
-		aViewY += 46 + 10;
-		mUnlockAllButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
+		mAutoWinCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+	}
+	else if (mCurrentPage == 2)
+	{
+		int aViewX2 = 50;
+		int aViewY2 = 110;
+		mLevelSelectorWidget->Resize(aViewX2 - 10, aViewY2 + 5, 209, 46);
+		aViewY2 += 46 + 10;
+		mUnlockAllButton->Resize(aViewX2 - 10, aViewY2 + 5, 209, 46);
 	}
 
 	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 	
+	mPrevButton->SetVisible(mCurrentPage > 0);
+	mNextButton->SetVisible(mCurrentPage < 2);
 	mPrevButton->Resize(20, theHeight - 80, 40, 40);
-	mNextButton->Resize(theWidth - 45, theHeight - 80, 40, 40);
+	mNextButton->Resize(theWidth - 70, theHeight - 80, 40, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -233,18 +247,22 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "Unlimited Sun", aLabelX, mUnlimitedSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "No More Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
-	else
+	else if (mCurrentPage == 1)
 	{
 		TodDrawString(g, "Plant in Columns", aLabelX, mPlantInColumnsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "No Sun Cost", aLabelX, mNoSunCostCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Invincible Plants", aLabelX, mInvinciblePlantsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Plant Anywhere", aLabelX, mPlantAnywhereCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Auto Win", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
-	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
+	TodDrawString(g, StrFormat("%d / 3", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
 	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
-	g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY + aPrevOffsetY, true);
+	if (mCurrentPage > 0)
+	{
+		g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY + aPrevOffsetY, true);
+	}
 }
 
 void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)

@@ -251,6 +251,7 @@ void PlayerInfo::Reset()
 	mNoSunCost = 0;
 	mInvinciblePlants = 0;
 	mPlantAnywhere = 0;
+	mAutoWin = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));

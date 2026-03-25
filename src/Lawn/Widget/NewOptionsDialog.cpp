@@ -48,6 +48,18 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     mRestartButton = MakeButton(NewOptionsDialog::NewOptionsDialog_Restart, this, "[RESTART_LEVEL]");
     mBackToMainButton = MakeButton(NewOptionsDialog::NewOptionsDialog_MainMenu, this, "[MAIN_MENU_BUTTON]");
 
+#ifdef _MORE_OPTIONS
+	mAutoWinButton = nullptr;
+	if (mApp->mPlayerInfo && mApp->mPlayerInfo->mAutoWin && mApp->mBoard && !mApp->mBoard->mLevelComplete)
+	{
+		mAutoWinButton = new Sexy::ButtonWidget(NewOptionsDialog_AutoWin, this);
+		mAutoWinButton->mButtonImage = Sexy::IMAGE_TROPHY_HI_RES;
+		mAutoWinButton->mOverImage = Sexy::IMAGE_TROPHY_HI_RES;
+		mAutoWinButton->mDownImage = Sexy::IMAGE_TROPHY_HI_RES;
+		mAutoWinButton->mDoFinger = true;
+	}
+#endif
+
     mBackToGameButton = MakeNewButton(
         Dialog::ID_OK,
         this,
@@ -132,6 +144,9 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 //0x45C760 and 0x45C780
 NewOptionsDialog::~NewOptionsDialog()
 {
+#ifdef _MORE_OPTIONS
+	if (mAutoWinButton) delete mAutoWinButton;
+#endif
     delete mMusicVolumeSlider;
     delete mSfxVolumeSlider;
     delete mFullscreenCheckbox;
@@ -171,6 +186,9 @@ void NewOptionsDialog::AddedToManager(Sexy::WidgetManager* theWidgetManager)
     AddWidget(mNoCrazyDaveSeedsCheckbox);
 #endif
     AddWidget(mBackToGameButton);
+#ifdef _MORE_OPTIONS
+	if (mAutoWinButton) AddWidget(mAutoWinButton);
+#endif
 }
 
 //0x45C930
@@ -190,6 +208,9 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
     RemoveWidget(mBackToMainButton);
     RemoveWidget(mBackToGameButton);
     RemoveWidget(mRestartButton);
+#ifdef _MORE_OPTIONS
+	if (mAutoWinButton) RemoveWidget(mAutoWinButton);
+#endif
 }
 
 //0x45C9D0
@@ -204,6 +225,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
     mRestartButton->Resize(107, mAlmanacButton->mY + 43, 209, 46);
 #ifdef _MORE_OPTIONS
     mMoreOptionsButton->Resize(107, mRestartButton->mY, 209, 46);
+	if (mAutoWinButton) mAutoWinButton->Resize(20, 20, 60, 60);
 #endif
     mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
@@ -381,6 +403,22 @@ void NewOptionsDialog::ButtonDepress(int theId)
 
     switch (theId)
     {
+	case NewOptionsDialog::NewOptionsDialog_AutoWin:
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		mApp->KillDialog(mId);
+#ifdef _MORE_OPTIONS
+		if (mAutoWinButton) mAutoWinButton->SetVisible(false);
+#endif
+		if (mApp->mBoard)
+		{
+			mApp->mBoard->ClearCursor();
+			mApp->mBoard->KillAllZombiesInPool();
+			mApp->mBoard->mLevelComplete = true;
+		}
+		break;
+	}
+
     case NewOptionsDialog::NewOptionsDialog_Almanac:
     {
         AlmanacDialog* aDialog = mApp->DoAlmanacDialog(SeedType::SEED_NONE, ZombieType::ZOMBIE_INVALID);
