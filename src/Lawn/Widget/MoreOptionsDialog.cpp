@@ -131,16 +131,20 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	else if (theId == MoreOptionsDialog_UnlockAll)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
-		mApp->mPlayerInfo->mFinishedAdventure = 1;
 		mApp->mPlayerInfo->mLevel = 1;
+		mApp->mPlayerInfo->mFinishedAdventure = 2;
 		mApp->mPlayerInfo->mHasUnlockedMinigames = 1;
 		mApp->mPlayerInfo->mHasUnlockedPuzzleMode = 1;
 		mApp->mPlayerInfo->mHasUnlockedSurvivalMode = 1;
-		mApp->mPlayerInfo->mHasNewMiniGame = 1;
+		mApp->mPlayerInfo->mHasWokenStinky = 1;
+		mApp->mPlayerInfo->mHasSeenStinky = 1;
 		mApp->mPlayerInfo->mHasNewScaryPotter = 1;
 		mApp->mPlayerInfo->mHasNewIZombie = 1;
 		mApp->mPlayerInfo->mHasNewSurvival = 1;
 		mApp->mPlayerInfo->AddCoins(999990); 
+		for (int i = 0; i < 100; i++) {
+			mApp->mPlayerInfo->mChallengeRecords[i] = 20;
+		}
 		for (int i = 0; i < 80; i++) {
 			mApp->mPlayerInfo->mPurchases[i] = 1;
 		}
@@ -221,7 +225,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN->mWidth;
 	int aMargin = 20;
 
-	mPrevButton->Resize(aMargin, theHeight - 80, aArrowWidth, 40);
+	mPrevButton->Resize(10, theHeight - 80, aArrowWidth, 40);
 	mNextButton->Resize(theWidth - aMargin - aArrowWidth, theHeight - 80, aArrowWidth, 40);
 }
 
