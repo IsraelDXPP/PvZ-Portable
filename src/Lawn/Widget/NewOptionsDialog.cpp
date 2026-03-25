@@ -53,9 +53,7 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
 	if (mApp->mPlayerInfo && mApp->mPlayerInfo->mAutoWin && mApp->mBoard && !mApp->mBoard->mLevelComplete)
 	{
 		mAutoWinButton = new Sexy::ButtonWidget(NewOptionsDialog_AutoWin, this);
-		mAutoWinButton->mButtonImage = Sexy::IMAGE_TROPHY_HI_RES;
-		mAutoWinButton->mOverImage = Sexy::IMAGE_TROPHY_HI_RES;
-		mAutoWinButton->mDownImage = Sexy::IMAGE_TROPHY_HI_RES;
+		mAutoWinButton->mFrameNoDraw = true;
 		mAutoWinButton->mDoFinger = true;
 	}
 #endif
@@ -225,7 +223,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
     mRestartButton->Resize(107, mAlmanacButton->mY + 43, 209, 46);
 #ifdef _MORE_OPTIONS
     mMoreOptionsButton->Resize(107, mRestartButton->mY, 209, 46);
-	if (mAutoWinButton) mAutoWinButton->Resize(20, 20, 60, 60);
+	if (mAutoWinButton) mAutoWinButton->Resize(20, 20, 50, 50);
 #endif
     mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
@@ -251,6 +249,15 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 void NewOptionsDialog::Draw(Sexy::Graphics* g)
 {
     g->DrawImage(IMAGE_OPTIONS_MENUBACK, 0, 0);
+
+#ifdef _MORE_OPTIONS
+	if (mAutoWinButton && mAutoWinButton->mVisible)
+	{
+		int aTrophyOffsetY = mAutoWinButton->mIsDown ? 1 : 0;
+		// Scale the trophy to 0.7x to be smaller and fit completely
+		TodDrawImageScaledF(g, IMAGE_TROPHY, mAutoWinButton->mX, mAutoWinButton->mY + aTrophyOffsetY, 0.7f, 0.7f);
+	}
+#endif
 
     int aMusicOffset = 0;
     int aSfxOffset = 0;

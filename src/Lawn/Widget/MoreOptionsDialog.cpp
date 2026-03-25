@@ -37,9 +37,7 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp) :
 	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
 	mPrevButton->mFrameNoDraw = true;
 	mNextButton = new Sexy::ButtonWidget(MoreOptionsDialog_NextPage, this);
-	mNextButton->mButtonImage = IMAGE_ZEN_NEXTGARDEN;
-	mNextButton->mOverImage = IMAGE_ZEN_NEXTGARDEN;
-	mNextButton->mDownImage = IMAGE_ZEN_NEXTGARDEN;
+	mNextButton->mFrameNoDraw = true;
 
 	mLevelSelectorWidget = MakeButton(MoreOptionsDialog_LevelSelector, this, "Level Selector");
 
@@ -115,10 +113,11 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	}
 	else if (theId == MoreOptionsDialog_LevelSelector)
 	{
-		mApp->PlaySample(SOUND_BUTTONCLICK);
-		mApp->KillDialog(mId);
-		mApp->KillDialog(Dialogs::DIALOG_NEWOPTIONS);
-		mApp->DoCheatDialog();
+		LawnApp* aApp = mApp;
+		aApp->PlaySample(SOUND_BUTTONCLICK);
+		aApp->KillDialog(mId);
+		aApp->KillDialog(Dialogs::DIALOG_NEWOPTIONS);
+		aApp->DoCheatDialog();
 	}
 	else if (theId == MoreOptionsDialog_PrevPage)
 	{
@@ -221,8 +220,8 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
-	mPrevButton->Resize(theWidth / 2 - 130, theHeight - 80, 40, 40);
-	mNextButton->Resize(theWidth / 2 + 90, theHeight - 80, 40, 40);
+	mPrevButton->Resize(20, theHeight - 80, 40, 40);
+	mNextButton->Resize(theWidth - 60, theHeight - 80, 40, 40);
 }
 
 void MoreOptionsDialog::Draw(Graphics* g)
@@ -258,6 +257,12 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	if (mCurrentPage > 0)
 	{
 		g->DrawImageMirror(IMAGE_ZEN_NEXTGARDEN, mPrevButton->mX, mPrevButton->mY + aPrevOffsetY, true);
+	}
+
+	int aNextOffsetY = mNextButton->mIsDown ? 1 : 0;
+	if (mCurrentPage < 1)
+	{
+		g->DrawImage(IMAGE_ZEN_NEXTGARDEN, mNextButton->mX, mNextButton->mY + aNextOffsetY);
 	}
 }
 
