@@ -204,7 +204,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 			Zombie* aZombie = nullptr;
 			while (mApp->mBoard->IterateZombies(aZombie))
 			{
-				if (!aZombie->mDead) aZombie->Die();
+				if (!aZombie->IsDeadOrDying()) aZombie->DieNoLoot();
 			}
 		}
 	}
@@ -216,7 +216,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 			Zombie* aZombie = nullptr;
 			while (mApp->mBoard->IterateZombies(aZombie))
 			{
-				if (!aZombie->mDead) aZombie->ApplyIceCap();
+				if (!aZombie->IsDeadOrDying()) aZombie->ApplyChill(true);
 			}
 		}
 	}
@@ -228,7 +228,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 			Zombie* aZombie = nullptr;
 			while (mApp->mBoard->IterateZombies(aZombie))
 			{
-				if (!aZombie->mDead) aZombie->ApplyBurn();
+				if (!aZombie->IsDeadOrDying()) aZombie->ApplyBurn();
 			}
 		}
 	}
