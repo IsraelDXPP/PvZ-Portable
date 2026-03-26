@@ -61,7 +61,6 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu) :
 	mSpawnMenuButton = MakeButton(MoreOptionsDialog_SpawnMenu, this, "Spawn Menu (WIP)");
 	mDebugInfoCheckbox = MakeNewCheckbox(MoreOptionsDialog_DebugInfo, this, mApp->mPlayerInfo->mDebugInfo);
 	mNoCraterCheckbox = MakeNewCheckbox(MoreOptionsDialog_NoCrater, this, mApp->mPlayerInfo->mNoCrater);
-	mHomingProjectilesCheckbox = MakeNewCheckbox(MoreOptionsDialog_HomingProjectiles, this, mApp->mPlayerInfo->mHomingProjectiles);
 	mKillAllButton = MakeButton(MoreOptionsDialog_KillAll, this, "Kill All Zombies");
 	mFreezeAllButton = MakeButton(MoreOptionsDialog_FreezeAll, this, "Freeze All Zombies");
 	mBurnAllButton = MakeButton(MoreOptionsDialog_BurnAll, this, "Burn All Zombies");
@@ -99,7 +98,6 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mUnlockAllButton;
 	delete mDebugInfoCheckbox;
 	delete mNoCraterCheckbox;
-	delete mHomingProjectilesCheckbox;
 	delete mSpawnMenuButton;
 	delete mKillAllButton;
 	delete mFreezeAllButton;
@@ -159,9 +157,6 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 		break;
 	case MoreOptionsDialog_NoCrater:
 		mApp->mPlayerInfo->mNoCrater = checked;
-		break;
-	case MoreOptionsDialog_HomingProjectiles:
-		mApp->mPlayerInfo->mHomingProjectiles = checked;
 		break;
 	}
 	mApp->mPlayerInfo->SaveCheats();
@@ -320,7 +315,6 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	// Page 3 Visibility
 	mDebugInfoCheckbox->SetVisible(mCurrentPage == 2);
 	mNoCraterCheckbox->SetVisible(mCurrentPage == 2);
-	mHomingProjectilesCheckbox->SetVisible(mCurrentPage == 2);
 	mSpawnMenuButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mKillAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mFreezeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
@@ -361,7 +355,6 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	{
 		mDebugInfoCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		mNoCraterCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
-		mHomingProjectilesCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		
 		if (mFromPauseMenu)
 		{
@@ -423,7 +416,6 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	{
 		TodDrawString(g, "Show Debug Info", aLabelX, mDebugInfoCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "No Crater", aLabelX, mNoCraterCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "Homing Projectiles", aLabelX, mHomingProjectilesCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
 	TodDrawString(g, StrFormat("%d / 3", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
@@ -470,7 +462,6 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mUnlockAllButton);
 	AddWidget(mDebugInfoCheckbox);
 	AddWidget(mNoCraterCheckbox);
-	AddWidget(mHomingProjectilesCheckbox);
 	AddWidget(mSpawnMenuButton);
 	AddWidget(mKillAllButton);
 	AddWidget(mFreezeAllButton);
@@ -501,7 +492,6 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mUnlockAllButton);
 	RemoveWidget(mDebugInfoCheckbox);
 	RemoveWidget(mNoCraterCheckbox);
-	RemoveWidget(mHomingProjectilesCheckbox);
 	RemoveWidget(mSpawnMenuButton);
 	RemoveWidget(mKillAllButton);
 	RemoveWidget(mFreezeAllButton);

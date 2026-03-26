@@ -453,6 +453,14 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     case SeedType::SEED_KERNELPULT:
         TOD_ASSERT(aBodyReanim);
         aBodyReanim->AssignRenderGroupToPrefix("Cornpult_butter", RENDER_GROUP_HIDDEN);
+#ifdef _HAS_KERNELPULT_BUTTER_IDLE
+        if (IsOnBoard() && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN && Sexy::Rand(4) == 0)
+        {
+            aBodyReanim->AssignRenderGroupToPrefix("Cornpult_butter", RENDER_GROUP_NORMAL);
+            aBodyReanim->AssignRenderGroupToPrefix("Cornpult_kernal", RENDER_GROUP_HIDDEN);
+            mState = PlantState::STATE_KERNELPULT_BUTTER;
+        }
+#endif
         break;
     case SeedType::SEED_MAGNETSHROOM:
         TOD_ASSERT(aBodyReanim);
@@ -4918,13 +4926,6 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
         aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
     }
-    else if (mApp->mPlayerInfo->mHomingProjectiles && 
-             (aProjectile->mMotionType == ProjectileMotion::MOTION_STRAIGHT || aProjectile->mMotionType == ProjectileMotion::MOTION_THREEPEATER || aProjectile->mMotionType == ProjectileMotion::MOTION_PUFF))
-    {
-        aProjectile->mVelX = 2.0f;
-        aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
-        aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
-    }
     else if (mSeedType == SeedType::SEED_COBCANNON)
     {
         aProjectile->mVelX = 0.001f;
@@ -4972,7 +4973,7 @@ Zombie* Plant::FindTargetZombie(int theRow, PlantWeapon thePlantWeapon)
             }
         }
 
-        if (mSeedType != SeedType::SEED_CATTAIL && !mApp->mPlayerInfo->mHomingProjectiles)
+        if (mSeedType != SeedType::SEED_CATTAIL)
         {
             if (mSeedType == SeedType::SEED_GLOOMSHROOM)
             {
