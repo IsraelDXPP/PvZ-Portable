@@ -4124,6 +4124,8 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		}
 	}
 
+
+
 	if (mCursorObject->mCursorType == CursorType::CURSOR_TYPE_PLANT_FROM_GLOVE)
 	{
 		mApp->mZenGarden->MovePlant(mPlants.DataArrayTryToGet(mCursorObject->mGlovePlantID), aGridX, aGridY);
@@ -4161,17 +4163,18 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	// 柱子关卡中，一列种植
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN
 #ifdef _MORE_OPTIONS
-		|| mApp->mPlayerInfo->mPlantInColumns
+		|| (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN && mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM)
 #endif
 	)
 	{
-		for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
+		int aMaxRow = StageHas6Rows() ? 6 : 5;
+		for (int aRow = 0; aRow < aMaxRow; aRow++)
 		{
 			if (aRow == aGridY || CanPlantAt(aGridX, aRow, aPlantingSeedType) != PlantingReason::PLANTING_OK)
 				continue;
 
 #ifdef _MORE_OPTIONS
-			if (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_COLUMN)
+			if (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_COLUMN && !mApp->mPlayerInfo->mPlantAnywhere)
 			{
 				PlantsOnLawn aPlantOnLawn;
 				GetPlantsOnLawn(aGridX, aRow, &aPlantOnLawn);
@@ -4184,6 +4187,8 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 				else if (aPlantingSeedType != SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mNormalPlant)
 					continue;
 			}
+
+
 #endif
 
 			if (aPlantingSeedType == SeedType::SEED_WALLNUT || aPlantingSeedType == SeedType::SEED_TALLNUT)
