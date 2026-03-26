@@ -4,6 +4,9 @@
 #include "../Zombie.h"
 #include "../../Resources.h"
 #include "../LawnCommon.h"
+#include "GameButton.h"
+#include "widget/Slider.h"
+#include "widget/Checkbox.h"
 #include "../../Sexy.TodLib/TodFoley.h"
 
 using namespace Sexy;
@@ -20,13 +23,13 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	mCloseButton = MakeButton(SpawnZombieDialog_Close, this, "[CLOSE_BUTTON]");
 	mSpawnButton = MakeButton(SpawnZombieDialog_Spawn, this, "SPAWN!");
 	
-	mTypeSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERTHUMB, SpawnZombieDialog_TypeSlider, this);
+	mTypeSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERKNOB2, SpawnZombieDialog_TypeSlider, this);
 	mTypeSlider->SetValue((double)mSelectedType / (NUM_ZOMBIE_TYPES - 1));
 
-	mRowSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERTHUMB, SpawnZombieDialog_RowSlider, this);
+	mRowSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERKNOB2, SpawnZombieDialog_RowSlider, this);
 	mRowSlider->SetValue(0);
 
-	mColSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERTHUMB, SpawnZombieDialog_ColSlider, this);
+	mColSlider = new Slider(IMAGE_OPTIONS_SLIDERSLOT, IMAGE_OPTIONS_SLIDERKNOB2, SpawnZombieDialog_ColSlider, this);
 	mColSlider->SetValue(0);
 
 	mHypnotizedCheckbox = MakeNewCheckbox(SpawnZombieDialog_Hypnotized, this, false);
@@ -49,6 +52,10 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 
 SpawnZombieDialog::~SpawnZombieDialog()
 {
+	RemoveWidget(mTypeSlider);
+	RemoveWidget(mRowSlider);
+	RemoveWidget(mColSlider);
+	RemoveWidget(mHypnotizedCheckbox);
 	delete mTypeSlider;
 	delete mRowSlider;
 	delete mColSlider;

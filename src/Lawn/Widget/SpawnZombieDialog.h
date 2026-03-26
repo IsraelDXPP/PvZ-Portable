@@ -2,13 +2,14 @@
 #define __SPAWNZOMBIEDIALOG_H__
 
 #include "LawnDialog.h"
-#include "widget/Slider.h"
-#include "widget/Checkbox.h"
+#include "widget/SliderListener.h"
+#include "widget/CheckboxListener.h"
 
 class LawnApp;
 class GameButton;
+namespace Sexy { class Checkbox; class Slider; }
 
-class SpawnZombieDialog : public LawnDialog, public SliderListener, public CheckboxListener
+class SpawnZombieDialog : public LawnDialog, public Sexy::SliderListener, public Sexy::CheckboxListener
 {
 public:
 	enum
@@ -24,10 +25,10 @@ public:
 	LawnApp*			mApp;
 	GameButton*			mCloseButton;
 	GameButton*			mSpawnButton;
-	Slider*				mTypeSlider;
-	Slider*				mRowSlider;
-	Slider*				mColSlider;
-	Checkbox*			mHypnotizedCheckbox;
+	Sexy::Slider*		mTypeSlider;
+	Sexy::Slider*		mRowSlider;
+	Sexy::Slider*		mColSlider;
+	Sexy::Checkbox*		mHypnotizedCheckbox;
 
 	ZombieType			mSelectedType;
 	int					mSelectedRow;
