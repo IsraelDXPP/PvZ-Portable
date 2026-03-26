@@ -4919,13 +4919,6 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
         aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
     }
-    else if (mApp->mPlayerInfo->mHomingProjectiles && 
-             (aProjectile->mMotionType == ProjectileMotion::MOTION_STRAIGHT || aProjectile->mMotionType == ProjectileMotion::MOTION_THREEPEATER || aProjectile->mMotionType == ProjectileMotion::MOTION_PUFF))
-    {
-        aProjectile->mVelX = 2.0f;
-        aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
-        aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
-    }
     else if (mSeedType == SeedType::SEED_COBCANNON)
     {
         aProjectile->mVelX = 0.001f;
