@@ -333,6 +333,7 @@ public:
 	virtual void					KeyDown(KeyCode theKey);
 	virtual void					Update();
 	void							UpdateLayers();
+	void							DrawCheatDebugInfo(Graphics* g);
 	virtual void					Draw(Graphics* g);
 	void							DrawBackdrop(Graphics* g);
 #ifdef _REPLANTED_SPEED_CONTROL

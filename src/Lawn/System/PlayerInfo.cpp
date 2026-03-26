@@ -231,6 +231,9 @@ void PlayerInfo::LoadCheats()
 		if (aVersion >= 2) {
 			mModMenuEnabled = aReader.ReadBool();
 		}
+		if (aVersion >= 3) {
+			mDebugInfo = aReader.ReadBool();
+		}
 	}
 	catch (DataReaderException&)
 	{
@@ -244,7 +247,7 @@ void PlayerInfo::SaveCheats()
 #ifdef _MORE_OPTIONS
 	DataWriter aWriter;
 	aWriter.OpenMemory();
-	aWriter.WriteUInt32(2); // Version
+	aWriter.WriteUInt32(3); // Version
 	aWriter.WriteBool(mNoCrazyDaveSeeds);
 	aWriter.WriteBool(mAutoCollectSun);
 	aWriter.WriteBool(mAutoCollectCoins);
@@ -258,6 +261,7 @@ void PlayerInfo::SaveCheats()
 	aWriter.WriteBool(mNoPlantCooldown);
 	aWriter.WriteBool(mRegenPlants);
 	aWriter.WriteBool(mModMenuEnabled);
+	aWriter.WriteBool(mDebugInfo);
 
 	MkDir(GetAppDataPath("userdata"));
 	std::string aFileName = GetAppDataPath(StrFormat("userdata/cheats%d.dat", mId));
@@ -321,6 +325,7 @@ void PlayerInfo::Reset()
 	mNoPlantCooldown = 0;
 	mRegenPlants = 0;
 	mModMenuEnabled = 0;
+	mDebugInfo = 0;
 #endif
 	mPlaceHolderPlayerStats = 0;
 	memset(mPottedPlant, 0, sizeof(mPottedPlant));

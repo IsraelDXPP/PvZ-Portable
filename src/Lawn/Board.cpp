@@ -7374,6 +7374,24 @@ void Board::DrawZenButtons(Graphics* g)
 	}
 }
 
+void Board::DrawCheatDebugInfo(Graphics* g)
+{
+	g->SetFont(FONT_PICO129);
+	g->SetColor(Color::White);
+
+	int aZombieCount = 0;
+	Zombie* aZombie = nullptr;
+	while (IterateZombies(aZombie)) if (!aZombie->mDead) aZombieCount++;
+
+	std::string aText = StrFormat("Zombies: %d | Plants: %d | Sun: %d | Coins: %d", 
+		aZombieCount, mPlants.mSize, mSunMoney, mApp->mPlayerInfo->mCoins);
+	
+	g->SetColor(Color(0, 0, 0, 150));
+	g->FillRect(5, 570, 410, 25);
+	g->SetColor(Color::White);
+	g->DrawString(aText, 15, 588);
+}
+
 //0x418B70
 void Board::DrawShovel(Graphics* g)
 {
@@ -8043,6 +8061,13 @@ void Board::Draw(Graphics* g)
 
 	mDrawCount++;
 	DrawGameObjects(g);
+
+#ifdef _MORE_OPTIONS
+	if (mApp->mPlayerInfo->mDebugInfo)
+	{
+		DrawCheatDebugInfo(g);
+	}
+#endif
 }
 
 //0x41AE60

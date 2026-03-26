@@ -58,6 +58,12 @@ MoreOptionsDialog::MoreOptionsDialog(LawnApp* theApp, bool theFromPauseMenu) :
 	mRegenPlantsCheckbox = MakeNewCheckbox(MoreOptionsDialog_RegenPlants, this, mApp->mPlayerInfo->mRegenPlants);
 
 	mUnlockAllButton = MakeButton(MoreOptionsDialog_UnlockAll, this, "Unlock All!");
+	mSpawnMenuButton = MakeButton(MoreOptionsDialog_SpawnMenu, this, "Spawn Menu (WIP)");
+	mDebugInfoCheckbox = MakeNewCheckbox(MoreOptionsDialog_DebugInfo, this, mApp->mPlayerInfo->mDebugInfo);
+	mKillAllButton = MakeButton(MoreOptionsDialog_KillAll, this, "Kill All Zombies");
+	mFreezeAllButton = MakeButton(MoreOptionsDialog_FreezeAll, this, "Freeze All Zombies");
+	mBurnAllButton = MakeButton(MoreOptionsDialog_BurnAll, this, "Burn All Zombies");
+
 	mPrevButton = new Sexy::ButtonWidget(MoreOptionsDialog_PrevPage, this);
 	mPrevButton->mFrameNoDraw = true;
 	mNextButton = new Sexy::ButtonWidget(MoreOptionsDialog_NextPage, this);
@@ -89,6 +95,11 @@ MoreOptionsDialog::~MoreOptionsDialog()
 	delete mModMenuEnabledCheckbox;
 	delete mHypnotizeAllButton;
 	delete mUnlockAllButton;
+	delete mDebugInfoCheckbox;
+	delete mSpawnMenuButton;
+	delete mKillAllButton;
+	delete mFreezeAllButton;
+	delete mBurnAllButton;
 	delete mPrevButton;
 	delete mNextButton;
 	delete mLevelSelectorWidget;
@@ -139,6 +150,9 @@ void MoreOptionsDialog::CheckboxChecked(int theId, bool checked)
 	case MoreOptionsDialog_ModMenuEnabled:
 		mApp->mPlayerInfo->mModMenuEnabled = checked;
 		break;
+	case MoreOptionsDialog_DebugInfo:
+		mApp->mPlayerInfo->mDebugInfo = checked;
+		break;
 	}
 	mApp->mPlayerInfo->SaveCheats();
 }
@@ -179,8 +193,49 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	else if (theId == MoreOptionsDialog_NextPage)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
-		if (mCurrentPage < 1) mCurrentPage++;
+		if (mCurrentPage < 2) mCurrentPage++;
 		Resize(mX, mY, mWidth, mHeight);
+	}
+	else if (theId == MoreOptionsDialog_KillAll)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		if (mApp->mBoard)
+		{
+			Zombie* aZombie = nullptr;
+			while (mApp->mBoard->IterateZombies(aZombie))
+			{
+				if (!aZombie->mDead) aZombie->Die();
+			}
+		}
+	}
+	else if (theId == MoreOptionsDialog_FreezeAll)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		if (mApp->mBoard)
+		{
+			Zombie* aZombie = nullptr;
+			while (mApp->mBoard->IterateZombies(aZombie))
+			{
+				if (!aZombie->mDead) aZombie->ApplyIceCap();
+			}
+		}
+	}
+	else if (theId == MoreOptionsDialog_BurnAll)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		if (mApp->mBoard)
+		{
+			Zombie* aZombie = nullptr;
+			while (mApp->mBoard->IterateZombies(aZombie))
+			{
+				if (!aZombie->mDead) aZombie->ApplyBurn();
+			}
+		}
+	}
+	else if (theId == MoreOptionsDialog_SpawnMenu)
+	{
+		mApp->PlaySample(SOUND_BUTTONCLICK);
+		// TODO: Implement Spawn Menu dialog
 	}
 	else if (theId == MoreOptionsDialog_UnlockAll)
 	{
@@ -251,7 +306,14 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 	mLevelSelectorWidget->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
-	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 0 && mFromPauseMenu);
+	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+
+	// Page 3 Visibility
+	mDebugInfoCheckbox->SetVisible(mCurrentPage == 2);
+	mSpawnMenuButton->SetVisible(mCurrentPage == 2);
+	mKillAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	mFreezeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	mBurnAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 
 	if (mCurrentPage == 0)
 	{
@@ -292,11 +354,27 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		aViewY += 46 + 10;
 		mUnlockAllButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
 	}
+	else if (mCurrentPage == 2)
+	{
+		mDebugInfoCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
+		
+		if (mFromPauseMenu)
+		{
+			mKillAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
+			mFreezeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
+			mBurnAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
+			if (mHypnotizeAllButton) mHypnotizeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); 
+		}
+		else
+		{
+			mSpawnMenuButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
+		}
+	}
 
 	mBackButton->Resize(theWidth / 2 - 104, theHeight - 65, 209, 46);
 	
 	mPrevButton->SetVisible(mCurrentPage > 0);
-	mNextButton->SetVisible(mCurrentPage < 1);
+	mNextButton->SetVisible(mCurrentPage < 2);
 
 	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN ? IMAGE_ZEN_NEXTGARDEN->mWidth : 45;
 	int aMargin = 20;
@@ -339,8 +417,12 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "Plant in Columns", aLabelX, mPlantInColumnsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Auto Win", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
+	else if (mCurrentPage == 2)
+	{
+		TodDrawString(g, "Debug Info", aLabelX, mDebugInfoCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+	}
 
-	TodDrawString(g, StrFormat("%d / 2", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
+	TodDrawString(g, StrFormat("%d / 3", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);
 
 	int aPrevOffsetY = mPrevButton->mIsDown ? 1 : 0;
 	if (mCurrentPage > 0 && IMAGE_ZEN_NEXTGARDEN)
@@ -354,7 +436,7 @@ void MoreOptionsDialog::Draw(Graphics* g)
 	}
 
 	int aNextOffsetY = mNextButton->mIsDown ? 1 : 0;
-	if (mCurrentPage < 1 && IMAGE_ZEN_NEXTGARDEN)
+	if (mCurrentPage < 2 && IMAGE_ZEN_NEXTGARDEN)
 	{
 		g->DrawImage(
 			IMAGE_ZEN_NEXTGARDEN,
@@ -382,6 +464,11 @@ void MoreOptionsDialog::AddedToManager(WidgetManager* theWidgetManager)
 	if (mModMenuEnabledCheckbox) AddWidget(mModMenuEnabledCheckbox);
 	if (mHypnotizeAllButton) AddWidget(mHypnotizeAllButton);
 	AddWidget(mUnlockAllButton);
+	AddWidget(mDebugInfoCheckbox);
+	AddWidget(mSpawnMenuButton);
+	AddWidget(mKillAllButton);
+	AddWidget(mFreezeAllButton);
+	AddWidget(mBurnAllButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
 	AddWidget(mLevelSelectorWidget);
@@ -406,6 +493,11 @@ void MoreOptionsDialog::RemovedFromManager(WidgetManager* theWidgetManager)
 	if (mModMenuEnabledCheckbox) RemoveWidget(mModMenuEnabledCheckbox);
 	if (mHypnotizeAllButton) RemoveWidget(mHypnotizeAllButton);
 	RemoveWidget(mUnlockAllButton);
+	RemoveWidget(mDebugInfoCheckbox);
+	RemoveWidget(mSpawnMenuButton);
+	RemoveWidget(mKillAllButton);
+	RemoveWidget(mFreezeAllButton);
+	RemoveWidget(mBurnAllButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);
 	RemoveWidget(mLevelSelectorWidget);

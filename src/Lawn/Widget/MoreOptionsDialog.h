@@ -29,6 +29,11 @@ public:
 		MoreOptionsDialog_HypnotizeAll,
 		MoreOptionsDialog_UnlockAll,
 		MoreOptionsDialog_LevelSelector,
+		MoreOptionsDialog_SpawnMenu,
+		MoreOptionsDialog_DebugInfo,
+		MoreOptionsDialog_KillAll,
+		MoreOptionsDialog_FreezeAll,
+		MoreOptionsDialog_BurnAll,
 		MoreOptionsDialog_PrevPage,
 		MoreOptionsDialog_NextPage
 	};
@@ -48,6 +53,11 @@ public:
 	Sexy::Checkbox*			mModMenuEnabledCheckbox;
 	LawnStoneButton*		mHypnotizeAllButton;
 	LawnStoneButton*		mUnlockAllButton;
+	Sexy::Checkbox*			mDebugInfoCheckbox;
+	LawnStoneButton*		mSpawnMenuButton;
+	LawnStoneButton*		mKillAllButton;
+	LawnStoneButton*		mFreezeAllButton;
+	LawnStoneButton*		mBurnAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;
 	LawnStoneButton*		mLevelSelectorWidget;
