@@ -351,14 +351,11 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 		
 		if (mFromPauseMenu)
 		{
+			mSpawnMenuButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
 			mKillAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
 			mFreezeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
 			mBurnAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); aViewY += 42 + 5;
 			if (mHypnotizeAllButton) mHypnotizeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 42); 
-		}
-		else
-		{
-			mSpawnMenuButton->Resize(aViewX - 10, aViewY + 5, 209, 46);
 		}
 	}
 
