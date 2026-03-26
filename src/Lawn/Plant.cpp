@@ -4445,7 +4445,8 @@ void Plant::DoSpecial()
         KillAllPlantsNearDoom();
 
         mApp->AddTodParticle(aPosX, aPosY, static_cast<int>(RenderLayer::RENDER_LAYER_TOP), ParticleEffect::PARTICLE_DOOM);
-        mBoard->AddACrater(mPlantCol, mRow)->mGridItemCounter = 18000;
+        GridItem* aCrater = mBoard->AddACrater(mPlantCol, mRow);
+        if (aCrater) aCrater->mGridItemCounter = 18000;
         mBoard->ShakeBoard(3, -4);
 
         Die();
