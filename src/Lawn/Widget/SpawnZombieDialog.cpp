@@ -41,15 +41,15 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	AddWidget(mColSlider);
 	AddWidget(mHypnotizedCheckbox);
 
-	Resize(0, 0, 450, 480);
+	Resize(0, 0, 600, 520);
 	
-	mCloseButton->Resize(70, 400, 150, 42);
-	mSpawnButton->Resize(230, 400, 150, 42);
+	mCloseButton->Resize(120, 440, 150, 33);
+	mSpawnButton->Resize(330, 440, 150, 33);
 	
-	mTypeSlider->Resize(50, 110, 350, 30);
-	mRowSlider->Resize(120, 160, 280, 30);
-	mColSlider->Resize(120, 210, 280, 30);
-	mHypnotizedCheckbox->Resize(50, 260, 46, 45);
+	mTypeSlider->Resize(50, 120, 500, 30);
+	mRowSlider->Resize(150, 200, 400, 30);
+	mColSlider->Resize(150, 260, 400, 30);
+	mHypnotizedCheckbox->Resize(50, 320, 46, 45);
 }
 
 SpawnZombieDialog::~SpawnZombieDialog()
@@ -75,12 +75,18 @@ void SpawnZombieDialog::Draw(Graphics* g)
 	g->SetFont(FONT_PICO129);
 	g->SetColor(Color::White);
 	
-	std::string aTypeName = "Zom: " + std::string(gZombieDefs[mSelectedType].mZombieName);
-	g->DrawString(aTypeName, 50, 100);
+	std::string aTypeName = "Zombie: " + std::string(gZombieDefs[mSelectedType].mZombieName);
+	g->DrawString(aTypeName, 50, 110);
 	
-	g->DrawString("Row: " + std::to_string(mSelectedRow), 50, 182);
-	g->DrawString("Col: " + std::to_string(mSelectedCol), 50, 232);
-	g->DrawString("Hypnotized", 100, 290);
+	g->DrawString("Row: " + std::to_string(mSelectedRow), 50, 222);
+	g->DrawString("Col: " + std::to_string(mSelectedCol), 50, 282);
+	g->DrawString("Hypnotize Zombie (Ally)", 110, 352);
+
+	if (mApp->mBoard)
+	{
+		std::string aRowLimit = mApp->mBoard->StageHas6Rows() ? "(0-5)" : "(0-4)";
+		g->DrawString(aRowLimit, 50, 238);
+	}
 }
 
 void SpawnZombieDialog::Update()
@@ -96,7 +102,8 @@ void SpawnZombieDialog::SliderVal(int theId, double theVal)
 	}
 	else if (theId == SpawnZombieDialog_RowSlider)
 	{
-		mSelectedRow = (int)(theVal * 5 + 0.5); // 0-5
+		int aMaxRow = (mApp->mBoard && mApp->mBoard->StageHas6Rows()) ? 5 : 4;
+		mSelectedRow = (int)(theVal * aMaxRow + 0.5);
 	}
 	else if (theId == SpawnZombieDialog_ColSlider)
 	{
@@ -123,10 +130,21 @@ void SpawnZombieDialog::ButtonDepress(int theId)
 		mApp->PlaySample(SOUND_BUTTONCLICK);
 		if (mApp->mBoard)
 		{
+			// Verify row is valid for current stage
+			int aMaxRow = mApp->mBoard->StageHas6Rows() ? 5 : 4;
+			if (mSelectedRow > aMaxRow) mSelectedRow = aMaxRow;
+
 			Zombie* aZombie = mApp->mBoard->AddZombieInRow(mSelectedType, mSelectedRow, 0);
 			if (aZombie)
 			{
-				aZombie->mX = (float)mApp->mBoard->GridToPixelX(mSelectedCol, mSelectedRow);
+				float aX = (float)mApp->mBoard->GridToPixelX(mSelectedCol, mSelectedRow);
+				aZombie->mPosX = aX;
+				aZombie->mX = aX;
+				
+				// Fix Y position for roof/slopes
+				aZombie->mPosY = aZombie->GetPosYBasedOnRow(mSelectedRow);
+				aZombie->mY = aZombie->mPosY;
+
 				if (mIsHypnotized) aZombie->StartMindControlled();
 			}
 		}
