@@ -4164,9 +4164,7 @@ void Plant::Draw(Graphics* g)
                         float rotatedHeightX = sin(mRad) * aOffsetY;
                         const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
                         const float offsetY = sin(mRad) * 40;
-                        aBodyReanim->mOffsetX = offsetX;
-                        aBodyReanim->mOffsetY = offsetY;
-                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, offsetX, offsetY, mRad, 1.0f, 1.0f);
                         UpdateReanim();
                     }
                 }
@@ -4182,9 +4180,7 @@ void Plant::Draw(Graphics* g)
                         float rotatedHeightX = sin(mRad) * aOffsetY;
                         const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
                         const float offsetY = sin(mRad) * 40;
-                        aBodyReanim->mOffsetX = offsetX;
-                        aBodyReanim->mOffsetY = offsetY;
-                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, offsetX, offsetY, mRad, 1.0f, 1.0f);
                         UpdateReanim();
                     }
                 }
