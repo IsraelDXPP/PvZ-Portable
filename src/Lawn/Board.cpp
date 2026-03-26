@@ -4191,21 +4191,42 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 
 #endif
 
-			if (aPlantingSeedType == SeedType::SEED_WALLNUT || aPlantingSeedType == SeedType::SEED_TALLNUT)
+			PlantsOnLawn aColPlantOnLawn;
+			GetPlantsOnLawn(aGridX, aRow, &aColPlantOnLawn);
+			Plant* aColNormalPlant = aColPlantOnLawn.mNormalPlant;
+			Plant* aColPumpkinPlant = aColPlantOnLawn.mPumpkinPlant;
+
+			if (aColNormalPlant && aColNormalPlant->IsUpgradableTo(aPlantingSeedType))
 			{
-				aNormalPlant = GetTopPlantAt(aGridX, aRow, PlantPriority::TOPPLANT_ONLY_NORMAL_POSITION);
-				if (aNormalPlant && aNormalPlant->mSeedType == aPlantingSeedType)
+				aColNormalPlant->Die();
+			}
+
+			if ((aPlantingSeedType == SeedType::SEED_WALLNUT || aPlantingSeedType == SeedType::SEED_TALLNUT) && aColNormalPlant)
+			{
+				if (aColNormalPlant->mSeedType == aPlantingSeedType)
 				{
-					aNormalPlant->Die();
+					aColNormalPlant->Die();
 				}
 			}
-			if (aPlantingSeedType == SeedType::SEED_PUMPKINSHELL)
+
+			if (aPlantingSeedType == SeedType::SEED_PUMPKINSHELL && aColPumpkinPlant)
 			{
-				aPumpkinPlant = GetTopPlantAt(aGridX, aRow, PlantPriority::TOPPLANT_ONLY_PUMPKIN);
-				if (aPumpkinPlant && aPumpkinPlant->mSeedType == SeedType::SEED_PUMPKINSHELL)
+				if (aColPumpkinPlant->mSeedType == SeedType::SEED_PUMPKINSHELL)
 				{
-					aPumpkinPlant->Die();
+					aColPumpkinPlant->Die();
 				}
+			}
+
+			if (aPlantingSeedType == SeedType::SEED_CATTAIL)
+			{
+				if (aColPlantOnLawn.mUnderPlant) aColPlantOnLawn.mUnderPlant->Die();
+				if (aColNormalPlant) aColNormalPlant->Die();
+			}
+
+			if (aPlantingSeedType == SeedType::SEED_COBCANNON)
+			{
+				Plant* aRightPlant = GetTopPlantAt(aGridX + 1, aRow, PlantPriority::TOPPLANT_ONLY_NORMAL_POSITION);
+				if (aRightPlant) aRightPlant->Die();
 			}
 			AddPlant(aGridX, aRow, mCursorObject->mType, mCursorObject->mImitaterType);
 		}

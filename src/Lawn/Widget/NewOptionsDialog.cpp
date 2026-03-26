@@ -250,7 +250,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	{
 		int aWidth = IMAGE_CREDITS_PLAYBUTTON ? (int)(IMAGE_CREDITS_PLAYBUTTON->mWidth * 0.8f) : 60;
 		int aHeight = IMAGE_CREDITS_PLAYBUTTON ? (int)(IMAGE_CREDITS_PLAYBUTTON->mHeight * 0.8f) : 60;
-		mModMenuButton->Resize(330, 20, aWidth, aHeight);
+		mModMenuButton->Resize(theWidth - aWidth - 20, 20, aWidth, aHeight);
 	}
 #endif
     mBackToMainButton->Resize(107, mRestartButton->mY + 43, 209, 46);
