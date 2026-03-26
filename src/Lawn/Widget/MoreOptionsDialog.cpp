@@ -294,7 +294,8 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mUnlimitedSunCheckbox->SetVisible(mCurrentPage == 0);
 	mNoSunCostCheckbox->SetVisible(mCurrentPage == 0);
 	mNoCooldownCheckbox->SetVisible(mCurrentPage == 0);
-	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu && mApp->HasFinishedAdventure());
+	if (mNoCrazyDaveSeedsCheckbox) mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu && mApp->HasFinishedAdventure());
+	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
 
 	// Page 2 Visibility
 	mInvinciblePlantsCheckbox->SetVisible(mCurrentPage == 1);
@@ -303,10 +304,8 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mPlantInColumnsCheckbox->SetVisible(mCurrentPage == 1);
 	mNoPlantCooldownCheckbox->SetVisible(mCurrentPage == 1);
 	mAutoWinCheckbox->SetVisible(mCurrentPage == 1);
-	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 	mLevelSelectorWidget->SetVisible(mCurrentPage == 1);
-	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
-	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 
 	// Page 3 Visibility
 	mDebugInfoCheckbox->SetVisible(mCurrentPage == 2);
@@ -314,6 +313,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mKillAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mFreezeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mBurnAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 
 	if (mCurrentPage == 0)
 	{
@@ -387,16 +387,16 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "Auto Collect Coins", aLabelX, mAutoCollectCoinsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Unlimited Sun", aLabelX, mUnlimitedSunCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "No Sun Cost", aLabelX, mNoSunCostCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "No More Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		if (mApp->HasFinishedAdventure())
+		TodDrawString(g, "No Seed Cooldown", aLabelX, mNoCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		
+		if (mApp->HasFinishedAdventure() && !mFromPauseMenu && mNoCrazyDaveSeedsCheckbox)
 		{
 			TodDrawString(g, "No Crazy Dave Seeds", aLabelX, mNoCrazyDaveSeedsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		}
 
-		if (!mFromPauseMenu)
+		if (!mFromPauseMenu && mModMenuEnabledCheckbox)
 		{
-			if (mModMenuEnabledCheckbox)
-				TodDrawString(g, "Mod Menu", aLabelX, mModMenuEnabledCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+			TodDrawString(g, "Mod Menu Enabled", aLabelX, mModMenuEnabledCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		}
 	}
 	else if (mCurrentPage == 1)
@@ -406,11 +406,11 @@ void MoreOptionsDialog::Draw(Graphics* g)
 		TodDrawString(g, "No Plant Cooldown", aLabelX, mNoPlantCooldownCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Plant Anywhere", aLabelX, mPlantAnywhereCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 		TodDrawString(g, "Plant in Columns", aLabelX, mPlantInColumnsCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
-		TodDrawString(g, "Auto Win", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Auto Win Level", aLabelX, mAutoWinCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 	else if (mCurrentPage == 2)
 	{
-		TodDrawString(g, "Debug Info", aLabelX, mDebugInfoCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
+		TodDrawString(g, "Show Debug Info", aLabelX, mDebugInfoCheckbox->mY + 28, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_LEFT);
 	}
 
 	TodDrawString(g, StrFormat("%d / 3", mCurrentPage + 1), mWidth / 2, mHeight - 75, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_CENTER);

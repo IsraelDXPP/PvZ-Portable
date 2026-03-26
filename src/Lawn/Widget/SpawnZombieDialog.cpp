@@ -34,6 +34,8 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 
 	mHypnotizedCheckbox = MakeNewCheckbox(SpawnZombieDialog_Hypnotized, this, false);
 
+	AddWidget(mCloseButton);
+	AddWidget(mSpawnButton);
 	AddWidget(mTypeSlider);
 	AddWidget(mRowSlider);
 	AddWidget(mColSlider);
@@ -56,10 +58,14 @@ SpawnZombieDialog::~SpawnZombieDialog()
 	RemoveWidget(mRowSlider);
 	RemoveWidget(mColSlider);
 	RemoveWidget(mHypnotizedCheckbox);
+	RemoveWidget(mCloseButton);
+	RemoveWidget(mSpawnButton);
 	delete mTypeSlider;
 	delete mRowSlider;
 	delete mColSlider;
 	delete mHypnotizedCheckbox;
+	delete mCloseButton;
+	delete mSpawnButton;
 }
 
 void SpawnZombieDialog::Draw(Graphics* g)
