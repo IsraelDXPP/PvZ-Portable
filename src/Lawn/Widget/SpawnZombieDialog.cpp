@@ -41,15 +41,7 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	AddWidget(mColSlider);
 	AddWidget(mHypnotizedCheckbox);
 
-	Resize(0, 0, 600, 520);
-	
-	mCloseButton->Resize(120, 440, 150, 33);
-	mSpawnButton->Resize(330, 440, 150, 33);
-	
-	mTypeSlider->Resize(50, 120, 500, 30);
-	mRowSlider->Resize(150, 200, 400, 30);
-	mColSlider->Resize(150, 260, 400, 30);
-	mHypnotizedCheckbox->Resize(50, 320, 46, 45);
+	CalcSize(480, 360);
 }
 
 SpawnZombieDialog::~SpawnZombieDialog()
@@ -92,6 +84,16 @@ void SpawnZombieDialog::Draw(Graphics* g)
 void SpawnZombieDialog::Update()
 {
 	LawnDialog::Update();
+
+	int aButtonW = 180;
+	int aButtonH = 46;
+	mCloseButton->Resize(mWidth / 2 - aButtonW - 10, mHeight - 65, aButtonW, aButtonH);
+	mSpawnButton->Resize(mWidth / 2 + 10, mHeight - 65, aButtonW, aButtonH);
+
+	mTypeSlider->Resize(50, 120, mWidth - 100, 30);
+	mRowSlider->Resize(150, 200, mWidth - 200, 30);
+	mColSlider->Resize(150, 260, mWidth - 200, 30);
+	mHypnotizedCheckbox->Resize(50, 320, 46, 45);
 }
 
 void SpawnZombieDialog::SliderVal(int theId, double theVal)
