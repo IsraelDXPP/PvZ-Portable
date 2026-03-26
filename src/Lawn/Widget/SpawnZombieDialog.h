@@ -14,26 +14,34 @@ class SpawnZombieDialog : public LawnDialog, public Sexy::SliderListener, public
 public:
 	enum
 	{
-		SpawnZombieDialog_Close,
-		SpawnZombieDialog_Spawn,
 		SpawnZombieDialog_TypeSlider,
 		SpawnZombieDialog_RowSlider,
 		SpawnZombieDialog_ColSlider,
-		SpawnZombieDialog_Hypnotized
+		SpawnZombieDialog_Hypnotized,
+		SpawnZombieDialog_AllRows,
+		SpawnZombieDialog_AllCols,
+		SpawnZombieDialog_PrevPage,
+		SpawnZombieDialog_NextPage
 	};
 
 	LawnApp*			mApp;
-	LawnStoneButton*	mCloseButton;
-	LawnStoneButton*	mSpawnButton;
+	Sexy::ButtonWidget*	mPrevButton;
+	Sexy::ButtonWidget*	mNextButton;
 	Sexy::Slider*		mTypeSlider;
 	Sexy::Slider*		mRowSlider;
 	Sexy::Slider*		mColSlider;
 	Sexy::Checkbox*		mHypnotizedCheckbox;
+	Sexy::Checkbox*		mAllRowsCheckbox;
+	Sexy::Checkbox*		mAllColsCheckbox;
 
+	int					mCurrentPage;
 	ZombieType			mSelectedType;
+	SeedType			mSelectedPlantType;
 	int					mSelectedRow;
 	int					mSelectedCol;
 	bool				mIsHypnotized;
+	bool				mSpawnAllRows;
+	bool				mSpawnAllCols;
 
 public:
 	SpawnZombieDialog(LawnApp* theApp);
