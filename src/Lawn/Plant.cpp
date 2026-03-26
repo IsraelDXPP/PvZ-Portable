@@ -4151,6 +4151,44 @@ void Plant::Draw(Graphics* g)
             Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
             if (aBodyReanim)
             {
+#ifdef _HAS_ROOF_SLOPE_ANGLE
+                if (mBoard && mBoard->StageHasRoof())
+                {
+                    if (mPlantCol < 5)
+                    {
+                        int nextColoumn = mPlantCol + 1;
+                        if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+                        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+                        mRad = -atan2(y2 - mY, x2 - mX);
+                        float rotatedHeightX = sin(mRad) * aOffsetY;
+                        const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+                        const float offsetY = sin(mRad) * 40;
+                        aBodyReanim->mOffsetX = offsetX;
+                        aBodyReanim->mOffsetY = offsetY;
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
+                    }
+                }
+#else
+                if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
+                {
+                    if (mPlantCol < 5)
+                    {
+                        int nextColoumn = mPlantCol + 2;
+                        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+                        mRad = -atan2(y2 - mY, x2 - mX);
+                        float rotatedHeightX = sin(mRad) * aOffsetY;
+                        const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+                        const float offsetY = sin(mRad) * 40;
+                        aBodyReanim->mOffsetX = offsetX;
+                        aBodyReanim->mOffsetY = offsetY;
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
+                    }
+                }
+#endif
                 if (!mApp->Is3DAccelerated() && mSeedType == SeedType::SEED_FLOWERPOT && IsOnBoard() && 
                     aBodyReanim->mAnimRate == 0.0f && aBodyReanim->IsAnimPlaying("anim_idle"))
                 {
@@ -4877,6 +4915,20 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
         aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
         aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
     }
+    else if (mApp->mPlayerInfo->mHomingProjectiles && 
+             (aProjectile->mMotionType == ProjectileMotion::MOTION_STRAIGHT || aProjectile->mMotionType == ProjectileMotion::MOTION_THREEPEATER || aProjectile->mMotionType == ProjectileMotion::MOTION_PUFF))
+    {
+        aProjectile->mVelX = 2.0f;
+        aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
+        aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
+    }
+    else if (mApp->mPlayerInfo->mHomingProjectiles && 
+             (aProjectile->mMotionType == ProjectileMotion::MOTION_STRAIGHT || aProjectile->mMotionType == ProjectileMotion::MOTION_THREEPEATER || aProjectile->mMotionType == ProjectileMotion::MOTION_PUFF))
+    {
+        aProjectile->mVelX = 2.0f;
+        aProjectile->mMotionType = ProjectileMotion::MOTION_HOMING;
+        aProjectile->mTargetZombieID = mBoard->ZombieGetID(theTargetZombie);
+    }
     else if (mSeedType == SeedType::SEED_COBCANNON)
     {
         aProjectile->mVelX = 0.001f;
@@ -4924,7 +4976,7 @@ Zombie* Plant::FindTargetZombie(int theRow, PlantWeapon thePlantWeapon)
             }
         }
 
-        if (mSeedType != SeedType::SEED_CATTAIL)
+        if (mSeedType != SeedType::SEED_CATTAIL && !mApp->mPlayerInfo->mHomingProjectiles)
         {
             if (mSeedType == SeedType::SEED_GLOOMSHROOM)
             {
