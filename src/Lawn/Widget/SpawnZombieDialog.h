@@ -23,8 +23,8 @@ public:
 	};
 
 	LawnApp*			mApp;
-	GameButton*			mCloseButton;
-	GameButton*			mSpawnButton;
+	LawnStoneButton*	mCloseButton;
+	LawnStoneButton*	mSpawnButton;
 	Sexy::Slider*		mTypeSlider;
 	Sexy::Slider*		mRowSlider;
 	Sexy::Slider*		mColSlider;
