@@ -564,6 +564,9 @@ GridItem* Board::AddALadder(int theGridX, int theGridY)
 //0x408F80
 GridItem* Board::AddACrater(int theGridX, int theGridY)
 {
+	if (mApp->mPlayerInfo->mNoCrater)
+		return nullptr;
+
 	GridItem* aCrater = mGridItems.DataArrayAlloc();
 	aCrater->mGridItemType = GridItemType::GRIDITEM_CRATER;
 	aCrater->mRenderOrder = MakeRenderOrder(RenderLayer::RENDER_LAYER_GROUND, theGridY, 1);

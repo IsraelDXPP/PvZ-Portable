@@ -58,7 +58,7 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	AddWidget(mAllRowsCheckbox);
 	AddWidget(mAllColsCheckbox);
 
-	CalcSize(300, 400);
+	CalcSize(300, 300);
 }
 
 SpawnZombieDialog::~SpawnZombieDialog()
@@ -150,13 +150,13 @@ void SpawnZombieDialog::Update()
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
-	mTypeSlider->Resize(50, 120, mWidth - 100, 30);
-	mRowSlider->Resize(150, 200, mWidth - 200, 30);
-	mColSlider->Resize(150, 260, mWidth - 200, 30);
+	mTypeSlider->Resize(50, 100, mWidth - 100, 30);
+	mRowSlider->Resize(150, 160, mWidth - 200, 30);
+	mColSlider->Resize(150, 200, mWidth - 200, 30);
 	
-	mHypnotizedCheckbox->Resize(50, 320, 46, 45);
-	mAllRowsCheckbox->Resize(50, 370, 46, 45);
-	mAllColsCheckbox->Resize(250, 370, 46, 45);
+	mHypnotizedCheckbox->Resize(50, 240, 46, 45);
+	mAllRowsCheckbox->Resize(150, 240, 46, 45);
+	mAllColsCheckbox->Resize(250, 240, 46, 45);
 }
 
 void SpawnZombieDialog::SliderVal(int theId, double theVal)
@@ -170,6 +170,7 @@ void SpawnZombieDialog::SliderVal(int theId, double theVal)
 		else
 		{
 			mSelectedPlantType = (SeedType)(int)(theVal * (NUM_SEED_TYPES - 1) + 0.5);
+			if (mSelectedPlantType == SeedType::SEED_IMITATER) mSelectedPlantType = SeedType::SEED_PEASHOOTER;
 		}
 	}
 	else if (theId == SpawnZombieDialog_RowSlider)
@@ -245,7 +246,7 @@ void SpawnZombieDialog::ButtonDepress(int theId)
 						Plant* aPlant = mApp->mBoard->AddPlant(c, r, mSelectedPlantType);
 						if (aPlant && mIsHypnotized)
 						{
-							aPlant->mIsAsleep = false;
+							aPlant->SetSleeping(false);
 						}
 					}
 				}

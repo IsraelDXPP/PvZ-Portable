@@ -35,7 +35,8 @@ public:
 		MoreOptionsDialog_FreezeAll,
 		MoreOptionsDialog_BurnAll,
 		MoreOptionsDialog_PrevPage,
-		MoreOptionsDialog_NextPage
+		MoreOptionsDialog_NextPage,
+		MoreOptionsDialog_NoCrater
 	};
 
 	Sexy::Checkbox*			mNoCrazyDaveSeedsCheckbox;
@@ -60,6 +61,7 @@ public:
 	LawnStoneButton*		mBurnAllButton;
 	Sexy::ButtonWidget*		mPrevButton;
 	Sexy::ButtonWidget*		mNextButton;
+	Sexy::Checkbox*			mNoCraterCheckbox;
 	LawnStoneButton*		mLevelSelectorWidget;
 	LawnStoneButton*		mBackButton;
 	int						mCurrentPage;

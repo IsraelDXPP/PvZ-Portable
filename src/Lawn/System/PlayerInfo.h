@@ -120,6 +120,7 @@ public:
     int32_t             mRegenPlants;
     int32_t             mModMenuEnabled;
     int32_t             mDebugInfo;
+    int32_t             mNoCrater;
 #endif
 
 public:
