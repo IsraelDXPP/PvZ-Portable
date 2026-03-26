@@ -58,7 +58,7 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	AddWidget(mAllRowsCheckbox);
 	AddWidget(mAllColsCheckbox);
 
-	CalcSize(200, 250);
+	CalcSize(300, 400);
 }
 
 SpawnZombieDialog::~SpawnZombieDialog()
@@ -137,7 +137,7 @@ void SpawnZombieDialog::Update()
 {
 	LawnDialog::Update();
 
-	int aButtonW = 160;
+	int aButtonW = 210;
 	int aButtonH = 46;
 	mCloseButton->Resize(mWidth / 2 - aButtonW - 10, mHeight - 65, aButtonW, aButtonH);
 	mSpawnButton->Resize(mWidth / 2 + 10, mHeight - 65, aButtonW, aButtonH);
