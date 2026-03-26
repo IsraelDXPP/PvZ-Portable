@@ -14,7 +14,7 @@
 using namespace Sexy;
 
 SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
-	LawnDialog(theApp, Dialogs::DIALOG_SPAWN_ZOMBIE, true, "SPAWN ZOMBIES", "", "", Dialog::BUTTONS_YES_NO)
+	LawnDialog(theApp, Dialogs::DIALOG_SPAWN_ZOMBIE, true, "SPAWN ZOMBIES", "", "", Dialog::BUTTONS_NONE)
 {
 	mApp = theApp;
 	mCurrentPage = 0;
@@ -26,8 +26,8 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	mSpawnAllRows = false;
 	mSpawnAllCols = false;
 
-	mLawnYesButton->SetLabel("SPAWN!");
-	mLawnNoButton->SetLabel("CLOSE");
+	mCloseButton = MakeButton(Dialog::ID_NO, this, "CLOSE");
+	mSpawnButton = MakeButton(Dialog::ID_YES, this, "SPAWN!");
 
 	mPrevButton = new Sexy::ButtonWidget(SpawnZombieDialog_PrevPage, this);
 	mPrevButton->mFrameNoDraw = true;
@@ -47,6 +47,8 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	mAllRowsCheckbox = MakeNewCheckbox(SpawnZombieDialog_AllRows, this, false);
 	mAllColsCheckbox = MakeNewCheckbox(SpawnZombieDialog_AllCols, this, false);
 
+	AddWidget(mCloseButton);
+	AddWidget(mSpawnButton);
 	AddWidget(mPrevButton);
 	AddWidget(mNextButton);
 	AddWidget(mTypeSlider);
@@ -56,11 +58,13 @@ SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
 	AddWidget(mAllRowsCheckbox);
 	AddWidget(mAllColsCheckbox);
 
-	CalcSize(480, 360);
+	CalcSize(200, 250);
 }
 
 SpawnZombieDialog::~SpawnZombieDialog()
 {
+	RemoveWidget(mCloseButton);
+	RemoveWidget(mSpawnButton);
 	RemoveWidget(mPrevButton);
 	RemoveWidget(mNextButton);
 	RemoveWidget(mTypeSlider);
@@ -70,6 +74,8 @@ SpawnZombieDialog::~SpawnZombieDialog()
 	RemoveWidget(mAllRowsCheckbox);
 	RemoveWidget(mAllColsCheckbox);
 	
+	delete mCloseButton;
+	delete mSpawnButton;
 	delete mPrevButton;
 	delete mNextButton;
 	delete mTypeSlider;
@@ -130,6 +136,11 @@ void SpawnZombieDialog::Draw(Graphics* g)
 void SpawnZombieDialog::Update()
 {
 	LawnDialog::Update();
+
+	int aButtonW = 160;
+	int aButtonH = 46;
+	mCloseButton->Resize(mWidth / 2 - aButtonW - 10, mHeight - 65, aButtonW, aButtonH);
+	mSpawnButton->Resize(mWidth / 2 + 10, mHeight - 65, aButtonW, aButtonH);
 
 	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN ? IMAGE_ZEN_NEXTGARDEN->mWidth : 45;
 	int aMargin = 20;

@@ -25,6 +25,8 @@ public:
 	};
 
 	LawnApp*			mApp;
+	LawnStoneButton*	mCloseButton;
+	LawnStoneButton*	mSpawnButton;
 	Sexy::ButtonWidget*	mPrevButton;
 	Sexy::ButtonWidget*	mNextButton;
 	Sexy::Slider*		mTypeSlider;
