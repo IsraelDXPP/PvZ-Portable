@@ -750,12 +750,25 @@ void LawnApp::DoNewOptions(bool theFromGameSelector)
 
 #ifdef _MORE_OPTIONS
 #include "Lawn/Widget/MoreOptionsDialog.h"
+#include "Lawn/Widget/SpawnZombieDialog.h"
 MoreOptionsDialog* LawnApp::DoMoreOptionsDialog(bool theFromPauseMenu)
 {
 	MoreOptionsDialog* aDialog = new MoreOptionsDialog(this, theFromPauseMenu);
 	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
 	AddDialog(Dialogs::DIALOG_MORE_OPTIONS, aDialog);
 	return aDialog;
+}
+
+void LawnApp::DoSpawnZombieDialog()
+{
+	SpawnZombieDialog* aDialog = new SpawnZombieDialog(this);
+	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+	AddDialog(Dialogs::DIALOG_SPAWN_ZOMBIE, aDialog);
+}
+
+bool LawnApp::KillSpawnZombieDialog()
+{
+	return KillDialog(Dialogs::DIALOG_SPAWN_ZOMBIE);
 }
 #endif
 

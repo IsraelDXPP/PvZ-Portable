@@ -235,7 +235,7 @@ void MoreOptionsDialog::ButtonDepress(int theId)
 	else if (theId == MoreOptionsDialog_SpawnMenu)
 	{
 		mApp->PlaySample(SOUND_BUTTONCLICK);
-		// TODO: Implement Spawn Menu dialog
+		mApp->DoSpawnZombieDialog();
 	}
 	else if (theId == MoreOptionsDialog_UnlockAll)
 	{
@@ -294,7 +294,7 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mUnlimitedSunCheckbox->SetVisible(mCurrentPage == 0);
 	mNoSunCostCheckbox->SetVisible(mCurrentPage == 0);
 	mNoCooldownCheckbox->SetVisible(mCurrentPage == 0);
-	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && mApp->HasFinishedAdventure());
+	mNoCrazyDaveSeedsCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu && mApp->HasFinishedAdventure());
 
 	// Page 2 Visibility
 	mInvinciblePlantsCheckbox->SetVisible(mCurrentPage == 1);
@@ -304,13 +304,13 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mNoPlantCooldownCheckbox->SetVisible(mCurrentPage == 1);
 	mAutoWinCheckbox->SetVisible(mCurrentPage == 1);
 	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
-	mLevelSelectorWidget->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
-	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
-	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	mLevelSelectorWidget->SetVisible(mCurrentPage == 1);
+	mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
+	mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 
 	// Page 3 Visibility
 	mDebugInfoCheckbox->SetVisible(mCurrentPage == 2);
-	mSpawnMenuButton->SetVisible(mCurrentPage == 2);
+	mSpawnMenuButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mKillAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mFreezeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 	mBurnAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);

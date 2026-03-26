@@ -319,6 +319,7 @@ enum Dialogs : int32_t
     DIALOG_IMITATER,                            // 49：模仿者对话
     DIALOG_PURCHASE_PACKET_SLOT,                // 50：升级卡槽的格子数量
     DIALOG_MORE_OPTIONS,
+    DIALOG_SPAWN_ZOMBIE,
     NUM_DIALOGS
 };
 enum DebugTextMode : int32_t

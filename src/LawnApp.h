@@ -196,6 +196,8 @@ public:
 	void							DoNewOptions(bool theFromGameSelector);
 #ifdef _MORE_OPTIONS
 	class MoreOptionsDialog*		DoMoreOptionsDialog(bool theFromPauseMenu = false);
+	void							DoSpawnZombieDialog();
+	bool							KillSpawnZombieDialog();
 #endif
 	void							DoRegister();
 	void							DoRegisterError();
