@@ -14,7 +14,7 @@
 using namespace Sexy;
 
 SpawnZombieDialog::SpawnZombieDialog(LawnApp* theApp) :
-	LawnDialog(theApp, Dialogs::DIALOG_SPAWN_ZOMBIE, true, "SPAWN MENU", "", "", Dialog::BUTTONS_YES_NO)
+	LawnDialog(theApp, Dialogs::DIALOG_SPAWN_ZOMBIE, true, "SPAWN ZOMBIES", "", "", Dialog::BUTTONS_YES_NO)
 {
 	mApp = theApp;
 	mCurrentPage = 0;
@@ -84,12 +84,6 @@ void SpawnZombieDialog::Draw(Graphics* g)
 {
 	LawnDialog::Draw(g);
 	
-	int aHeaderY = DIALOG_HEADER_OFFSET + 20;
-	g->SetFont(FONT_DWARVENTODCRAFT24);
-	g->SetColor(Color::White);
-	std::string aPageTitle = mCurrentPage == 0 ? "SPAWN ZOMBIES" : "SPAWN PLANTS";
-	WriteCenteredLine(g, aHeaderY, aPageTitle);
-
 	g->SetFont(FONT_PICO129);
 	g->SetColor(Color::White);
 	
@@ -140,8 +134,8 @@ void SpawnZombieDialog::Update()
 	int aArrowWidth = IMAGE_ZEN_NEXTGARDEN ? IMAGE_ZEN_NEXTGARDEN->mWidth : 45;
 	int aMargin = 20;
 
-	mPrevButton->Resize(aMargin, 10 + DIALOG_HEADER_OFFSET, aArrowWidth, 40);
-	mNextButton->Resize(mWidth - aMargin - aArrowWidth, 10 + DIALOG_HEADER_OFFSET, aArrowWidth, 40);
+	mPrevButton->Resize(10, mHeight - 80, aArrowWidth, 40);
+	mNextButton->Resize(mWidth - aMargin - aArrowWidth, mHeight - 80, aArrowWidth, 40);
 	mPrevButton->SetVisible(mCurrentPage > 0);
 	mNextButton->SetVisible(mCurrentPage < 1);
 
@@ -251,12 +245,14 @@ void SpawnZombieDialog::ButtonDepress(int theId)
 	{
 		mApp->PlaySample(SOUND_TAP);
 		mCurrentPage--;
+		mDialogHeader = mCurrentPage == 0 ? "SPAWN ZOMBIES" : "SPAWN PLANTS";
 		mTypeSlider->SetValue(mCurrentPage == 0 ? ((double)mSelectedType / (NUM_ZOMBIE_TYPES - 1)) : ((double)mSelectedPlantType / (NUM_SEED_TYPES - 1)));
 	}
 	else if (theId == SpawnZombieDialog_NextPage && mCurrentPage < 1)
 	{
 		mApp->PlaySample(SOUND_TAP);
 		mCurrentPage++;
+		mDialogHeader = mCurrentPage == 0 ? "SPAWN ZOMBIES" : "SPAWN PLANTS";
 		mTypeSlider->SetValue(mCurrentPage == 0 ? ((double)mSelectedType / (NUM_ZOMBIE_TYPES - 1)) : ((double)mSelectedPlantType / (NUM_SEED_TYPES - 1)));
 	}
 }
