@@ -305,8 +305,8 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 	mAutoWinCheckbox->SetVisible(mCurrentPage == 1);
 	mUnlockAllButton->SetVisible(mCurrentPage == 1 && !mFromPauseMenu);
 	mLevelSelectorWidget->SetVisible(mCurrentPage == 1);
-	mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
-	mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
+	if (mModMenuEnabledCheckbox) mModMenuEnabledCheckbox->SetVisible(mCurrentPage == 0 && !mFromPauseMenu);
+	if (mHypnotizeAllButton) mHypnotizeAllButton->SetVisible(mCurrentPage == 2 && mFromPauseMenu);
 
 	// Page 3 Visibility
 	mDebugInfoCheckbox->SetVisible(mCurrentPage == 2);
@@ -327,18 +327,9 @@ void MoreOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
 			mNoCrazyDaveSeedsCheckbox->Resize(aViewX, aViewY, 46, 45); aViewY += aStepY;
 		}
 
-		if (mFromPauseMenu)
+		if (!mFromPauseMenu && mModMenuEnabledCheckbox)
 		{
-			if (mHypnotizeAllButton) {
-				mHypnotizeAllButton->Resize(aViewX - 10, aViewY + 5, 209, 41);
-				aViewY += 46;
-			}
-		}
-		else
-		{
-			if (mModMenuEnabledCheckbox) {
-				mModMenuEnabledCheckbox->Resize(aViewX, aViewY, 46, 45);
-			}
+			mModMenuEnabledCheckbox->Resize(aViewX, aViewY, 46, 45);
 		}
 	}
 	else if (mCurrentPage == 1)
