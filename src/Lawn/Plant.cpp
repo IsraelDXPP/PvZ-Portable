@@ -159,11 +159,10 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     mSubclass = aPlantDef.mSubClass;
     mRenderOrder = CalcRenderOrder();
 
-    float aOffsetY = PlantDrawHeightOffset(mBoard, this, mSeedType, mPlantCol, mRow);
-
     Reanimation* aBodyReanim = nullptr;
     if (aPlantDef.mReanimationType != ReanimationType::REANIM_NONE)
     {
+        float aOffsetY = PlantDrawHeightOffset(mBoard, this, mSeedType, mPlantCol, mRow);
         aBodyReanim = mApp->AddReanimation(0.0f, aOffsetY, mRenderOrder + 1, aPlantDef.mReanimationType);
         aBodyReanim->mLoopType = ReanimLoopType::REANIM_LOOP;
         aBodyReanim->mAnimRate = RandRangeFloat(10.0f, 15.0f);
@@ -183,46 +182,46 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         aBodyReanim->mIsAttachment = true;
         mBodyReanimID = mApp->ReanimationGetID(aBodyReanim);
         mBlinkCountdown = 400 + Sexy::Rand(400);
-    }
 
 #ifdef _HAS_ROOF_SLOPE_ANGLE
-    if (mBoard && mBoard->StageHasRoof())
-    {
-        if (mPlantCol < 5)
+        if (mBoard && mBoard->StageHasRoof())
         {
-            int nextColoumn = mPlantCol + 1;
-            if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
-            const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-            const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-            mRad = -atan2(y2 - mY, x2 - mX);
-            float rotatedHeightX = sin(mRad) * aOffsetY;
-            const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-            const float offsetY = sin(mRad) * 40;
-            aBodyReanim->mOffsetX = offsetX;
-            aBodyReanim->mOffsetY = offsetY;
-            TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-            UpdateReanim();
+            if (mPlantCol < 5)
+            {
+                int nextColoumn = mPlantCol + 1;
+                if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+                mRad = -atan2(y2 - mY, x2 - mX);
+                float rotatedHeightX = sin(mRad) * aOffsetY;
+                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+                const float offsetY = sin(mRad) * 40;
+                aBodyReanim->mOffsetX = offsetX;
+                aBodyReanim->mOffsetY = offsetY;
+                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                UpdateReanim();
+            }
         }
-    }
 #else
-    if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
-    {
-        if (mPlantCol < 5)
+        if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
         {
-            int nextColoumn = mPlantCol + 2;
-            const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-            const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-            mRad = -atan2(y2 - mY, x2 - mX);
-            float rotatedHeightX = sin(mRad) * aOffsetY;
-            const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-            const float offsetY = sin(mRad) * 40;
-            aBodyReanim->mOffsetX = offsetX;
-            aBodyReanim->mOffsetY = offsetY;
-            TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-            UpdateReanim();
+            if (mPlantCol < 5)
+            {
+                int nextColoumn = mPlantCol + 2;
+                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+                mRad = -atan2(y2 - mY, x2 - mX);
+                float rotatedHeightX = sin(mRad) * aOffsetY;
+                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+                const float offsetY = sin(mRad) * 40;
+                aBodyReanim->mOffsetX = offsetX;
+                aBodyReanim->mOffsetY = offsetY;
+                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                UpdateReanim();
+            }
         }
-    }
 #endif
+    }
 
     if (IsNocturnal(mSeedType) && mBoard && !mBoard->StageIsNight())
         SetSleeping(true);
@@ -462,7 +461,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         {
             mApp->PlaySample(Sexy::SOUND_PLANTERN);
         }
-
+        
         break;
     }
     case SeedType::SEED_TORCHWOOD:
@@ -532,7 +531,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     default:
         break;
     }
-
+    
     if ((mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BIG_TIME) &&
         (theSeedType == SeedType::SEED_WALLNUT || theSeedType == SeedType::SEED_SUNFLOWER || theSeedType == SeedType::SEED_MARIGOLD))
     {

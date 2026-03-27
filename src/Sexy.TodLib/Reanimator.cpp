@@ -329,6 +329,8 @@ Reanimation::Reanimation()
 	mTrackInstances = nullptr;
 	mFilterEffect = FilterEffect::FILTER_EFFECT_NONE;
 	mReanimationType = ReanimationType::REANIM_NONE;
+	mOffsetX = 0.0f;
+	mOffsetY = 0.0f;
 }
 
 //0x471A20
@@ -1092,10 +1094,10 @@ void Reanimation::SetShakeOverride(const char* theTrackName, float theShakeAmoun
 	GetTrackInstanceByName(theTrackName)->mShakeOverride = theShakeAmount;
 }
 
-void Reanimation::SetPosition(float theX, float theY) 
-{ 
-	mOverlayMatrix.m02 = theX;
-	mOverlayMatrix.m12 = theY;
+void Reanimation::SetPosition(float theX, float theY)
+{
+	mOverlayMatrix.m02 = theX + mOffsetX;
+	mOverlayMatrix.m12 = theY + mOffsetY;
 }
 
 void Reanimation::OverrideScale(float theScaleX, float theScaleY)
