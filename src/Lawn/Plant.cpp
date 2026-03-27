@@ -159,10 +159,11 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     mSubclass = aPlantDef.mSubClass;
     mRenderOrder = CalcRenderOrder();
 
+    float aOffsetY = PlantDrawHeightOffset(mBoard, this, mSeedType, mPlantCol, mRow);
+
     Reanimation* aBodyReanim = nullptr;
     if (aPlantDef.mReanimationType != ReanimationType::REANIM_NONE)
     {
-        float aOffsetY = PlantDrawHeightOffset(mBoard, this, mSeedType, mPlantCol, mRow);
         aBodyReanim = mApp->AddReanimation(0.0f, aOffsetY, mRenderOrder + 1, aPlantDef.mReanimationType);
         aBodyReanim->mLoopType = ReanimLoopType::REANIM_LOOP;
         aBodyReanim->mAnimRate = RandRangeFloat(10.0f, 15.0f);
@@ -461,7 +462,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         {
             mApp->PlaySample(Sexy::SOUND_PLANTERN);
         }
-        
+
         break;
     }
     case SeedType::SEED_TORCHWOOD:
@@ -531,7 +532,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     default:
         break;
     }
-    
+
     if ((mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BIG_TIME) &&
         (theSeedType == SeedType::SEED_WALLNUT || theSeedType == SeedType::SEED_SUNFLOWER || theSeedType == SeedType::SEED_MARIGOLD))
     {
