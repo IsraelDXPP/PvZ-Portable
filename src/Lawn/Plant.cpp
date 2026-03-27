@@ -2934,6 +2934,26 @@ void Plant::UpdateReanim()
         aOffsetX += mApp->mZenGarden->ZenPlantOffsetX(aPottedPlant);
         aOffsetY += mApp->mZenGarden->PlantPottedDrawHeightOffset(mSeedType, aScaleY);
     }
+#ifdef _HAS_ROOF_SLOPE_ANGLE  
+    // Aplicar rotación del techo después de todos los demás cálculos  
+    if (mBoard && mBoard->StageHasRoof() && mPlantCol < 5)
+    {
+        int nextColoumn = mPlantCol + 1;
+        if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+        mRad = -atan2(y2 - mY, x2 - mX);
+
+        // Transformación adicional centrada  
+        const float centerX = mWidth * 0.5f;
+        const float centerY = mHeight * 0.5f;
+        float rotatedHeightX = sin(mRad) * aOffsetY;
+        const float roofOffsetX = -cos(mRad) * 15 + rotatedHeightX - centerX;
+        const float roofOffsetY = sin(mRad) * 40 - centerY;
+
+        aOffsetX += roofOffsetX;
+        aOffsetY += roofOffsetY;
+    }
 
     aBodyReanim->SetPosition(aOffsetX, aOffsetY);
     aBodyReanim->OverrideScale(aScaleX, aScaleY);
