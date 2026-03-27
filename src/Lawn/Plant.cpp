@@ -182,48 +182,46 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         aBodyReanim->mIsAttachment = true;
         mBodyReanimID = mApp->ReanimationGetID(aBodyReanim);
         mBlinkCountdown = 400 + Sexy::Rand(400);
+    }
 
 #ifdef _HAS_ROOF_SLOPE_ANGLE
-        if (mBoard && mBoard->StageHasRoof())
+    if (mBoard && mBoard->StageHasRoof())
+    {
+        if (mPlantCol < 5)
         {
-            if (mPlantCol < 5)
-            {
-                int nextColoumn = mPlantCol + 1;
-                if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
-                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-                mRad = -atan2(y2 - mY, x2 - mX);
-                float rotatedHeightX = sin(mRad) * aOffsetY;
-                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                const float offsetY = sin(mRad) * 40;
-                // Ajuste de posición (reemplazo de mOffsetX/mOffsetY)
-                aBodyReanim->mTransX += offsetX;
-                aBodyReanim->mTransY += offsetY;
-                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                UpdateReanim();
-            }
+            int nextColoumn = mPlantCol + 1;
+            if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+            const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+            const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+            mRad = -atan2(y2 - mY, x2 - mX);
+            float rotatedHeightX = sin(mRad) * aOffsetY;
+            const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+            const float offsetY = sin(mRad) * 40;
+            aBodyReanim->mOffsetX = offsetX;
+            aBodyReanim->mOffsetY = offsetY;
+            TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+            UpdateReanim();
         }
-#else
-        if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
-        {
-            if (mPlantCol < 5)
-            {
-                int nextColoumn = mPlantCol + 2;
-                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-                mRad = -atan2(y2 - mY, x2 - mX);
-                float rotatedHeightX = sin(mRad) * aOffsetY;
-                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                const float offsetY = sin(mRad) * 40;
-                // Ajuste de posición (reemplazo de mOffsetX/mOffsetY)
-                aBodyReanim->mTransX += offsetX;
-                aBodyReanim->mTransY += offsetY;
-                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                UpdateReanim();
-            }
-        }
-#endif
     }
+#else
+    if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
+    {
+        if (mPlantCol < 5)
+        {
+            int nextColoumn = mPlantCol + 2;
+            const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+            const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+            mRad = -atan2(y2 - mY, x2 - mX);
+            float rotatedHeightX = sin(mRad) * aOffsetY;
+            const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+            const float offsetY = sin(mRad) * 40;
+            aBodyReanim->mOffsetX = offsetX;
+            aBodyReanim->mOffsetY = offsetY;
+            TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+            UpdateReanim();
+        }
+    }
+#endif
 
     if (IsNocturnal(mSeedType) && mBoard && !mBoard->StageIsNight())
         SetSleeping(true);
