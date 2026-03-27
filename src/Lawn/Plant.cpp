@@ -182,45 +182,6 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         aBodyReanim->mIsAttachment = true;
         mBodyReanimID = mApp->ReanimationGetID(aBodyReanim);
         mBlinkCountdown = 400 + Sexy::Rand(400);
-
-#ifdef _HAS_ROOF_SLOPE_ANGLE
-        if (mBoard && mBoard->StageHasRoof())
-        {
-            if (mPlantCol < 5)
-            {
-                int nextColoumn = mPlantCol + 1;
-                if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
-                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-                mRad = -atan2(y2 - mY, x2 - mX);
-                float rotatedHeightX = sin(mRad) * aOffsetY;
-                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                const float offsetY = sin(mRad) * 40;
-                aBodyReanim->mOffsetX = offsetX;
-                aBodyReanim->mOffsetY = offsetY;
-                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                UpdateReanim();
-            }
-        }
-#else
-        if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
-        {
-            if (mPlantCol < 5)
-            {
-                int nextColoumn = mPlantCol + 2;
-                const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-                const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-                mRad = -atan2(y2 - mY, x2 - mX);
-                float rotatedHeightX = sin(mRad) * aOffsetY;
-                const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                const float offsetY = sin(mRad) * 40;
-                aBodyReanim->mOffsetX = offsetX;
-                aBodyReanim->mOffsetY = offsetY;
-                TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                UpdateReanim();
-            }
-        }
-#endif
     }
 
     if (IsNocturnal(mSeedType) && mBoard && !mBoard->StageIsNight())
@@ -461,7 +422,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
         {
             mApp->PlaySample(Sexy::SOUND_PLANTERN);
         }
-        
+
         break;
     }
     case SeedType::SEED_TORCHWOOD:
@@ -531,7 +492,7 @@ void Plant::PlantInitialize(int theGridX, int theGridY, SeedType theSeedType, Se
     default:
         break;
     }
-    
+
     if ((mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BIG_TIME) &&
         (theSeedType == SeedType::SEED_WALLNUT || theSeedType == SeedType::SEED_SUNFLOWER || theSeedType == SeedType::SEED_MARIGOLD))
     {
@@ -1340,7 +1301,7 @@ void Plant::SpikeweedAttack()
     {
         PlayBodyReanim("anim_attack", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 18.0f);
         mApp->PlaySample(SOUND_THROW);
-        
+
         mState = PlantState::STATE_SPIKEWEED_ATTACKING;
         mStateCountdown = 100;
     }
@@ -1451,7 +1412,7 @@ void Plant::UpdateTorchwood()
     Projectile* aProjectile = nullptr;
     while (mBoard->IterateProjectiles(aProjectile))
     {
-        if ((aProjectile->mRow == mRow) && 
+        if ((aProjectile->mRow == mRow) &&
             (aProjectile->mProjectileType == ProjectileType::PROJECTILE_PEA || aProjectile->mProjectileType == ProjectileType::PROJECTILE_SNOWPEA))
         {
             Rect aProjectileRect = aProjectile->GetProjectileRect();
@@ -1508,16 +1469,16 @@ Zombie* Plant::FindSquashTarget()
             Rect aZombieRect = aZombie->GetZombieRect();
 
             if ((
-                    aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT && aZombieRect.mX < mX + 20
+                aZombie->mZombiePhase == ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT && aZombieRect.mX < mX + 20
                 ) || (
-                    aZombie->mZombiePhase != ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT && 
+                    aZombie->mZombiePhase != ZombiePhase::PHASE_POLEVAULTER_PRE_VAULT &&
                     aZombie->mZombiePhase != ZombiePhase::PHASE_POLEVAULTER_IN_VAULT &&
-                    aZombie->mZombiePhase != ZombiePhase::PHASE_SNORKEL_INTO_POOL && 
+                    aZombie->mZombiePhase != ZombiePhase::PHASE_SNORKEL_INTO_POOL &&
                     aZombie->mZombiePhase != ZombiePhase::PHASE_DOLPHIN_INTO_POOL &&
-                    aZombie->mZombiePhase != ZombiePhase::PHASE_DOLPHIN_RIDING && 
+                    aZombie->mZombiePhase != ZombiePhase::PHASE_DOLPHIN_RIDING &&
                     aZombie->mZombiePhase != ZombiePhase::PHASE_DOLPHIN_IN_JUMP &&
                     !aZombie->IsBobsledTeamWithSled()
-                ))
+                    ))
             {
                 int aRange = -GetRectOverlap(aAttackRect, aZombieRect);
                 if (aRange <= (aZombie->mIsEating ? 110 : 70))
@@ -1858,7 +1819,7 @@ void Plant::UpdateChomper()
             bool doBite = false;
             if (aZombie)
             {
-                if (aZombie->mZombieType == ZombieType::ZOMBIE_GARGANTUAR || aZombie->mZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR || 
+                if (aZombie->mZombieType == ZombieType::ZOMBIE_GARGANTUAR || aZombie->mZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR ||
                     aZombie->mZombieType == ZombieType::ZOMBIE_BOSS)
                 {
                     doBite = true;
@@ -2210,7 +2171,7 @@ void Plant::UpdateMagnetShroom()
 
         float aClosestLadderDist = 0.0f;
         GridItem* aClosestLadder = nullptr;
-        
+
         GridItem* aGridItem = nullptr;
         while (mBoard->IterateGridItems(aGridItem))
         {
@@ -2304,7 +2265,7 @@ void Plant::GoldMagnetFindTargets()
         case CoinType::COIN_DIAMOND:    aMagnetItem->mItemType = MagnetItemType::MAGNET_ITEM_DIAMOND;       break;
         default:                        TOD_ASSERT(false);                                                       return;
         }
-        
+
         aCoin->Die();
     }
 }
@@ -2541,7 +2502,7 @@ void Plant::UpdateBowling()
             {
                 mApp->PlayFoley(FoleyType::FOLEY_PLASTIC_HIT);
             }
-            
+
             aZombie->TakeHelmDamage(900, 0U);
         }
         else
@@ -2650,7 +2611,7 @@ void Plant::UpdateAbilities()
         }
     }
 #endif
-    
+
     UpdateShooting();
 
     if (mStateCountdown > 0)
@@ -3033,7 +2994,7 @@ Reanimation* Plant::AttachBlinkAnim(Reanimation* theReanimBody)
     const char* aTrackToPlay = "anim_blink";
     const char* aTrackToAttach = nullptr;
 
-    if (mSeedType == SeedType::SEED_WALLNUT || mSeedType == SeedType::SEED_TALLNUT || 
+    if (mSeedType == SeedType::SEED_WALLNUT || mSeedType == SeedType::SEED_TALLNUT ||
         mSeedType == SeedType::SEED_EXPLODE_O_NUT || mSeedType == SeedType::SEED_GIANT_WALLNUT)
     {
         int aHit = Rand(10);
@@ -3169,11 +3130,11 @@ void Plant::DoBlink()
     if (aBodyReanim == nullptr)
         return;
 
-    if ((mSeedType == SeedType::SEED_TALLNUT && aBodyReanim->GetImageOverride("anim_idle") == IMAGE_REANIM_TALLNUT_CRACKED2) || 
+    if ((mSeedType == SeedType::SEED_TALLNUT && aBodyReanim->GetImageOverride("anim_idle") == IMAGE_REANIM_TALLNUT_CRACKED2) ||
         (mSeedType == SeedType::SEED_GARLIC && aBodyReanim->GetImageOverride("anim_face") == IMAGE_REANIM_GARLIC_BODY3))
         return;
 
-    if (mSeedType == SeedType::SEED_WALLNUT || mSeedType == SeedType::SEED_TALLNUT || 
+    if (mSeedType == SeedType::SEED_WALLNUT || mSeedType == SeedType::SEED_TALLNUT ||
         mSeedType == SeedType::SEED_EXPLODE_O_NUT || mSeedType == SeedType::SEED_GIANT_WALLNUT)
     {
         mBlinkCountdown = 1000 + Rand(1000);
@@ -3487,7 +3448,7 @@ void Plant::UpdateShooting()
                 aHeadReanim3->mAnimRate = aBodyReanim->mAnimRate;
                 aHeadReanim3->mAnimTime = aBodyReanim->mAnimTime;
             }
-            
+
             return;
         }
     }
@@ -3831,7 +3792,7 @@ void Plant::GetPeaHeadOffset(int& theOffsetX, int& theOffsetY)
     {
         aTrackIndex = aBodyReanim->FindTrackIndex("anim_stem");
     }
-    else if(aBodyReanim->TrackExists("anim_idle"))
+    else if (aBodyReanim->TrackExists("anim_idle"))
     {
         aTrackIndex = aBodyReanim->FindTrackIndex("anim_idle");
     }
@@ -3964,9 +3925,9 @@ Image* Plant::GetImage(SeedType theSeedType)
 //0x465680
 void Plant::DrawShadow(Sexy::Graphics* g, float theOffsetX, float theOffsetY)
 {
-    if (mSeedType == SeedType::SEED_LILYPAD || mSeedType == SeedType::SEED_STARFRUIT || mSeedType == SeedType::SEED_TANGLEKELP || 
-        mSeedType == SeedType::SEED_SEASHROOM || mSeedType == SeedType::SEED_COBCANNON || mSeedType == SeedType::SEED_SPIKEWEED || 
-        mSeedType == SeedType::SEED_SPIKEROCK || mSeedType == SeedType::SEED_GRAVEBUSTER || mSeedType == SeedType::SEED_CATTAIL || 
+    if (mSeedType == SeedType::SEED_LILYPAD || mSeedType == SeedType::SEED_STARFRUIT || mSeedType == SeedType::SEED_TANGLEKELP ||
+        mSeedType == SeedType::SEED_SEASHROOM || mSeedType == SeedType::SEED_COBCANNON || mSeedType == SeedType::SEED_SPIKEWEED ||
+        mSeedType == SeedType::SEED_SPIKEROCK || mSeedType == SeedType::SEED_GRAVEBUSTER || mSeedType == SeedType::SEED_CATTAIL ||
         mOnBungeeState == PlantOnBungeeState::RISING_WITH_BUNGEE)
         return;
 
@@ -4198,44 +4159,56 @@ void Plant::Draw(Graphics* g)
             Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
             if (aBodyReanim)
             {
+#ifdef _HAS_ROOF_SLOPE_ANGLE
                 if (mBoard && mBoard->StageHasRoof())
                 {
                     if (mPlantCol < 5)
                     {
-                        int nextColumn = mPlantCol + 1;
-                        if (mSeedType == SeedType::SEED_COBCANNON)
-                            nextColumn++;
-
-                        const float x2 = mBoard->GridToPixelX(nextColumn, mRow);
-                        const float y2 = mBoard->GridToPixelY(nextColumn, mRow);
-
+                        int nextColoumn = mPlantCol + 1;
+                        if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+                        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
                         mRad = -atan2(y2 - mY, x2 - mX);
-
                         float rotatedHeightX = sin(mRad) * aOffsetY;
-                        const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                        const float offsetY = sin(mRad) * 40;
-
-                        SDL_Point mRealRotationPoint;
-                        SDL_QueryTexture(mApp->ReanimationTryToGet(mBodyReanimID)->mImage,
-                            nullptr, nullptr,
-                            &mRealRotationPoint.x, &mRealRotationPoint.y);
-                        mRealRotationPoint.x += mX;
-                        mRealRotationPoint.y += mY;
-
-                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, offsetX, offsetY, mRad, 1.0f, 1.0f);
-
-                        SDL_Point rotatedRealRotationPoint;
-                        SDL_QueryTexture(aBodyReanim->mImage, nullptr, nullptr,
-                            &rotatedRealRotationPoint.x, &rotatedRealRotationPoint.y);
-                        rotatedRealRotationPoint.x -= mRealRotationPoint.x;
-                        rotatedRealRotationPoint.y -= mRealRotationPoint.y;
-
-                        aBodyReanim->mTransX += rotatedRealRotationPoint.x - mRealRotationPoint.x;
-                        aBodyReanim->mTransY += rotatedRealRotationPoint.y - mRealRotationPoint.y;
-
+                        aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
+                        aBodyReanim->mOffsetY = sin(mRad) * 40;
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
+                    }
+                    else
+                    {
+                        aBodyReanim->mOffsetX = 0.0f;
+                        aBodyReanim->mOffsetY = 0.0f;
+                        aBodyReanim->mOverlayMatrix.LoadIdentity();
+                        mRad = 0.0f;
                         UpdateReanim();
                     }
                 }
+#else
+                if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
+                {
+                    if (mPlantCol < 5)
+                    {
+                        int nextColoumn = mPlantCol + 2;
+                        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
+                        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
+                        mRad = -atan2(y2 - mY, x2 - mX);
+                        float rotatedHeightX = sin(mRad) * aOffsetY;
+                        aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
+                        aBodyReanim->mOffsetY = sin(mRad) * 40;
+                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
+                    }
+                    else
+                    {
+                        aBodyReanim->mOffsetX = 0.0f;
+                        aBodyReanim->mOffsetY = 0.0f;
+                        aBodyReanim->mOverlayMatrix.LoadIdentity();
+                        mRad = 0.0f;
+                        UpdateReanim();
+                    }
+                }
+#endif
                 if (!mApp->Is3DAccelerated() && mSeedType == SeedType::SEED_FLOWERPOT && IsOnBoard() &&
                     aBodyReanim->mAnimRate == 0.0f && aBodyReanim->IsAnimPlaying("anim_idle"))
                 {
@@ -4866,7 +4839,7 @@ void Plant::Fire(Zombie* theTargetZombie, int theRow, PlantWeapon thePlantWeapon
     {
         aOriginY -= 5;
     }
-    
+
     if (mSeedType == SeedType::SEED_SNOWPEA)
     {
         int aRenderPosition = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_LAWN_MOWER, mRow, 1);
@@ -5154,7 +5127,7 @@ void Plant::Die()
     if (mApp->mPlayerInfo->mInvinciblePlants && mPlantHealth <= 0)
     {
         // Don't block death for instant plants that die after they trigger their effect
-        if (mSeedType != SeedType::SEED_CHERRYBOMB && mSeedType != SeedType::SEED_JALAPENO && 
+        if (mSeedType != SeedType::SEED_CHERRYBOMB && mSeedType != SeedType::SEED_JALAPENO &&
             mSeedType != SeedType::SEED_DOOMSHROOM && mSeedType != SeedType::SEED_ICESHROOM &&
             mSeedType != SeedType::SEED_BLOVER && mSeedType != SeedType::SEED_SQUASH)
         {
@@ -5192,7 +5165,7 @@ PlantDefinition& GetPlantDefinition(SeedType theSeedType)
 {
     TOD_ASSERT(gPlantDefs[theSeedType].mSeedType == theSeedType);
     TOD_ASSERT(theSeedType >= 0 && theSeedType < static_cast<int>(SeedType::NUM_SEED_TYPES));
-    
+
     return gPlantDefs[theSeedType];
 }
 
@@ -5200,10 +5173,10 @@ PlantDefinition& GetPlantDefinition(SeedType theSeedType)
 int Plant::GetCost(SeedType theSeedType, SeedType theImitaterType)
 {
 #ifdef _MORE_OPTIONS
-	if (gLawnApp->mPlayerInfo->mNoSunCost)
-	{
-		return 0;
-	}
+    if (gLawnApp->mPlayerInfo->mNoSunCost)
+    {
+        return 0;
+    }
 #endif
     if (gLawnApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED || gLawnApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST)
     {
@@ -5330,7 +5303,7 @@ bool Plant::IsNocturnal(SeedType theSeedtype)
 }
 
 // GOTY @Patoke: inlined 0x40FB2B
-bool Plant::IsFungus(SeedType theSeedtype) 
+bool Plant::IsFungus(SeedType theSeedtype)
 {
     return
         theSeedtype == SeedType::SEED_PUFFSHROOM ||
@@ -5364,14 +5337,14 @@ bool Plant::IsFlying(SeedType theSeedtype)
 //0x467EC0
 bool Plant::IsUpgrade(SeedType theSeedtype)
 {
-    return 
-        theSeedtype == SeedType::SEED_GATLINGPEA || 
-        theSeedtype == SeedType::SEED_WINTERMELON || 
-        theSeedtype == SeedType::SEED_TWINSUNFLOWER || 
-        theSeedtype == SeedType::SEED_SPIKEROCK || 
-        theSeedtype == SeedType::SEED_COBCANNON || 
-        theSeedtype == SeedType::SEED_GOLD_MAGNET || 
-        theSeedtype == SeedType::SEED_GLOOMSHROOM || 
+    return
+        theSeedtype == SeedType::SEED_GATLINGPEA ||
+        theSeedtype == SeedType::SEED_WINTERMELON ||
+        theSeedtype == SeedType::SEED_TWINSUNFLOWER ||
+        theSeedtype == SeedType::SEED_SPIKEROCK ||
+        theSeedtype == SeedType::SEED_COBCANNON ||
+        theSeedtype == SeedType::SEED_GOLD_MAGNET ||
+        theSeedtype == SeedType::SEED_GLOOMSHROOM ||
         theSeedtype == SeedType::SEED_CATTAIL;
 }
 
@@ -5413,20 +5386,20 @@ Rect Plant::GetPlantAttackRect(PlantWeapon thePlantWeapon)
     }
     else switch (mSeedType)
     {
-    case SeedType::SEED_LEFTPEATER:     aRect = Rect(0,             mY,             mX,                 mHeight);               break;
-    case SeedType::SEED_SQUASH:         aRect = Rect(mX + 20,       mY,             mWidth - 35,        mHeight);               break;
-    case SeedType::SEED_CHOMPER:        aRect = Rect(mX + 80,       mY,             40,                 mHeight);               break;
+    case SeedType::SEED_LEFTPEATER:     aRect = Rect(0, mY, mX, mHeight);               break;
+    case SeedType::SEED_SQUASH:         aRect = Rect(mX + 20, mY, mWidth - 35, mHeight);               break;
+    case SeedType::SEED_CHOMPER:        aRect = Rect(mX + 80, mY, 40, mHeight);               break;
     case SeedType::SEED_SPIKEWEED:
-    case SeedType::SEED_SPIKEROCK:      aRect = Rect(mX + 20,       mY,             mWidth - 50,        mHeight);               break;
-    case SeedType::SEED_POTATOMINE:     aRect = Rect(mX,            mY,             mWidth - 25,        mHeight);               break;
-    case SeedType::SEED_TORCHWOOD:      aRect = Rect(mX + 50,       mY,             30,                 mHeight);               break;
+    case SeedType::SEED_SPIKEROCK:      aRect = Rect(mX + 20, mY, mWidth - 50, mHeight);               break;
+    case SeedType::SEED_POTATOMINE:     aRect = Rect(mX, mY, mWidth - 25, mHeight);               break;
+    case SeedType::SEED_TORCHWOOD:      aRect = Rect(mX + 50, mY, 30, mHeight);               break;
     case SeedType::SEED_PUFFSHROOM:
-    case SeedType::SEED_SEASHROOM:      aRect = Rect(mX + 60,       mY,             230,                mHeight);               break;
-    case SeedType::SEED_FUMESHROOM:     aRect = Rect(mX + 60,       mY,             340,                mHeight);               break;
-    case SeedType::SEED_GLOOMSHROOM:    aRect = Rect(mX - 80,       mY - 80,        240,                240);                   break;
-    case SeedType::SEED_TANGLEKELP:     aRect = Rect(mX,            mY,             mWidth,             mHeight);               break;
-    case SeedType::SEED_CATTAIL:        aRect = Rect(-BOARD_WIDTH,  -BOARD_HEIGHT,  BOARD_WIDTH * 2,    BOARD_HEIGHT * 2);      break;
-    default:                            aRect = Rect(mX + 60,       mY,             BOARD_WIDTH,        mHeight);               break;
+    case SeedType::SEED_SEASHROOM:      aRect = Rect(mX + 60, mY, 230, mHeight);               break;
+    case SeedType::SEED_FUMESHROOM:     aRect = Rect(mX + 60, mY, 340, mHeight);               break;
+    case SeedType::SEED_GLOOMSHROOM:    aRect = Rect(mX - 80, mY - 80, 240, 240);                   break;
+    case SeedType::SEED_TANGLEKELP:     aRect = Rect(mX, mY, mWidth, mHeight);               break;
+    case SeedType::SEED_CATTAIL:        aRect = Rect(-BOARD_WIDTH, -BOARD_HEIGHT, BOARD_WIDTH * 2, BOARD_HEIGHT * 2);      break;
+    default:                            aRect = Rect(mX + 60, mY, BOARD_WIDTH, mHeight);               break;
     }
 
     return aRect;

@@ -1094,8 +1094,8 @@ void Reanimation::SetShakeOverride(const char* theTrackName, float theShakeAmoun
 	GetTrackInstanceByName(theTrackName)->mShakeOverride = theShakeAmount;
 }
 
-void Reanimation::SetPosition(float theX, float theY)
-{
+void Reanimation::SetPosition(float theX, float theY) 
+{ 
 	mOverlayMatrix.m02 = theX + mOffsetX;
 	mOverlayMatrix.m12 = theY + mOffsetY;
 }
