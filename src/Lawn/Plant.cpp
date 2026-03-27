@@ -2954,6 +2954,7 @@ void Plant::UpdateReanim()
         aOffsetX += roofOffsetX;
         aOffsetY += roofOffsetY;
     }
+#endif
 
     aBodyReanim->SetPosition(aOffsetX, aOffsetY);
     aBodyReanim->OverrideScale(aScaleX, aScaleY);
