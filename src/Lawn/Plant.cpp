@@ -4160,22 +4160,44 @@ void Plant::Draw(Graphics* g)
             if (aBodyReanim)
             {
 #ifdef _HAS_ROOF_SLOPE_ANGLE
-                if (mBoard && mBoard->StageHasRoof())
-                {
-                    if (mPlantCol < 5)
-                    {
-                        int nextColoumn = mPlantCol + 1;
-                        if (mSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
-                        const float x2 = mBoard->GridToPixelX(nextColoumn, mRow);
-                        const float y2 = mBoard->GridToPixelY(nextColoumn, mRow);
-                        mRad = -atan2(y2 - mY, x2 - mX);
-                        float rotatedHeightX = sin(mRad) * aOffsetY;
-                        const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
-                        const float offsetY = sin(mRad) * 40;
-                        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, offsetX, offsetY, mRad, 1.0f, 1.0f);
-                        UpdateReanim();
-                    }
-                }
+if (mBoard && mBoard->StageHasRoof())
+{
+    if (mPlantCol < 5)
+    {
+        int nextColumn = mPlantCol + 1;
+        if (mSeedType == SeedType::SEED_COBCANNON) 
+            nextColumn++;
+
+        const float x2 = mBoard->GridToPixelX(nextColumn, mRow);
+        const float y2 = mBoard->GridToPixelY(nextColumn, mRow);
+
+        mRad = -atan2(y2 - mY, x2 - mX);
+
+        float rotatedHeightX = sin(mRad) * aOffsetY;
+        const float offsetX = -cos(mRad) * 15 + rotatedHeightX;
+        const float offsetY = sin(mRad) * 40;
+
+        SDL_Point mRealRotationPoint;
+        SDL_QueryTexture(mApp->ReanimationTryToGet(mBodyReanimID)->mImage,
+                         nullptr, nullptr,
+                         &mRealRotationPoint.x, &mRealRotationPoint.y);
+        mRealRotationPoint.x += mX;
+        mRealRotationPoint.y += mY;
+
+        TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, offsetX, offsetY, mRad, 1.0f, 1.0f);
+
+        SDL_Point rotatedRealRotationPoint;
+        SDL_QueryTexture(aBodyReanim->mImage, nullptr, nullptr,
+                         &rotatedRealRotationPoint.x, &rotatedRealRotationPoint.y);
+        rotatedRealRotationPoint.x -= mRealRotationPoint.x;
+        rotatedRealRotationPoint.y -= mRealRotationPoint.y;
+
+        aBodyReanim->mTransX += rotatedRealRotationPoint.x - mRealRotationPoint.x;
+        aBodyReanim->mTransY += rotatedRealRotationPoint.y - mRealRotationPoint.y;
+
+        UpdateReanim();
+    }
+}
 #else
                 if (mBoard && mBoard->StageHasRoof() && mSeedType == SeedType::SEED_COBCANNON)
                 {
