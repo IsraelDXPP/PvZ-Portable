@@ -758,7 +758,7 @@ void GameSelector::UpdateTooltip()
 	{
 		int aMouseX = mApp->mWidgetManager->mLastMouseX;
 		int aMouseY = mApp->mWidgetManager->mLastMouseY;
-		if (aMouseX >= 50 && aMouseX < 135 && aMouseY >= 325 && aMouseY <= 550)
+		if (aMouseX >= 50 && aMouseX < 135 && aMouseY >= 275 && aMouseY < 500)
 		{
 			if (mApp->EarnedGoldTrophy())
 			{
@@ -1310,6 +1310,9 @@ bool GameSelector::ShouldDoZenTuturialBeforeAdventure()
 // GOTY @Patoke: 0x44F5C0
 void GameSelector::ButtonDepress(int theId)
 {
+	if (mSlideCounter > 0)
+		return;
+
 	if (theId == GameSelector::GameSelector_Minigame && mMinigamesLocked)
 	{
 		mApp->LawnMessageBox(Dialogs::DIALOG_MESSAGE, "[MODE_LOCKED]", "[MINIGAME_LOCKED_MESSAGE]", "[DIALOG_BUTTON_OK]", "", Dialog::BUTTONS_FOOTER);
@@ -1505,6 +1508,9 @@ void GameSelector::AddPreviewProfiles()
 // @Patoke: implemented functions
 // GOTY @Patoke: 0x450140
 void GameSelector::SlideTo(int theX, int theY) {
+	if (mSlideCounter > 0)
+		return;
+
 	mSlideCounter = 75;
 	mDestX = theX;
 	mDestY = theY;

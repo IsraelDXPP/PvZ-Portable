@@ -390,7 +390,8 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 
 					case SDL_WINDOWEVENT_RESIZED:
 						mGLInterface->UpdateViewport();
-						mWidgetManager->Resize(mScreenBounds, mGLInterface->mInputSourceRect);
+						mWidgetManager->Resize(mScreenBounds, mGLInterface->mPresentationRect);
+						mWidgetManager->MarkAllDirty();
 						break;
 
 					case SDL_WINDOWEVENT_MINIMIZED:
@@ -415,10 +416,7 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 			case SDL_MOUSEWHEEL:
 			{
 				mLastUserInputTick = mLastTimerTime;
-				if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED)
-					mWidgetManager->MouseWheel(event.wheel.y);
-				else
-					mWidgetManager->MouseWheel(-event.wheel.y);
+				mWidgetManager->MouseWheel(event.wheel.y);
 				break;
 			}
 
