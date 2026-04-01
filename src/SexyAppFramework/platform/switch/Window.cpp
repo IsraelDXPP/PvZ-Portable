@@ -53,11 +53,8 @@ extern "C" void __libnx_exception_handler(ThreadExceptionDump *ctx)
 	}
 }
 
-volatile int wait_for_gdb = 0;
-
 void SexyAppBase::MakeWindow()
 {
-    while (wait_for_gdb);
 
     // Connect to the EGL default display
     mWindow = eglGetDisplay(EGL_DEFAULT_DISPLAY);

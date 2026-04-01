@@ -82,12 +82,12 @@ if(NINTENDO_SWITCH)
 
 		add_custom_command(
 			OUTPUT ${SWITCH_VERT_SPV}
-			COMMAND ${GLSLANG} -V ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl -o ${SWITCH_VERT_SPV}
+			COMMAND ${GLSLANG} -S vert -G ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl -o ${SWITCH_VERT_SPV}
 			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl
 		)
 		add_custom_command(
 			OUTPUT ${SWITCH_FRAG_SPV}
-			COMMAND ${GLSLANG} -V ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl -o ${SWITCH_FRAG_SPV}
+			COMMAND ${GLSLANG} -S frag -G ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl -o ${SWITCH_FRAG_SPV}
 			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl
 		)
 
