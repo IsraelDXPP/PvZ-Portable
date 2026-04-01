@@ -67,6 +67,27 @@ if(NINTENDO_SWITCH)
 	list(APPEND PLAT_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch
 	)
+	
+	find_program(GLSLANG glslangValidator)
+	if(GLSLANG)
+		set(SWITCH_VERT_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_vert.spv)
+		set(SWITCH_FRAG_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_frag.spv)
+
+		add_custom_command(
+			OUTPUT ${SWITCH_VERT_SPV}
+			COMMAND ${GLSLANG} -V ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl -o ${SWITCH_VERT_SPV}
+			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl
+		)
+		add_custom_command(
+			OUTPUT ${SWITCH_FRAG_SPV}
+			COMMAND ${GLSLANG} -V ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl -o ${SWITCH_FRAG_SPV}
+			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl
+		)
+
+		dkp_add_embedded_binary_library(switch_shaders ${SWITCH_VERT_SPV} ${SWITCH_FRAG_SPV})
+	else()
+		message(WARNING "glslangValidator not found. Switch shaders cannot be built.")
+	endif()
 elseif(NINTENDO_3DS)
 	set(LOW_MEMORY ON)
 	set(DOWNSCALE_COUNT 2)
@@ -132,6 +153,9 @@ endif()
 
 if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]$")
 	set(WIN_CONSOLE_DEFAULT ON)
+	set(PVZ_DEBUG_DEFAULT ON)
+elseif(NINTENDO_SWITCH)
+	set(WIN_CONSOLE_DEFAULT OFF)
 	set(PVZ_DEBUG_DEFAULT ON)
 else()
 	set(WIN_CONSOLE_DEFAULT OFF)
@@ -293,7 +317,7 @@ if (WIN32)
 		endif()
 	endif()
 elseif (NINTENDO_SWITCH)
-	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
+	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau switch_shaders)
 
 	nx_generate_nacp(pvz-portable.nacp
 		NAME "PvZ Portable"
@@ -302,6 +326,7 @@ elseif (NINTENDO_SWITCH)
 	)
 
 	nx_create_nro(pvz-portable
+		NOSTRIP
 		NACP pvz-portable.nacp
 		ICON ${CMAKE_CURRENT_SOURCE_DIR}/icon-switch.jpg
 	)

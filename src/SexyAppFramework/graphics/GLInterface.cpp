@@ -41,6 +41,16 @@
 #include <mutex>
 #include <vector>
 
+#ifdef NINTENDO_SWITCH
+#include "switch_vert_spv.h"
+#include "switch_frag_spv.h"
+
+#ifndef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
+#define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
+#endif
+typedef void (GL_APIENTRYP PFNGLSPECIALIZESHADERPROC) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
+#endif
+
 #define MAX_VERTICES 16384
 
 #ifndef GL_FRAMEBUFFER_SRGB
@@ -205,6 +215,9 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
+#ifdef NINTENDO_SWITCH
+	return 0; // Precompiled shaders loaded in shaderLoad
+#else
 	// GLSL ES 1.00 for native ES contexts; GLSL 1.20 for desktop GL fallback.
 	const char *versionLine = gDesktopGLFallback
 		? "#version 120\n"
@@ -239,12 +252,32 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		return 0;
 	}
 	return shader;
+#endif
 }
 
 static GLuint shaderLoad(const char *src)
 {
+#ifdef NINTENDO_SWITCH
+	GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+	GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+
+	PFNGLSPECIALIZESHADERPROC switchGlSpecializeShader = (PFNGLSPECIALIZESHADERPROC)eglGetProcAddress("glSpecializeShader");
+	if (!switchGlSpecializeShader) {
+		switchGlSpecializeShader = (PFNGLSPECIALIZESHADERPROC)eglGetProcAddress("glSpecializeShaderARB");
+	}
+
+	if (vert != 0) {
+		glShaderBinary(1, &vert, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_vert_spv, switch_vert_spv_size);
+		if (switchGlSpecializeShader) switchGlSpecializeShader(vert, "main", 0, nullptr, nullptr);
+	}
+	if (frag != 0) {
+		glShaderBinary(1, &frag, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_frag_spv, switch_frag_spv_size);
+		if (switchGlSpecializeShader) switchGlSpecializeShader(frag, "main", 0, nullptr, nullptr);
+	}
+#else
 	GLuint vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
 	GLuint frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
+#endif
 	if (vert == 0 || frag == 0)
 	{
 		if (vert != 0)
@@ -258,9 +291,11 @@ static GLuint shaderLoad(const char *src)
 	glAttachShader(prog, vert);
 	glAttachShader(prog, frag);
 
+#ifndef NINTENDO_SWITCH
 	const char *attribs[] = { "a_position", "a_color", "a_uv" };
 	for (int i = 0; i < 3; i++)
 		glBindAttribLocation(prog, i, attribs[i]);
+#endif
 
 	glLinkProgram(prog);
 	glDeleteShader(vert);
