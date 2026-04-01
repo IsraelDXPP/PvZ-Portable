@@ -325,6 +325,7 @@ if (WIN32)
 	endif()
 elseif (NINTENDO_SWITCH)
 	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau switch_shaders)
+	target_compile_definitions(pvz-portable PRIVATE NINTENDO_SWITCH)
 
 	nx_generate_nacp(pvz-portable.nacp
 		NAME "PvZ Portable"
