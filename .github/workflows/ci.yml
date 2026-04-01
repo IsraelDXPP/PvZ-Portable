@@ -295,7 +295,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          (apt-get update && apt-get install -y ccache) || (pacman -Syu --noconfirm ccache) || true
+          (apt-get update && apt-get install -y ccache glslang-tools) || (pacman -Syu --noconfirm ccache glslang) || true
           dkp-pacman -S --needed --noconfirm \
             switch-sdl2 \
             switch-libogg \
