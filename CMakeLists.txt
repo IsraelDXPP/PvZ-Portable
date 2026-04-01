@@ -72,6 +72,13 @@ if(NINTENDO_SWITCH)
 	if(GLSLANG)
 		set(SWITCH_VERT_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_vert.spv)
 		set(SWITCH_FRAG_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_frag.spv)
+		
+		if(NOT EXISTS ${SWITCH_VERT_SPV})
+			file(WRITE ${SWITCH_VERT_SPV} "")
+		endif()
+		if(NOT EXISTS ${SWITCH_FRAG_SPV})
+			file(WRITE ${SWITCH_FRAG_SPV} "")
+		endif()
 
 		add_custom_command(
 			OUTPUT ${SWITCH_VERT_SPV}
