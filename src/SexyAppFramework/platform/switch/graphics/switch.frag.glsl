@@ -7,8 +7,8 @@ layout(location = 1) in vec2 v_uv;
 layout(location = 0) out vec4 FRAG_OUT;
 
 uniform sampler2D u_texture;
-uniform int u_useTexture;
-uniform vec4 u_uvBounds;
+layout(location = 1) uniform int u_useTexture;
+layout(location = 2) uniform vec4 u_uvBounds;
 
 void main() {
     if (u_useTexture == 1)

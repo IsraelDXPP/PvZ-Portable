@@ -8,7 +8,7 @@ layout(location = 2) in vec2 a_uv;
 layout(location = 0) out vec4 v_color;
 layout(location = 1) out vec2 v_uv;
 
-uniform mat4 u_viewProj;
+layout(location = 0) uniform mat4 u_viewProj;
 
 void main() {
     v_color = a_color;
