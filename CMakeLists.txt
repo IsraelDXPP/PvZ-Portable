@@ -86,7 +86,7 @@ if(NINTENDO_SWITCH)
 
 		dkp_add_embedded_binary_library(switch_shaders ${SWITCH_VERT_SPV} ${SWITCH_FRAG_SPV})
 	else()
-		message(WARNING "glslangValidator not found. Switch shaders cannot be built.")
+		message(FATAL_ERROR "glslangValidator not found. Switch shaders cannot be built. Please install glslang (e.g., 'sudo apt-get install glslang-tools' or 'dkp-pacman -S glslang').")
 	endif()
 elseif(NINTENDO_3DS)
 	set(LOW_MEMORY ON)
