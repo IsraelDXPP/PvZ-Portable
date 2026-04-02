@@ -110,13 +110,12 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Create an OpenGL 4.3 Compatibility Profile context.
-	// Compatibility profile allows #version 120 shaders (GLSL_VERT/FRAG_MACROS with
-	// attribute/varying/gl_FragColor) and does not require explicit VAO binding.
-	// This is equivalent to what the reference re-plants-vs-zombies port uses.
+	// Create an OpenGL 4.3 Core Profile context.
+	// This matches the reference re-plants-vs-zombies port exactly, ensuring
+	// maximum compatibility with emulators on hosts that lack Compatibility Profiles (like macOS).
 	static const EGLint contextAttributeList[] =
 	{
-		EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR,
+		EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
 		EGL_CONTEXT_MAJOR_VERSION_KHR, 4,
 		EGL_CONTEXT_MINOR_VERSION_KHR, 3,
 		EGL_NONE

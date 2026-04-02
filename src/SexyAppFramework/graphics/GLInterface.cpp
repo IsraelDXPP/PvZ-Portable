@@ -213,17 +213,24 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	// On Switch, PlatformGLInit() sets gDesktopGLFallback=true (desktop GL 4.3 via EGL),
-	// so the branch below automatically selects "#version 120" with the GLSL_VERT/FRAG_MACROS
-	// (attribute/varying/gl_FragColor), which is valid in a GL 4.3 Compatibility Profile.
+	// On Switch, PlatformGLInit() sets gDesktopGLFallback=true (desktop GL 4.3 Core via EGL).
+	// We inject #version 150 with modern GLSL Core syntax (in/out/texture).
 	// On other platforms (Android, iOS, Emscripten) gDesktopGLFallback stays false and the
 	// GLES 1.00 path ("#version 100") is used as before.
 	const char *versionLine = gDesktopGLFallback
-		? "#version 120\n"
+		? "#version 150\n"
 		: "#version 100\nprecision mediump float;\n";
-	const char *macros = (type == GL_VERTEX_SHADER)
-		? GLSL_VERT_MACROS "#define VERTEX\n"
-		: GLSL_FRAG_MACROS "#define FRAGMENT\n";
+
+	const char *macros = nullptr;
+	if (gDesktopGLFallback) {
+		macros = (type == GL_VERTEX_SHADER)
+			? "#define VERTEX\n#define VERT_IN in\n#define V2F out\n"
+			: "#define FRAGMENT\n#define V2F in\n#define TEX2D texture\nout vec4 fragColor;\n#define FRAG_OUT fragColor\n";
+	} else {
+		macros = (type == GL_VERTEX_SHADER)
+			? GLSL_VERT_MACROS "#define VERTEX\n"
+			: GLSL_FRAG_MACROS "#define FRAGMENT\n";
+	}
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
@@ -1198,6 +1205,17 @@ int GLInterface::Init(bool IsWindowed)
 		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
 		gUfUseTexture  = glGetUniformLocation(gProgram, "u_useTexture");
 		gUfUvBounds    = glGetUniformLocation(gProgram, "u_uvBounds");
+
+#ifdef NINTENDO_SWITCH
+		// Desktop OpenGL strictly requires a bound VAO (Vertex Array Object)
+		// to draw via VBOs, even inside a Compatibility Profile. 
+		// Since we use a single layout, we just bind a global dummy VAO.
+		static GLuint gVao = 0;
+		if (gVao == 0) {
+			glGenVertexArrays(1, &gVao);
+			glBindVertexArray(gVao);
+		}
+#endif
 
 		glGenBuffers(1, &gVbo);
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
