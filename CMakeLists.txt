@@ -67,34 +67,9 @@ if(NINTENDO_SWITCH)
 	list(APPEND PLAT_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch
 	)
-	
-	find_program(GLSLANG glslangValidator)
-	if(GLSLANG)
-		set(SWITCH_VERT_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_vert.spv)
-		set(SWITCH_FRAG_SPV ${CMAKE_CURRENT_BINARY_DIR}/switch_frag.spv)
-		
-		if(NOT EXISTS ${SWITCH_VERT_SPV})
-			file(WRITE ${SWITCH_VERT_SPV} "")
-		endif()
-		if(NOT EXISTS ${SWITCH_FRAG_SPV})
-			file(WRITE ${SWITCH_FRAG_SPV} "")
-		endif()
-
-		add_custom_command(
-			OUTPUT ${SWITCH_VERT_SPV}
-			COMMAND ${GLSLANG} -S vert -G ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl -o ${SWITCH_VERT_SPV}
-			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.vert.glsl
-		)
-		add_custom_command(
-			OUTPUT ${SWITCH_FRAG_SPV}
-			COMMAND ${GLSLANG} -S frag -G ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl -o ${SWITCH_FRAG_SPV}
-			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/graphics/switch.frag.glsl
-		)
-
-		dkp_add_embedded_binary_library(switch_shaders ${SWITCH_VERT_SPV} ${SWITCH_FRAG_SPV})
-	else()
-		message(FATAL_ERROR "glslangValidator not found. Switch shaders cannot be built. Please install glslang (e.g., 'sudo apt-get install glslang-tools' or 'dkp-pacman -S glslang').")
-	endif()
+	# SPIR-V precompiled shaders were removed: emulators (Suyu/Yuzu) misidentify the binary
+	# as Maxwell ISA and crash at GPU dispatch.  Shaders are now compiled from GLSL ES 3.00
+	# source at init time, which works on real Switch GLES 3.1 and all emulators.
 elseif(NINTENDO_3DS)
 	set(LOW_MEMORY ON)
 	set(DOWNSCALE_COUNT 2)
@@ -324,7 +299,7 @@ if (WIN32)
 		endif()
 	endif()
 elseif (NINTENDO_SWITCH)
-	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau switch_shaders)
+	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
 	target_compile_definitions(pvz-portable PRIVATE NINTENDO_SWITCH)
 
 	nx_generate_nacp(pvz-portable.nacp

@@ -41,15 +41,13 @@
 #include <mutex>
 #include <vector>
 
-#ifdef NINTENDO_SWITCH
-#include "switch_vert_spv.h"
-#include "switch_frag_spv.h"
-
-#ifndef GL_SHADER_BINARY_FORMAT_SPIR_V_ARB
-#define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
-#endif
-typedef void (GL_APIENTRYP PFNGLSPECIALIZESHADERPROC) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
-#endif
+// NOTE: SPIR-V switch_vert_spv / switch_frag_spv headers intentionally not included.
+// SPIR-V binary shaders are not used because emulators (Suyu/Yuzu) misidentify
+// them as Maxwell ISA bytecode, causing "Invalid insn" crashes at GPU dispatch time.
+// GL_COMPILE_STATUS and GL_LINK_STATUS both return TRUE (faked by the emulator),
+// so there is no reliable API-level way to detect the failure before draw time.
+// GLSL ES 3.00 compilation (see shaderCompile) works correctly on both real Switch
+// GLES 3.1 hardware and all tested emulators.
 
 #define MAX_VERTICES 16384
 
@@ -264,71 +262,12 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 
 static GLuint shaderLoad(const char *src)
 {
-#ifdef NINTENDO_SWITCH
-	// --- Attempt 1: load precompiled SPIR-V (works on real Switch hardware) ---
-	GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-	GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-
-	PFNGLSPECIALIZESHADERPROC switchGlSpecializeShader = (PFNGLSPECIALIZESHADERPROC)eglGetProcAddress("glSpecializeShader");
-	if (!switchGlSpecializeShader)
-		switchGlSpecializeShader = (PFNGLSPECIALIZESHADERPROC)eglGetProcAddress("glSpecializeShaderARB");
-
-	if (vert) {
-		glShaderBinary(1, &vert, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_vert_spv, switch_vert_spv_size);
-		if (switchGlSpecializeShader) switchGlSpecializeShader(vert, "main", 0, nullptr, nullptr);
-	}
-	if (frag) {
-		glShaderBinary(1, &frag, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_frag_spv, switch_frag_spv_size);
-		if (switchGlSpecializeShader) switchGlSpecializeShader(frag, "main", 0, nullptr, nullptr);
-	}
-
-	// Build a program and try to link.
-	// NOTE: GL_COMPILE_STATUS after glShaderBinary is always TRUE on emulators
-	// (Suyu/Yuzu defers validation).  GL_LINK_STATUS is the first reliable failure
-	// signal when SPIR-V is not accepted as real Maxwell bytecode.
-	GLuint prog = glCreateProgram();
-	glAttachShader(prog, vert);
-	glAttachShader(prog, frag);
-	const char *attribs[] = { "a_position", "a_color", "a_uv" };
-	for (int i = 0; i < 3; i++)
-		glBindAttribLocation(prog, i, attribs[i]);
-	glLinkProgram(prog);
-
-	GLint linked = 0;
-	glGetProgramiv(prog, GL_LINK_STATUS, &linked);
-	if (linked)
-	{
-		// SPIR-V linked fine (real hardware path).
-		glDeleteShader(vert);
-		glDeleteShader(frag);
-		return prog;
-	}
-
-	// --- Attempt 2: SPIR-V link failed → fall back to GLSL ES 3.00 ---
-	printf("SPIR-V link failed, falling back to GLSL ES 3.00 (emulator path)\n");
-	fflush(stdout);
-	glDetachShader(prog, vert);
-	glDetachShader(prog, frag);
-	glDeleteShader(vert);
-	glDeleteShader(frag);
-	vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
-	frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
-	if (!vert || !frag)
-	{
-		if (vert) glDeleteShader(vert);
-		if (frag) glDeleteShader(frag);
-		glDeleteProgram(prog);
-		return 0;
-	}
-	glAttachShader(prog, vert);
-	glAttachShader(prog, frag);
-	glLinkProgram(prog);
-	glDeleteShader(vert);
-	glDeleteShader(frag);
-	return prog;
-
-#else
-	// Non-Switch: compile GLSL source directly.
+	// Always compile from GLSL source (ES 3.00 on Switch, ES 1.00 or desktop GL 1.20
+	// on other platforms — see shaderCompile for version selection).
+	// SPIR-V binary loading was removed: emulators (Suyu/Yuzu) misidentify SPIR-V as
+	// Maxwell ISA and silently fake GL_LINK_STATUS = TRUE, so the failure cannot be
+	// detected before the first GPU draw call.  GLSL compilation works on real Switch
+	// (GLES 3.1) and is correctly recompiled by all tested emulators.
 	GLuint vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
 	GLuint frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
 	if (!vert || !frag)
@@ -347,7 +286,6 @@ static GLuint shaderLoad(const char *src)
 	glDeleteShader(vert);
 	glDeleteShader(frag);
 	return prog;
-#endif
 }
 
 // Orthographic projection
