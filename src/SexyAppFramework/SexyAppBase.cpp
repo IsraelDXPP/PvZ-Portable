@@ -2201,14 +2201,23 @@ void SexyAppBase::StartLoadingThread()
 {	
 	if (!mLoadingThreadStarted)
 	{
-		mYieldMainThread = true; 
-		//::SetThreadPriority(::GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);		
+		mYieldMainThread = true;
 		mLoadingThreadStarted = true;
+
 #ifdef __EMSCRIPTEN__
+
 		LoadingThreadProcStub(this);
+
+#elif defined(NINTENDO_SWITCH)
+
+		// SWITCH: NO std::thread (rompe TLS / libnx en muchos casos)
+		LoadingThreadProcStub(this);
+
 #else
-		//_beginthread(LoadingThreadProcStub, 0, this);
+
+		// Windows / Linux / PC normal
 		std::thread(LoadingThreadProcStub, this).detach();
+
 #endif
 	}
 }
