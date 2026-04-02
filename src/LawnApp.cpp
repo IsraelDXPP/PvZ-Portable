@@ -1824,21 +1824,20 @@ void LawnApp::LoadingThreadProc()
 
 	TodStringListLoad("Properties/LawnStrings.txt");
 
-	// Load localized properties AFTER LawnStrings so they can override string values
 	LoadProperties("properties/default.xml", false, false);
 	LoadProperties("properties/Layout.xml", false, false);
 
 	if (mTitleScreen)
-	{
 		mTitleScreen->mLoaderScreenIsLoaded = true;
-	}
 
 	const char* groups[] = { "LoadingFonts", "LoadingImages", "LoadingSounds" };
 	int group_ave_ms_to_load[] = { 54, 9, 54 };
+
 	for (int i = 0; i < 3; i++)
 	{
 		mNumLoadingThreadTasks += mResourceManager->GetNumResources(groups[i]) * group_ave_ms_to_load[i];
 	}
+
 	mNumLoadingThreadTasks += 636;
 	mNumLoadingThreadTasks += GetNumPreloadingTasks();
 	mNumLoadingThreadTasks += mMusic->GetNumLoadingTasks();
@@ -1848,49 +1847,57 @@ void LawnApp::LoadingThreadProc()
 
 	TodHesitationTrace("start loading");
 	TodHesitationBracket aHesitationResources("Resources");
-	TodHesitationTrace("loading thread start");
 
 	LoadGroup("LoadingImages", 9);
 	LoadGroup("LoadingFonts", 54);
+
 	if (mLoadingFailed || mShutdown || mCloseRequest)
 		return;
 
 	aHesitationResources.EndBracket();
-	TodTrace("loading '%s' %d ms", "resources", static_cast<int>(aTimer.GetDuration()));
 
+	TodTrace("loading '%s' %d ms", "resources", (int)aTimer.GetDuration());
+
+	// SWITCH SAFE ZONE
+
+#ifndef NINTENDO_SWITCH
+
+	// PC / Windows / emuladores tolerantes
 	mMusic->MusicInit();
-	// aDuration goes unused
-	//int aDuration = max(aTimer.GetDuration(), 0.0);
-	aTimer.Start();
 
 	mPoolEffect = new PoolEffect();
 	mPoolEffect->PoolEffectInitialize();
+
 	mZenGarden = new ZenGarden();
+
 	mReanimatorCache = new ReanimatorCache();
 	mReanimatorCache->ReanimatorCacheInitialize();
+
 	TodFoleyInitialize(gLawnFoleyParamArray, LENGTH(gLawnFoleyParamArray));
 
-	TodTrace("loading '%s' %d ms", "stuff", static_cast<int>(aTimer.GetDuration()));
-	aTimer.Start();
-
 	TrailLoadDefinitions(gLawnTrailArray, LENGTH(gLawnTrailArray));
-	TodTrace("loading '%s' %d ms", "trail", static_cast<int>(aTimer.GetDuration()));
-	aTimer.Start();
-	TodHesitationTrace("trail");
-	
+
 	TodParticleLoadDefinitions(gLawnParticleArray, LENGTH(gLawnParticleArray));
-	//aDuration = max(aTimer.GetDuration(), 0.0);
-	aTimer.Start();
+
+#else
+
+	// SWITCH SAFE: solo datos, NO engine objects aquí
+	// (todo lo pesado se inicializa después en main thread)
+
+	mMusicInitPending = true;
+	mPoolEffectsInitPending = true;
+	mZenGardenInitPending = true;
+	mReanimatorInitPending = true;
+
+#endif
 
 	PreloadForUser();
+
 	if (mLoadingFailed || mShutdown || mCloseRequest)
 		return;
 
-	//aDuration = max(aTimer.GetDuration(), 0.0);
-	aTimer.Start();
-
-	GetNumPreloadingTasks();
 	LoadGroup("LoadingSounds", 54);
+
 	TodHesitationTrace("finished loading");
 }
 
