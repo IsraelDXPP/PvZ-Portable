@@ -2194,7 +2194,7 @@ void SexyAppBase::LoadingThreadProcStub(SexyAppBase *theArg)
 
 	printf("Resource Loading Time: %d\r\n", (SDL_GetTicks() - aSexyApp->mTimeLoaded));
 
-	aSexyApp->mLoadingThreadCompleted = true;
+	std::atomic<bool> mLoadingThreadCompleted;
 }
 
 void SexyAppBase::StartLoadingThread()
