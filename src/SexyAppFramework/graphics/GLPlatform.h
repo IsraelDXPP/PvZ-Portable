@@ -61,18 +61,12 @@
 	"#define TEX2D texture2D\n"
 
 // When true, a desktop GL compatibility context is in use and shaders
-extern bool gDesktopGLFallback;
+// extern bool gDesktopGLFallback;
 
 inline void PlatformGLInit()
 {
 #ifdef NINTENDO_SWITCH
-	// Load desktop OpenGL function pointers.
-	// Note: devkitPro's switch-glad package manages the proc address loading internally.
-	// Setting gDesktopGLFallback=true makes shaderCompile() select "#version 120"
-	// shaders with the existing GLSL_VERT/FRAG_MACROS (attribute/varying/gl_FragColor),
-	// which are valid in a GL 4.3 Compatibility Profile context.
 	gladLoadGL();
-	gDesktopGLFallback = true;
 #else
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif

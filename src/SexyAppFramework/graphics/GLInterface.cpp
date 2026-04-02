@@ -96,6 +96,9 @@ static int gNumVertices;
 static GLenum gVertexMode;
 static GLuint gProgram;
 static GLuint gVbo;
+#ifdef NINTENDO_SWITCH
+static GLuint gVao;
+#endif
 static GLint gUfViewProjMtx, gUfTexture, gUfUseTexture, gUfUvBounds;
 
 static void GfxBegin(GLenum vertexMode)
@@ -110,15 +113,20 @@ static void GfxEnd()
 
 	if (gNumVertices > 0)
 	{
+#ifdef NINTENDO_SWITCH
+		glBindVertexArray(gVao);
+#endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
+#ifndef NINTENDO_SWITCH
 		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE,  GL_TRUE,  sizeof(GLVertex), (const void*)(sizeof(float)*3));
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 2, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)(sizeof(float)*3 + sizeof(uint32_t)));
 		glEnableVertexAttribArray(2);
+#endif
 
 		glDrawArrays(gVertexMode, 0, gNumVertices);
 	}
@@ -187,6 +195,114 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
 V2F vec4 v_color;
 V2F vec2 v_uv;
 
+#ifdef NINTENDO_SWITCH
+
+// The exact setup from re-plants-vs-zombies GLInterface.cpp for Nintendo Switch
+
+static const char* SHADER_CODE = 
+"\n #ifdef FRAGMENT"
+"\n precision mediump float;"
+"\n #endif"
+"\n "
+"\n varying vec4 v_color;"
+"\n varying vec2 v_uv;"
+"\n "
+"\n #ifdef VERTEX"
+"\n "
+"\n     uniform mat4 u_viewProj;"
+"\n "
+"\n     attribute vec3 a_position;"
+"\n     attribute vec4 a_color;"
+"\n     attribute vec2 a_uv;"
+"\n "
+"\n     void main()"
+"\n     {"
+"\n         v_color = a_color;"
+"\n         v_uv = a_uv;"
+"\n "
+"\n         gl_Position = u_viewProj * vec4( a_position, 1. );"
+"\n     }"
+"\n "
+"\n #endif"
+"\n #ifdef FRAGMENT"
+"\n "
+"\n     uniform sampler2D u_texture;"
+"\n     uniform int u_useTexture;"
+"\n     uniform vec4 u_uvBounds;"
+"\n "
+"\n     void main() "
+"\n     {"
+"\n         if (u_useTexture == 1)"
+"\n             gl_FragColor = texture2D(u_texture, clamp(v_uv, u_uvBounds.xy, u_uvBounds.zw)) * v_color;"
+"\n         else"
+"\n             gl_FragColor = v_color;"
+"\n     }"
+"\n "
+"\n #endif";
+
+static GLuint shaderCompile(const char *src, GLenum shaderType)
+{
+	const GLchar *shaderDefine = (shaderType == GL_VERTEX_SHADER)
+		? "\n#version 150\n#define VERTEX  \n"
+		: "\n#version 150\n#define FRAGMENT\n";
+
+	const GLchar *strings[3] = { shaderDefine, src, "" };
+	GLint lengths[3] = { (GLint)strlen(shaderDefine), (GLint)strlen(src), 0 };
+
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 2, strings, lengths);
+	glCompileShader(shader);
+
+	GLint ok;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+	if (!ok)
+	{
+		GLint logLen;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+		char *log = (char*)malloc(logLen);
+		glGetShaderInfoLog(shader, logLen, &logLen, log);
+		printf("Shader error: %s\n%s%s%s\n", log, strings[0], strings[1], strings[2]);
+		fflush(stdout);
+		free(log);
+		glDeleteShader(shader);
+		if (gSexyAppBase != nullptr)
+			gSexyAppBase->Shutdown();
+		else
+			exit(1);
+		return 0;
+	}
+	return shader;
+}
+
+static GLuint shaderLoad(const char *src)
+{
+	GLuint vert = shaderCompile(src, GL_VERTEX_SHADER);
+	GLuint frag = shaderCompile(src, GL_FRAGMENT_SHADER);
+	if (!vert || !frag)
+	{
+		if (vert) glDeleteShader(vert);
+		if (frag) glDeleteShader(frag);
+		return 0;
+	}
+	GLuint prog = glCreateProgram();
+	glAttachShader(prog, vert);
+	glAttachShader(prog, frag);
+	const char *attribs[] = { "a_position", "a_color", "a_uv" };
+	for (int i = 0; i < 3; i++)
+		glBindAttribLocation(prog, i, attribs[i]);
+	glLinkProgram(prog);
+	glDeleteShader(vert);
+	glDeleteShader(frag);
+	return prog;
+}
+
+#else
+
+// Original PvZ-Portable shaders for non-Switch platforms
+static constexpr const char *SHADER_CODE = R"DELIMITER(
+V2F vec4 v_color;
+V2F vec2 v_uv;
+
 #ifdef VERTEX
 	uniform mat4 u_viewProj;
 	VERT_IN vec3 a_position;
@@ -213,24 +329,11 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	// On Switch, PlatformGLInit() sets gDesktopGLFallback=true (desktop GL 4.3 Core via EGL).
-	// We inject #version 150 with modern GLSL Core syntax (in/out/texture).
-	// On other platforms (Android, iOS, Emscripten) gDesktopGLFallback stays false and the
-	// GLES 1.00 path ("#version 100") is used as before.
-	const char *versionLine = gDesktopGLFallback
-		? "#version 150\n"
-		: "#version 100\nprecision mediump float;\n";
+	const char *versionLine = "#version 100\nprecision mediump float;\n";
 
-	const char *macros = nullptr;
-	if (gDesktopGLFallback) {
-		macros = (type == GL_VERTEX_SHADER)
-			? "#define VERTEX\n#define VERT_IN in\n#define V2F out\n"
-			: "#define FRAGMENT\n#define V2F in\n#define TEX2D texture\nout vec4 fragColor;\n#define FRAG_OUT fragColor\n";
-	} else {
-		macros = (type == GL_VERTEX_SHADER)
-			? GLSL_VERT_MACROS "#define VERTEX\n"
-			: GLSL_FRAG_MACROS "#define FRAGMENT\n";
-	}
+	const char *macros = (type == GL_VERTEX_SHADER)
+		? GLSL_VERT_MACROS "#define VERTEX\n"
+		: GLSL_FRAG_MACROS "#define FRAGMENT\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
@@ -262,12 +365,6 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 
 static GLuint shaderLoad(const char *src)
 {
-	// Always compile from GLSL source (ES 3.00 on Switch, ES 1.00 or desktop GL 1.20
-	// on other platforms — see shaderCompile for version selection).
-	// SPIR-V binary loading was removed: emulators (Suyu/Yuzu) misidentify SPIR-V as
-	// Maxwell ISA and silently fake GL_LINK_STATUS = TRUE, so the failure cannot be
-	// detected before the first GPU draw call.  GLSL compilation works on real Switch
-	// (GLES 3.1) and is correctly recompiled by all tested emulators.
 	GLuint vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
 	GLuint frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
 	if (!vert || !frag)
@@ -287,6 +384,8 @@ static GLuint shaderLoad(const char *src)
 	glDeleteShader(frag);
 	return prog;
 }
+
+#endif
 
 // Orthographic projection
 static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f, float* m)
@@ -1207,19 +1306,30 @@ int GLInterface::Init(bool IsWindowed)
 		gUfUvBounds    = glGetUniformLocation(gProgram, "u_uvBounds");
 
 #ifdef NINTENDO_SWITCH
-		// Desktop OpenGL strictly requires a bound VAO (Vertex Array Object)
-		// to draw via VBOs, even inside a Compatibility Profile. 
-		// Since we use a single layout, we just bind a global dummy VAO.
-		static GLuint gVao = 0;
+		// Setup VAO exact identical to re-plants-vs-zombies
 		if (gVao == 0) {
 			glGenVertexArrays(1, &gVao);
-			glBindVertexArray(gVao);
-		}
-#endif
+			glGenBuffers(1, &gVbo);
 
+			glBindVertexArray(gVao);
+
+			glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, 0, GL_DYNAMIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+			glEnableVertexAttribArray(0);
+
+			glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3) );
+			glEnableVertexAttribArray(1);
+
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)) );
+			glEnableVertexAttribArray(2);
+		}
+#else
 		glGenBuffers(1, &gVbo);
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, nullptr, GL_DYNAMIC_DRAW);
+#endif
 	}
 
 	int aMaxSize;
