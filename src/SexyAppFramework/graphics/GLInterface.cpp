@@ -215,8 +215,15 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
+	// On Nintendo Switch the primary path uses precompiled SPIR-V (see shaderLoad).
+	// However, if that fails (e.g. running under Suyu/Yuzu emulator which doesn't support
+	// SPIR-V via GLES), we fall through to GLSL compilation.  Switch EGL exposes GLES 3.x,
+	// so we request #version 300 es here instead of 100.
 #ifdef NINTENDO_SWITCH
-	return 0; // Precompiled shaders loaded in shaderLoad
+	const char *versionLine = "#version 300 es\nprecision mediump float;\n";
+	const char *macros = (type == GL_VERTEX_SHADER)
+		? "#define VERT_IN in\n#define V2F out\n#define VERTEX\n"
+		: "#define V2F in\n#define FRAG_OUT fragColor\n#define TEX2D texture\nout vec4 fragColor;\n#define FRAGMENT\n";
 #else
 	// GLSL ES 1.00 for native ES contexts; GLSL 1.20 for desktop GL fallback.
 	const char *versionLine = gDesktopGLFallback
@@ -225,6 +232,7 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	const char *macros = (type == GL_VERTEX_SHADER)
 		? GLSL_VERT_MACROS "#define VERTEX\n"
 		: GLSL_FRAG_MACROS "#define FRAGMENT\n";
+#endif
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
@@ -252,7 +260,6 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		return 0;
 	}
 	return shader;
-#endif
 }
 
 static GLuint shaderLoad(const char *src)
@@ -266,13 +273,25 @@ static GLuint shaderLoad(const char *src)
 		switchGlSpecializeShader = (PFNGLSPECIALIZESHADERPROC)eglGetProcAddress("glSpecializeShaderARB");
 	}
 
+	bool spirvFailed = false;
 	if (vert != 0) {
 		glShaderBinary(1, &vert, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_vert_spv, switch_vert_spv_size);
 		if (switchGlSpecializeShader) switchGlSpecializeShader(vert, "main", 0, nullptr, nullptr);
+		GLint ok; glGetShaderiv(vert, GL_COMPILE_STATUS, &ok);
+		if (!ok) spirvFailed = true;
 	}
 	if (frag != 0) {
 		glShaderBinary(1, &frag, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, switch_frag_spv, switch_frag_spv_size);
 		if (switchGlSpecializeShader) switchGlSpecializeShader(frag, "main", 0, nullptr, nullptr);
+		GLint ok; glGetShaderiv(frag, GL_COMPILE_STATUS, &ok);
+		if (!ok) spirvFailed = true;
+	}
+
+	if (spirvFailed) {
+		if (vert) glDeleteShader(vert);
+		if (frag) glDeleteShader(frag);
+		vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
+		frag = shaderCompile(src, strlen(src), GL_FRAGMENT_SHADER);
 	}
 #else
 	GLuint vert = shaderCompile(src, strlen(src), GL_VERTEX_SHADER);
@@ -291,11 +310,11 @@ static GLuint shaderLoad(const char *src)
 	glAttachShader(prog, vert);
 	glAttachShader(prog, frag);
 
-#ifndef NINTENDO_SWITCH
+	// Always bind attribs: SPIR-V uses layout(location=) but GLSL fallback path
+	// (triggered on emulators) needs explicit binding. Safe to call even with SPIR-V.
 	const char *attribs[] = { "a_position", "a_color", "a_uv" };
 	for (int i = 0; i < 3; i++)
 		glBindAttribLocation(prog, i, attribs[i]);
-#endif
 
 	glLinkProgram(prog);
 	glDeleteShader(vert);
