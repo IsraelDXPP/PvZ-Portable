@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Portions of this file are based on the PopCap Games Framework
  * Copyright (C) 2005-2009 PopCap Games, Inc.
  *
@@ -26,12 +26,12 @@
 #define __GLPLATFORM_H__
 
 #ifdef NINTENDO_SWITCH
-
+// Desktop OpenGL via Nvidia EGL — the Switch GPU supports up to OpenGL 4.6.
+// Emulators map eglBindAPI(EGL_OPENGL_API) to the host GPU's native driver.
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <glad/glad.h>   // Desktop GL (switch-glad dkp package)
 
 #else
 
@@ -65,7 +65,14 @@ extern bool gDesktopGLFallback;
 
 inline void PlatformGLInit()
 {
-#ifndef NINTENDO_SWITCH
+#ifdef NINTENDO_SWITCH
+	// Load desktop OpenGL function pointers via EGL's proc address resolver.
+	// Setting gDesktopGLFallback=true makes shaderCompile() select "#version 120"
+	// shaders with the existing GLSL_VERT/FRAG_MACROS (attribute/varying/gl_FragColor),
+	// which are valid in a GL 4.3 Compatibility Profile context.
+	gladLoadGL((GLADloadfunc)eglGetProcAddress);
+	gDesktopGLFallback = true;
+#else
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif
 }

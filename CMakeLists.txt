@@ -67,9 +67,10 @@ if(NINTENDO_SWITCH)
 	list(APPEND PLAT_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch
 	)
-	# SPIR-V precompiled shaders were removed: emulators (Suyu/Yuzu) misidentify the binary
-	# as Maxwell ISA and crash at GPU dispatch.  Shaders are now compiled from GLSL ES 3.00
-	# source at init time, which works on real Switch GLES 3.1 and all emulators.
+	# Desktop OpenGL (glad) is used instead of GLES — the Switch Nvidia GPU supports
+	# up to OpenGL 4.6, and emulators map eglBindAPI(EGL_OPENGL_API) to the host GPU's
+	# native desktop GL.  Shaders compile as #version 120 (GLSL 1.20) in a compatibility
+	# profile context, which is universally supported on real hardware and all emulators.
 elseif(NINTENDO_3DS)
 	set(LOW_MEMORY ON)
 	set(DOWNSCALE_COUNT 2)
@@ -299,7 +300,7 @@ if (WIN32)
 		endif()
 	endif()
 elseif (NINTENDO_SWITCH)
-	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
+	target_link_libraries(pvz-portable PRIVATE glad EGL glapi drm_nouveau)
 	target_compile_definitions(pvz-portable PRIVATE NINTENDO_SWITCH)
 
 	nx_generate_nacp(pvz-portable.nacp

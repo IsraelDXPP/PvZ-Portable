@@ -68,8 +68,11 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Select OpenGL ES as the desired graphics API
-	if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
+	// Select desktop OpenGL as the graphics API.
+	// The Switch Nvidia GPU supports eglBindAPI(EGL_OPENGL_API) up to OpenGL 4.6.
+	// Emulators (Ryujinx, Eden, Suyu) map this to the host GPU's native desktop GL
+	// driver, which is more mature than their GLES emulation layers.
+	if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE)
 	{
 		eglTerminate(mWindow);
 		return;
@@ -107,13 +110,15 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Create an EGL rendering context (OpenGL ES 2.0).
-	// The shaders use GLSL ES 1.00 (#version 100) which is correct for an ES 2.0
-	// context.  GLPlatform.h includes <GLES2/gl2.h> and the GLSL_VERT/FRAG_MACROS
-	// use attribute/varying/gl_FragColor — all ES 1.00 / ES 2.0 compatible.
+	// Create an OpenGL 4.3 Compatibility Profile context.
+	// Compatibility profile allows #version 120 shaders (GLSL_VERT/FRAG_MACROS with
+	// attribute/varying/gl_FragColor) and does not require explicit VAO binding.
+	// This is equivalent to what the reference re-plants-vs-zombies port uses.
 	static const EGLint contextAttributeList[] =
 	{
-		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR,
+		EGL_CONTEXT_MAJOR_VERSION_KHR, 4,
+		EGL_CONTEXT_MINOR_VERSION_KHR, 3,
 		EGL_NONE
 	};
 	mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);

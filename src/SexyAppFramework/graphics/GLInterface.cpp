@@ -213,11 +213,11 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	// Switch uses GLES 2.0 context + GLSL ES 1.00 shaders — the same path as any
-	// other GLES platform (Android, iOS).  GLPlatform.h includes <GLES2/gl2.h> and
-	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
-	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
-	// every emulator (Ryujinx, Suyu, Eden) without special casing.
+	// On Switch, PlatformGLInit() sets gDesktopGLFallback=true (desktop GL 4.3 via EGL),
+	// so the branch below automatically selects "#version 120" with the GLSL_VERT/FRAG_MACROS
+	// (attribute/varying/gl_FragColor), which is valid in a GL 4.3 Compatibility Profile.
+	// On other platforms (Android, iOS, Emscripten) gDesktopGLFallback stays false and the
+	// GLES 1.00 path ("#version 100") is used as before.
 	const char *versionLine = gDesktopGLFallback
 		? "#version 120\n"
 		: "#version 100\nprecision mediump float;\n";
