@@ -213,24 +213,17 @@ V2F vec2 v_uv;
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	// On Nintendo Switch the primary path uses precompiled SPIR-V (see shaderLoad).
-	// However, if that fails (e.g. running under Suyu/Yuzu emulator which doesn't support
-	// SPIR-V via GLES), we fall through to GLSL compilation.  Switch EGL exposes GLES 3.x,
-	// so we request #version 300 es here instead of 100.
-#ifdef NINTENDO_SWITCH
-	const char *versionLine = "#version 300 es\nprecision mediump float;\n";
-	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERT_IN in\n#define V2F out\n#define VERTEX\n"
-		: "#define V2F in\n#define FRAG_OUT fragColor\n#define TEX2D texture\nout vec4 fragColor;\n#define FRAGMENT\n";
-#else
-	// GLSL ES 1.00 for native ES contexts; GLSL 1.20 for desktop GL fallback.
+	// Switch uses GLES 2.0 context + GLSL ES 1.00 shaders — the same path as any
+	// other GLES platform (Android, iOS).  GLPlatform.h includes <GLES2/gl2.h> and
+	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
+	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
+	// every emulator (Ryujinx, Suyu, Eden) without special casing.
 	const char *versionLine = gDesktopGLFallback
 		? "#version 120\n"
 		: "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
 		? GLSL_VERT_MACROS "#define VERTEX\n"
 		: GLSL_FRAG_MACROS "#define FRAGMENT\n";
-#endif
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
