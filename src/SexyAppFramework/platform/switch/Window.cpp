@@ -107,10 +107,13 @@ void SexyAppBase::MakeWindow()
 		return;
 	}
 
-	// Create an EGL rendering context (OpenGL ES 2.0)
+	// Create an EGL rendering context (OpenGL ES 3.0)
+	// Must be 3.0+ to match the #version 300 es shaders used by shaderCompile().
+	// GLES 3.0 is fully supported by the Switch GPU and is backwards-compatible
+	// with GLES 2.0 so all existing draw calls remain valid.
 	static const EGLint contextAttributeList[] =
 	{
-		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_CONTEXT_CLIENT_VERSION, 3,
 		EGL_NONE
 	};
 	mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
