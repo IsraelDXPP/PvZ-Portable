@@ -190,11 +190,6 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Unified GLSL body; VERT_IN / V2F / FRAG_OUT / TEX2D macros from GLPlatform.h.
-static constexpr const char *SHADER_CODE = R"DELIMITER(
-V2F vec4 v_color;
-V2F vec2 v_uv;
-
 #ifdef NINTENDO_SWITCH
 
 // The exact setup from re-plants-vs-zombies GLInterface.cpp for Nintendo Switch
