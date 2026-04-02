@@ -70,10 +70,10 @@ inline void PlatformGLInit()
 	// Setting gDesktopGLFallback=true makes shaderCompile() select "#version 120"
 	// shaders with the existing GLSL_VERT/FRAG_MACROS (attribute/varying/gl_FragColor),
 	// which are valid in a GL 4.3 Compatibility Profile context.
-	gladLoadGL((GLADloadfunc)eglGetProcAddress);
+	gladLoadGL((GLADloadproc)eglGetProcAddress);
 	gDesktopGLFallback = true;
 #else
-	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+	gladLoadGLES2((GLADloadproc)SDL_GL_GetProcAddress);
 #endif
 }
 
