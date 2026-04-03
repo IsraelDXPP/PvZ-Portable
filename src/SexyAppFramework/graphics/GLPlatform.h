@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Portions of this file are based on the PopCap Games Framework
  * Copyright (C) 2005-2009 PopCap Games, Inc.
  *
@@ -30,9 +30,9 @@
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <GL/gl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-
 #else
 
 #ifdef _MSC_VER

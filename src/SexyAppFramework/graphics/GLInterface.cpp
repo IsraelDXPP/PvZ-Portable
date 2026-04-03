@@ -95,8 +95,8 @@ static std::vector<GLVertex> gVertices;
 static int gNumVertices;
 static GLenum gVertexMode;
 static GLuint gProgram;
-static GLuint gVbo;
-static GLint gUfViewProjMtx, gUfTexture, gUfUseTexture, gUfUvBounds;
+static GLuint gVao, gVbo;
+static GLint gUfViewMtx, gUfProjMtx, gUfTexture, gUfUseTexture, gUfUvBounds;
 
 static void GfxBegin(GLenum vertexMode)
 {
@@ -106,19 +106,22 @@ static void GfxBegin(GLenum vertexMode)
 
 static void GfxEnd()
 {
-	if (gVertexMode == (GLenum)-1) return;
-
 	if (gNumVertices > 0)
 	{
+#ifdef NINTENDO_SWITCH
+		glBindVertexArray(gVao);
+#endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
+#ifndef NINTENDO_SWITCH
 		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE,  GL_TRUE,  sizeof(GLVertex), (const void*)(sizeof(float)*3));
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 2, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)(sizeof(float)*3 + sizeof(uint32_t)));
 		glEnableVertexAttribArray(2);
+#endif
 
 		glDrawArrays(gVertexMode, 0, gNumVertices);
 	}
@@ -182,29 +185,32 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Reference-based shader code (Simplified for maximum compatibility on Switch)
+// Exact shader code from reference project for Switch
 static constexpr const char *SHADER_CODE = R"DELIMITER(
-V2F vec4 v_color;
-V2F vec2 v_uv;
-
 #ifdef VERTEX
-	uniform mat4 u_viewProj;
-	VERT_IN vec3 a_position;
-	VERT_IN vec4 a_color;
-	VERT_IN vec2 a_uv;
+	uniform mat4 view;
+	uniform mat4 projection;
+	attribute vec3 position;
+	attribute vec4 color;
+	attribute vec2 uv;
+	V2F vec4 v_color;
+	V2F vec2 v_uv;
 	void main() {
-		v_color = a_color;
-		v_uv = a_uv;
-		gl_Position = u_viewProj * vec4(a_position, 1.0);
+		v_color = color;
+		v_uv = uv;
+		gl_Position = projection * view * vec4(position, 1.0);
 	}
 #endif
 
 #ifdef FRAGMENT
-	uniform sampler2D u_texture;
-	uniform int u_useTexture;
+	precision mediump float;
+	V2F vec4 v_color;
+	V2F vec2 v_uv;
+	uniform sampler2D TextureSamp;
+	uniform int UseTexture;
 	void main() {
-		if (u_useTexture == 1)
-			FRAG_OUT = TEX2D(u_texture, v_uv) * v_color;
+		if (UseTexture == 1)
+			FRAG_OUT = TEX2D(TextureSamp, v_uv) * v_color;
 		else
 			FRAG_OUT = v_color;
 	}
@@ -218,12 +224,18 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
 	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
 	// every emulator (Ryujinx, Suyu, Eden) without special casing.
-	const char *versionLine = gDesktopGLFallback
-		? "#version 120\n"
+	const char *versionLine = (gDesktopGLFallback || 
+#ifdef NINTENDO_SWITCH
+        true
+#else
+        false
+#endif
+    )
+		? "#version 150\n"
 		: "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
-		? GLSL_VERT_MACROS "#define VERTEX\n"
-		: GLSL_FRAG_MACROS "#define FRAGMENT\n";
+		? "#define VERTEX\n#define V2F out\n"
+		: "#define FRAGMENT\n#define V2F in\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
@@ -746,13 +758,12 @@ static void SetLinearFilter(bool linear)
 
 static constexpr float kDefaultUvBounds[4] = { 0.f, 0.f, 1.f, 1.f };
 
-static void GfxBindTexture(GLuint tex, const float *uvBounds = kDefaultUvBounds)
+static void GfxBindTexture(GLuint tex)
 {
 	glBindTexture(GL_TEXTURE_2D, tex);
 	int f = gLinearFilter ? GL_LINEAR : GL_NEAREST;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f);
-	glUniform4fv(gUfUvBounds, 1, uvBounds);
 }
 
 void TextureData::Blt(float theX, float theY, const Rect& theSrcRect, const Color& theColor)
@@ -789,7 +800,7 @@ void TextureData::Blt(float theX, float theY, const Rect& theSrcRect, const Colo
 				{ x + w, y,     0, aColor, u2, v1 },
 				{ x + w, y + h, 0, aColor, u2, v2 },
 			};
-			GfxBindTexture(tex, uvb);
+			GfxBindTexture(tex);
 			GfxBegin(GL_TRIANGLE_STRIP);
 			GfxAddVertices(v, 4);
 			GfxEnd();
@@ -957,7 +968,7 @@ void TextureData::BltTransformed(const SexyMatrix3 &theTrans, const Rect& theSrc
 				{ tp[2].x, tp[2].y, 0, aColor, u2, v1 },
 				{ tp[3].x, tp[3].y, 0, aColor, u2, v2 },
 			};
-			GfxBindTexture(tex, uvb);
+			GfxBindTexture(tex);
 
 			if (!clipped)
 			{
@@ -1186,6 +1197,14 @@ void GLInterface::UpdateViewport()
 #ifdef NINTENDO_SWITCH
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(gProgram);
+    float viewMtx[16];
+    MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx); // Reset view/proj
+    float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
+    glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
+
 	Flush();
 #endif
 	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
@@ -1202,14 +1221,28 @@ int GLInterface::Init(bool IsWindowed)
 		gProgram = shaderLoad(SHADER_CODE);
 		if (gProgram == 0)
 			return 0;
-		gUfViewProjMtx = glGetUniformLocation(gProgram, "u_viewProj");
-		gUfTexture     = glGetUniformLocation(gProgram, "u_texture");
-		gUfUseTexture  = glGetUniformLocation(gProgram, "u_useTexture");
-		gUfUvBounds    = glGetUniformLocation(gProgram, "u_uvBounds");
+		gUfViewMtx = glGetUniformLocation(gProgram, "view");
+		gUfProjMtx = glGetUniformLocation(gProgram, "projection");
+		gUfTexture = glGetUniformLocation(gProgram, "TextureSamp");
+		gUfUseTexture = glGetUniformLocation(gProgram, "UseTexture");
+
+#ifdef NINTENDO_SWITCH
+		glGenVertexArrays(1, &gVao);
+		glBindVertexArray(gVao);
+#endif
 
 		glGenBuffers(1, &gVbo);
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, 0, GL_DYNAMIC_DRAW);
+
+#ifdef NINTENDO_SWITCH
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)));
+		glEnableVertexAttribArray(2);
+#endif
 	}
 
 	int aMaxSize;
@@ -1228,9 +1261,11 @@ int GLInterface::Init(bool IsWindowed)
 	gLinearFilter = false;
 
 	glUseProgram(gProgram);
-	float ortho[16];
-	MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, ortho);
-	glUniformMatrix4fv(gUfViewProjMtx, 1, GL_FALSE, ortho);
+    float viewMtx[16];
+    MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx);
+    float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
+    glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 	glUniform1i(gUfTexture, 0);
 
 	glEnable(GL_BLEND);
