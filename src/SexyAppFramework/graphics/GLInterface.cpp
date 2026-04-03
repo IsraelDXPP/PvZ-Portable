@@ -205,33 +205,34 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 
 // Exact shader code from reference project for Switch
 static constexpr const char *SHADER_CODE = R"DELIMITER(
+#ifdef FRAGMENT
+    precision mediump float;
+#endif
+v2f vec4 v_color;
+v2f vec2 v_uv;
+
 #ifdef VERTEX
-	uniform mat4 view;
-	uniform mat4 projection;
-	attribute vec3 position;
-	attribute vec4 color;
-	attribute vec2 uv;
-	V2F vec4 v_color;
-	V2F vec2 v_uv;
-	void main() {
-		v_color = color;
-		v_uv = uv;
-		gl_Position = projection * view * vec4(position, 1.0);
-	}
+    uniform mat4 view;
+    uniform mat4 projection;
+    attribute vec3 position;
+    attribute vec4 color;
+    attribute vec2 uv;
+    void main() {
+        v_color = color;
+        v_uv = uv;
+        gl_Position = projection * view * vec4(position, 1.0);
+    }
 #endif
 
 #ifdef FRAGMENT
-	precision mediump float;
-	V2F vec4 v_color;
-	V2F vec2 v_uv;
-	uniform sampler2D TextureSamp;
-	uniform int UseTexture;
-	void main() {
-		if (UseTexture == 1)
-			FRAG_OUT = TEX2D(TextureSamp, v_uv) * v_color;
-		else
-			FRAG_OUT = v_color;
-	}
+    uniform sampler2D TextureSamp;
+    uniform int UseTexture;
+    void main() {
+        if (UseTexture == 1)
+            gl_FragColor = texture2D(TextureSamp, v_uv) * v_color;
+        else
+            gl_FragColor = v_color;
+    }
 #endif
 )DELIMITER";
 
@@ -252,8 +253,8 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		? "#version 150\n"
 		: "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERTEX\n#define V2F out\n"
-		: "#define FRAGMENT\n#define V2F in\n";
+		? "#define VERTEX\n#define v2f out\n"
+		: "#define FRAGMENT\n#define v2f in\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
