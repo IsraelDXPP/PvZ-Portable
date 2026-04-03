@@ -203,7 +203,7 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Optimized shader for Switch OpenGL 4.3 Core Profile
+// Modern Shader for Switch OpenGL 4.3 Core Profile
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 #ifdef VERTEX
     layout(location = 0) in vec3 position;
@@ -250,7 +250,7 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
         false
 #endif
     )
-		? "#version 150\n"
+		? "#version 330 core\n"
 		: "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
 		? "#define VERTEX\n#define v2f out\n"
