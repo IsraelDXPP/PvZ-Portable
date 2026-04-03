@@ -1136,7 +1136,9 @@ void GLInterface::UpdateViewport()
 	int vx = 0, vy = 0, vw, vh;
 
 #ifdef NINTENDO_SWITCH
-	int width = 1280, height = 720;
+	EGLint width, height;
+	eglQuerySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_WIDTH, &width);
+	eglQuerySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_HEIGHT, &height);
 #else
 	int width, height;
 	SDL_GL_GetDrawableSize((SDL_Window*)mApp->mWindow, &width, &height);
@@ -1229,7 +1231,9 @@ int GLInterface::Init(bool IsWindowed)
 	glDisable(GL_DITHER);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+#ifndef NINTENDO_SWITCH
 	glDisable(GL_FRAMEBUFFER_SRGB); // Prevent double gamma correction (already sRGB passthrough)
+#endif
 	glGetError(); // clear GL_INVALID_ENUM on pure GLES implementations
 
 	mRGBBits   = 32;
@@ -1274,6 +1278,7 @@ void GLInterface::Flush()
 {
 	gNumVertices = 0;
 #ifdef NINTENDO_SWITCH
+	glFlush();
 	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
 #else
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
