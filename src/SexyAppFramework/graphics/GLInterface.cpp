@@ -1144,6 +1144,29 @@ void GLInterface::RemoveGLImage(GLImage* theGLImage)
 	mGLImageSet.erase(theGLImage);
 }
 
+static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f, float* m)
+{
+	m[0] = 2.0f / (r - l);
+	m[1] = 0.0f;
+	m[2] = 0.0f;
+	m[3] = 0.0f;
+
+	m[4] = 0.0f;
+	m[5] = 2.0f / (t - b);
+	m[6] = 0.0f;
+	m[7] = 0.0f;
+
+	m[8] = 0.0f;
+	m[9] = 0.0f;
+	m[10] = -2.0f / (f - n);
+	m[11] = 0.0f;
+
+	m[12] = -(r + l) / (r - l);
+	m[13] = -(t + b) / (t - b);
+	m[14] = -(f + n) / (f - n);
+	m[15] = 1.0f;
+}
+
 void GLInterface::Remove3DData(MemoryImage* theImage)
 {
 	if (theImage->mRenderData)
@@ -1159,28 +1182,32 @@ GLImage* GLInterface::GetScreenImage() { return mScreenImage; }
 
 void GLInterface::UpdateViewport()
 {
-	int vx = 0, vy = 0, vw, vh;
-
 #ifdef NINTENDO_SWITCH
 	EGLint width, height;
-	eglQuerySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_WIDTH, &width);
-	eglQuerySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_HEIGHT, &height);
+	// Use explicit surface query like the reference project
+	eglQuerySurface(mApp->mWindow, mApp->mSurface, EGL_WIDTH, &width);
+	eglQuerySurface(mApp->mWindow, mApp->mSurface, EGL_HEIGHT, &height);
+
+	// Auto-stretch: use full resolution regardless of aspect ratio, exactly as reference
+	glViewport(0, 0, width, height);
+	mPresentationRect = Rect(0, 0, width, height);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	Flush();
 #else
+	int vx = 0, vy = 0, vw, vh;
 	int width, height;
 	SDL_GL_GetDrawableSize((SDL_Window*)mApp->mWindow, &width, &height);
-#endif
 
 	vw = width; vh = height;
 	mDisplayWidth = width; mDisplayHeight = height;
 
 	int ww = width, wh = height;
-#ifndef NINTENDO_SWITCH
 	SDL_GetWindowSize((SDL_Window*)mApp->mWindow, &ww, &wh);
-#endif
 
 	int ivx = 0, ivy = 0, ivw = ww, ivh = wh;
 
-	// Letterbox to 4:3
+	// Letterbox logic for other platforms
 	if (!mApp->mStretchToFit)
 	{
 		if (width * 3 > height * 4)
@@ -1208,21 +1235,8 @@ void GLInterface::UpdateViewport()
 
 	glViewport(vx, vy, vw, vh);
 	mPresentationRect = Rect(vx, vy, vw, vh);
-
-#ifdef NINTENDO_SWITCH
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-    glUseProgram(gProgram);
-    float viewMtx[16];
-    MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx); // Reset view/proj
-    float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-    glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
-    glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
-
-	Flush();
-#endif
 	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
+#endif
 }
 
 int GLInterface::Init(bool IsWindowed)
@@ -1264,7 +1278,8 @@ int GLInterface::Init(bool IsWindowed)
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &aMaxSize);
 	MAX_TEXTURE_SIZE = aMaxSize;
 
-	glClearColor(0, 0, 0, 1);
+	// Gray clear color for debugging (change to 0,0,0,1 later)
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	gTextureSizeMustBePow2 = false;
@@ -1277,11 +1292,12 @@ int GLInterface::Init(bool IsWindowed)
 
 	glUseProgram(gProgram);
     float viewMtx[16];
-    MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx);
+    MakeOrthoMatrix(0, (float)mWidth-1, (float)mHeight-1, 0, -10, 10, viewMtx);
     float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
     glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
     glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 	glUniform1i(gUfTexture, 0);
+	glUniform1i(gUfUseTexture, 1); // Default to texture enabled
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DITHER);
