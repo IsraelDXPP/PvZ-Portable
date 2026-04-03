@@ -182,7 +182,7 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Unified GLSL body; VERT_IN / V2F / FRAG_OUT / TEX2D macros from GLPlatform.h.
+// Reference-based shader code (Simplified for maximum compatibility on Switch)
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 V2F vec4 v_color;
 V2F vec2 v_uv;
@@ -198,13 +198,13 @@ V2F vec2 v_uv;
 		gl_Position = u_viewProj * vec4(a_position, 1.0);
 	}
 #endif
+
 #ifdef FRAGMENT
 	uniform sampler2D u_texture;
 	uniform int u_useTexture;
-	uniform vec4 u_uvBounds;
 	void main() {
 		if (u_useTexture == 1)
-			FRAG_OUT = TEX2D(u_texture, clamp(v_uv, u_uvBounds.xy, u_uvBounds.zw)) * v_color;
+			FRAG_OUT = TEX2D(u_texture, v_uv) * v_color;
 		else
 			FRAG_OUT = v_color;
 	}
@@ -1182,6 +1182,12 @@ void GLInterface::UpdateViewport()
 
 	glViewport(vx, vy, vw, vh);
 	mPresentationRect = Rect(vx, vy, vw, vh);
+
+#ifdef NINTENDO_SWITCH
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	Flush();
+#endif
 	mInputSourceRect = Rect(ivx, ivy, ivw, ivh);
 }
 
@@ -1283,10 +1289,6 @@ void GLInterface::Flush()
 #else
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
 #endif
-#ifndef __EMSCRIPTEN__
-	// Clear back buffer after swap (content undefined)
-	glClear(GL_COLOR_BUFFER_BIT);
-#endif // Emscripten: browser composites after rAF, no clear needed
 }
 
 bool GLInterface::CreateImageTexture(MemoryImage *theImage)
