@@ -203,35 +203,35 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Exact shader code from reference project for Switch
+// Optimized shader for Switch OpenGL 4.3 Core Profile
 static constexpr const char *SHADER_CODE = R"DELIMITER(
-#ifdef FRAGMENT
-    precision mediump float;
-#endif
-v2f vec4 v_color;
-v2f vec2 v_uv;
-
 #ifdef VERTEX
+    layout(location = 0) in vec3 position;
+    layout(location = 1) in vec4 color;
+    layout(location = 2) in vec2 uv;
     uniform mat4 view;
     uniform mat4 projection;
-    attribute vec3 position;
-    attribute vec4 color;
-    attribute vec2 uv;
+    out vec4 v2f_color;
+    out vec2 v2f_uv;
     void main() {
-        v_color = color;
-        v_uv = uv;
+        v2f_color = color;
+        v2f_uv = uv;
         gl_Position = projection * view * vec4(position, 1.0);
     }
 #endif
 
 #ifdef FRAGMENT
+    precision mediump float;
     uniform sampler2D TextureSamp;
     uniform int UseTexture;
+    in vec4 v2f_color;
+    in vec2 v2f_uv;
+    out vec4 fragColor;
     void main() {
         if (UseTexture == 1)
-            gl_FragColor = texture2D(TextureSamp, v_uv) * v_color;
+            fragColor = texture2D(TextureSamp, v2f_uv) * v2f_color;
         else
-            gl_FragColor = v_color;
+            fragColor = v2f_color;
     }
 #endif
 )DELIMITER";
@@ -1174,6 +1174,8 @@ void GLInterface::UpdateViewport()
 	glViewport(0, 0, width, height);
 	mPresentationRect = Rect(0, 0, width, height);
 
+	// Debug Pink Background to verify rendering is active
+	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	Flush();
 #else
@@ -1272,14 +1274,20 @@ int GLInterface::Init(bool IsWindowed)
 	gSupportedPixelFormats = PixelFormat_A8R8G8B8 | PixelFormat_A4R4G4B4 | PixelFormat_R5G6B5 | PixelFormat_Palette8;
 	gLinearFilter = false;
 
+	// Alpha blending and states from reference project
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
 	glUseProgram(gProgram);
     float viewMtx[16];
-    MakeOrthoMatrix(0, (float)mWidth-1, (float)mHeight-1, 0, -10, 10, viewMtx);
+    MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx);
     float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
     glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
     glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 	glUniform1i(gUfTexture, 0);
-	glUniform1i(gUfUseTexture, 1); // Default to texture enabled
+	glUniform1i(gUfUseTexture, 1);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DITHER);
