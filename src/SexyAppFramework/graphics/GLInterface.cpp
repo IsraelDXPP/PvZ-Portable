@@ -203,7 +203,7 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Modern Shader for Switch OpenGL 4.3 Core Profile
+// Modern Shader with diagnostic BLUE tint for Switch
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 #ifdef VERTEX
     layout(location = 0) in vec3 position;
@@ -228,10 +228,14 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     in vec2 v2f_uv;
     out vec4 fragColor;
     void main() {
+        vec4 baseColor;
         if (UseTexture == 1)
-            fragColor = texture2D(TextureSamp, v2f_uv) * v2f_color;
+            baseColor = texture(TextureSamp, v2f_uv) * v2f_color;
         else
-            fragColor = v2f_color;
+            baseColor = v2f_color;
+        
+        // ADD BLUE TINT FOR DIAGNOSIS: If we see CYAN, the drawing is working but textures might be black.
+        fragColor = baseColor + vec4(0.0, 0.0, 0.3, 0.0);
     }
 #endif
 )DELIMITER";
@@ -1174,8 +1178,8 @@ void GLInterface::UpdateViewport()
 	glViewport(0, 0, width, height);
 	mPresentationRect = Rect(0, 0, width, height);
 
-	// Debug Pink Background to verify rendering is active
-	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+	// Debug GREEN Background to confirm build is NEW
+	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	Flush();
 #else
@@ -1229,6 +1233,7 @@ int GLInterface::Init(bool IsWindowed)
 	if (!inited)
 	{
 		inited = true;
+		printf("\n>>> [GLInterface] Pipeline Init: OpenGL 4.3 Modern <<<\n\n");
 		PlatformGLInit();
 
 		gProgram = shaderLoad(SHADER_CODE);
@@ -1262,8 +1267,8 @@ int GLInterface::Init(bool IsWindowed)
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &aMaxSize);
 	MAX_TEXTURE_SIZE = aMaxSize;
 
-	// Gray clear color for debugging (change to 0,0,0,1 later)
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	// GREEN clear color for debugging (matches UpdateViewport)
+	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	gTextureSizeMustBePow2 = false;
@@ -1294,9 +1299,9 @@ int GLInterface::Init(bool IsWindowed)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 #ifndef NINTENDO_SWITCH
-	glDisable(GL_FRAMEBUFFER_SRGB); // Prevent double gamma correction (already sRGB passthrough)
+	glDisable(GL_FRAMEBUFFER_SRGB); 
 #endif
-	glGetError(); // clear GL_INVALID_ENUM on pure GLES implementations
+	glGetError(); 
 
 	mRGBBits   = 32;
 	mRedBits   = 8; mGreenBits = 8; mBlueBits  = 8;
