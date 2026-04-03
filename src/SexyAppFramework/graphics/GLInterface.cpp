@@ -149,6 +149,12 @@ static void GfxAddVertices(const GLVertex *arr, int arrCount)
 	gVertices.resize(gNumVertices);
 	memcpy(gVertices.data() + oldCount, arr, sizeof(GLVertex) * arrCount);
 
+#ifdef NINTENDO_SWITCH
+    // Match reference project's dynamic VBO upload
+    glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
+#endif
+
 	GfxFlushIfOverBudget();
 }
 
@@ -344,10 +350,17 @@ static void CopyImageToTexture8888(MemoryImage *img, int offx, int offy,
 			memcpy(dst + pitch * y, lastRow, pitch * sizeof(uint32_t));
 	}
 
+#ifdef NINTENDO_SWITCH
+	if (create)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, dst);
+	else
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, dst);
+#else
 	if (create)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
 	else
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_RGBA, GL_UNSIGNED_BYTE, dst);
+#endif
 	delete[] dst;
 }
 
@@ -399,10 +412,17 @@ static void CopyImageToTexture4444(MemoryImage *img, int offx, int offy,
 			memcpy(dst + pitch * y, lastRow, pitch * sizeof(uint16_t));
 	}
 
+#ifdef NINTENDO_SWITCH
+	if (create)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, dst);
+	else
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, dst);
+#else
 	if (create)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, dst);
 	else
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, dst);
+#endif
 	delete[] dst;
 }
 
