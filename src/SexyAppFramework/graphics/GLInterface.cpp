@@ -997,18 +997,8 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
 	{
 		// Single-texture fast path
 		TextureDataPiece& piece = mTextures[0];
-		float halfU = 0.5f / piece.mWidth;
-		float halfV = 0.5f / piece.mHeight;
-		float midU = mMaxTotalU * 0.5f;
-		float midV = mMaxTotalV * 0.5f;
-		float uvb[4] = {
-			std::min(halfU, midU),
-			std::min(halfV, midV),
-			std::max(mMaxTotalU - halfU, midU),
-			std::max(mMaxTotalV - halfV, midV)
-		};
 		glActiveTexture(GL_TEXTURE0);
-		GfxBindTexture(piece.mTexture, uvb);
+		GfxBindTexture(piece.mTexture);
 		glUniform1i(gUfUseTexture, 1);
 
 		GfxBegin(GL_TRIANGLES);
@@ -1048,14 +1038,6 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
 			for (int j = aLeft; j < aRight; j++)
 			{
 				TextureDataPiece &piece = mTextures[i * mTexVecWidth + j];
-				float halfU = 0.5f / piece.mWidth;
-				float halfV = 0.5f / piece.mHeight;
-				float uvb[4] = {
-					std::min(halfU, 0.5f),
-					std::min(halfV, 0.5f),
-					std::max(1.0f - halfU, 0.5f),
-					std::max(1.0f - halfV, 0.5f)
-				};
 				VertexList vl = master;
 				for (int k = 0; k < 3; k++)
 				{
@@ -1069,7 +1051,7 @@ void TextureData::BltTriangles(const TriVertex theVertices[][3], int theNumTrian
 				DoPolyTextureClip(vl);
 				if (vl.size() >= 3)
 				{
-					GfxBindTexture(piece.mTexture, uvb);
+					GfxBindTexture(piece.mTexture);
 					GfxBegin(GL_TRIANGLE_FAN);
 					GfxAddVertices(vl);
 					GfxEnd();
