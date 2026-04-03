@@ -120,20 +120,17 @@ static void GfxEnd()
 {
 	if (gNumVertices > 0)
 	{
-#ifdef NINTENDO_SWITCH
 		glBindVertexArray(gVao);
-#endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
-#ifndef NINTENDO_SWITCH
-		glVertexAttribPointer(0, 3, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)0);
+		// Explicit attribute setup for every draw call (Solves state loss on Switch/Ryujinx Intel drivers)
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE,  GL_TRUE,  sizeof(GLVertex), (const void*)(sizeof(float)*3));
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3));
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 2, GL_FLOAT,         GL_FALSE, sizeof(GLVertex), (const void*)(sizeof(float)*3 + sizeof(uint32_t)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)));
 		glEnableVertexAttribArray(2);
-#endif
 
 		glDrawArrays(gVertexMode, 0, gNumVertices);
 	}
@@ -203,7 +200,7 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Modern Shader with diagnostic BLUE tint for Switch
+// Robust Diagnostic Shader for Switch
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 #ifdef VERTEX
     layout(location = 0) in vec3 position;
@@ -228,14 +225,14 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     in vec2 v2f_uv;
     out vec4 fragColor;
     void main() {
-        vec4 baseColor;
+        vec4 base;
         if (UseTexture == 1)
-            baseColor = texture(TextureSamp, v2f_uv) * v2f_color;
+            base = texture(TextureSamp, v2f_uv) * v2f_color;
         else
-            baseColor = v2f_color;
-        
-        // ADD BLUE TINT FOR DIAGNOSIS: If we see CYAN, the drawing is working but textures might be black.
-        fragColor = baseColor + vec4(0.0, 0.0, 0.3, 0.0);
+            base = v2f_color;
+            
+        // YELLOW TINT FOR COORDINATE VERIFICATION: If we see frames, vertices are OK.
+        fragColor = base * vec4(1.0, 1.0, 0.5, 1.0) + vec4(0.2, 0.2, 0.0, 0.0);
     }
 #endif
 )DELIMITER";
@@ -1243,24 +1240,15 @@ int GLInterface::Init(bool IsWindowed)
 		gUfProjMtx = glGetUniformLocation(gProgram, "projection");
 		gUfTexture = glGetUniformLocation(gProgram, "TextureSamp");
 		gUfUseTexture = glGetUniformLocation(gProgram, "UseTexture");
-
 #ifdef NINTENDO_SWITCH
 		glGenVertexArrays(1, &gVao);
 		glBindVertexArray(gVao);
+		// Setup on draw call instead to prevent state loss
 #endif
-
 		glGenBuffers(1, &gVbo);
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, 0, GL_DYNAMIC_DRAW);
 
-#ifdef NINTENDO_SWITCH
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)));
-		glEnableVertexAttribArray(2);
-#endif
 	}
 
 	int aMaxSize;
