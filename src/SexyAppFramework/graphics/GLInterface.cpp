@@ -55,6 +55,18 @@
 #define GL_FRAMEBUFFER_SRGB 0x8DB9 // Not in GLES 2.0 headers, but needed to disable sRGB on Windows.
 #endif
 
+#ifdef NINTENDO_SWITCH
+#ifndef GL_BGRA
+#define GL_BGRA 0x80E1
+#endif
+#ifndef GL_UNSIGNED_INT_8_8_8_8_REV
+#define GL_UNSIGNED_INT_8_8_8_8_REV 0x8367
+#endif
+#ifndef GL_UNSIGNED_SHORT_4_4_4_4_REV
+#define GL_UNSIGNED_SHORT_4_4_4_4_REV 0x8365
+#endif
+#endif
+
 using namespace Sexy;
 
 bool gDesktopGLFallback = false;
@@ -230,18 +242,18 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
 	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
 	// every emulator (Ryujinx, Suyu, Eden) without special casing.
-	const char *versionLine = (gDesktopGLFallback)
-		? "#version 150\n"
-		: (
+	const char *versionLine = (gDesktopGLFallback || 
 #ifdef NINTENDO_SWITCH
-            true
+        true
 #else
-            false
+        false
 #endif
-          ) ? "#version 300 es\nprecision mediump float;\n" : "#version 100\nprecision mediump float;\n";
+    )
+		? "#version 150\n"
+		: "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERTEX\n#define V2F out\n#define attribute in\n"
-		: "#define FRAGMENT\n#define V2F in\n#define FRAG_OUT fragColor\n#define TEX2D texture\nout vec4 fragColor;\n";
+		? "#define VERTEX\n#define V2F out\n"
+		: "#define FRAGMENT\n#define V2F in\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
