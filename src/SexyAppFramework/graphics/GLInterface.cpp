@@ -303,7 +303,12 @@ static GLuint shaderLoad(const char *src)
 	GLuint prog = glCreateProgram();
 	glAttachShader(prog, vert);
 	glAttachShader(prog, frag);
+
+#ifdef NINTENDO_SWITCH
+    const char *attribs[] = { "position", "color", "uv" };
+#else
 	const char *attribs[] = { "a_position", "a_color", "a_uv" };
+#endif
 	for (int i = 0; i < 3; i++)
 		glBindAttribLocation(prog, i, attribs[i]);
 	glLinkProgram(prog);
@@ -1142,29 +1147,6 @@ void GLInterface::RemoveGLImage(GLImage* theGLImage)
 {
 	std::scoped_lock lk(mCritSect);
 	mGLImageSet.erase(theGLImage);
-}
-
-static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f, float* m)
-{
-	m[0] = 2.0f / (r - l);
-	m[1] = 0.0f;
-	m[2] = 0.0f;
-	m[3] = 0.0f;
-
-	m[4] = 0.0f;
-	m[5] = 2.0f / (t - b);
-	m[6] = 0.0f;
-	m[7] = 0.0f;
-
-	m[8] = 0.0f;
-	m[9] = 0.0f;
-	m[10] = -2.0f / (f - n);
-	m[11] = 0.0f;
-
-	m[12] = -(r + l) / (r - l);
-	m[13] = -(t + b) / (t - b);
-	m[14] = -(f + n) / (f - n);
-	m[15] = 1.0f;
 }
 
 void GLInterface::Remove3DData(MemoryImage* theImage)
