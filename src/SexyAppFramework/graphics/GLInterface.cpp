@@ -120,7 +120,9 @@ static void GfxEnd()
 {
 	if (gNumVertices > 0)
 	{
+#ifdef NINTENDO_SWITCH
 		glBindVertexArray(gVao);
+#endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
