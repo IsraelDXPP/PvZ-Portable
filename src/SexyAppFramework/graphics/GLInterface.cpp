@@ -224,18 +224,18 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
 	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
 	// every emulator (Ryujinx, Suyu, Eden) without special casing.
-	const char *versionLine = (gDesktopGLFallback || 
-#ifdef NINTENDO_SWITCH
-        true
-#else
-        false
-#endif
-    )
+	const char *versionLine = (gDesktopGLFallback)
 		? "#version 150\n"
-		: "#version 100\nprecision mediump float;\n";
+		: (
+#ifdef NINTENDO_SWITCH
+            true
+#else
+            false
+#endif
+          ) ? "#version 300 es\nprecision mediump float;\n" : "#version 100\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERTEX\n#define V2F out\n"
-		: "#define FRAGMENT\n#define V2F in\n";
+		? "#define VERTEX\n#define V2F out\n#define attribute in\n"
+		: "#define FRAGMENT\n#define V2F in\n#define FRAG_OUT fragColor\n#define TEX2D texture\nout vec4 fragColor;\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
