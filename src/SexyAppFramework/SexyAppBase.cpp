@@ -2540,7 +2540,7 @@ bool SexyAppBase::Process(bool allowSleep)
 				bool hasRealUpdate = DoUpdateFrames();
 				DBG_ASSERTE(hasRealUpdate);
 
-				if (!hasRealUpdate)
+				if ((!hasRealUpdate) || (mNonDrawCount > 10))
 					break;
 										
 				ProcessSafeDeleteList();

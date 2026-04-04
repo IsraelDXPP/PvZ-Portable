@@ -208,58 +208,57 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-static constexpr const char *SHADER_CODE = R"DELIMITER(
-#ifdef VERTEX
-    layout(location = 0) in vec3 position;
-    layout(location = 1) in vec4 color;
-    layout(location = 2) in vec2 uv;
-    uniform mat4 view;
-    uniform mat4 projection;
-    out vec4 v2f_color;
-    out vec2 v2f_uv;
-    void main() {
-        v2f_color = color;
-        v2f_uv = uv;
-        gl_Position = projection * view * vec4(position, 1.0);
-    }
-#endif
-
-#ifdef FRAGMENT
-    precision mediump float;
-    uniform sampler2D TextureSamp;
-    uniform int UseTexture;
-    in vec4 v2f_color;
-    in vec2 v2f_uv;
-    out vec4 fragColor;
-    void main() {
-        if (UseTexture == 1)
-            fragColor = texture(TextureSamp, v2f_uv) * v2f_color;
-        else
-            fragColor = v2f_color;
-    }
-#endif
-)DELIMITER";
-
+static const char *SHADER_CODE =
+"\n #ifdef FRAGMENT"
+"\n precision mediump float;"
+"\n #endif"
+"\n "
+"\n varying vec4 v_color;"
+"\n varying vec2 v_uv;"
+"\n "
+"\n #ifdef VERTEX"
+"\n "
+"\n     uniform mat4 view;"
+"\n     uniform mat4 projection;"
+"\n "
+"\n     attribute vec3 position;"
+"\n     attribute vec4 color;"
+"\n     attribute vec2 uv;"
+"\n "
+"\n     void main()"
+"\n     {"
+"\n         v_color = color;"
+"\n         v_uv = uv;"
+"\n "
+"\n         gl_Position = projection * view * vec4( position, 1. );"
+"\n     }"
+"\n "
+"\n #endif"
+"\n #ifdef FRAGMENT"
+"\n "
+"\n     uniform sampler2D TextureSamp;"
+"\n     uniform int UseTexture;"
+"\n "
+"\n     void main() "
+"\n     {"
+"\n         if (UseTexture == 1)"
+"\n             gl_FragColor = texture2D(TextureSamp, v_uv) * v_color;"
+"\n         else"
+"\n             gl_FragColor = v_color;"
+"\n     }"
+"\n "
+"\n #endif";
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	const char *versionLine = (gDesktopGLFallback || 
-#ifdef NINTENDO_SWITCH
-        true
-#else
-        false
-#endif
-    )
-		? "#version 330 core\n"
-		: "#version 300 es\nprecision mediump float;\n";
-	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERTEX\n"
-		: "#define FRAGMENT\n";
+	const GLchar *shaderDefine = (type == GL_VERTEX_SHADER)
+		? "\n#version 150\n#define VERTEX  \n#define v2f out\n"
+		: "\n#version 150\n#define FRAGMENT\n#define v2f in\n";
 
-	const GLchar *strings[3]  = { versionLine, macros, src };
-	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
+	const GLchar *shaderStrings[2] = {shaderDefine, src};
+	GLint shaderStringLengths[2] = {(GLint)strlen(shaderDefine), (GLint)srcLen};
 
 	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, 3, strings, lengths);
+	glShaderSource(shader, 2, shaderStrings, shaderStringLengths);
 	glCompileShader(shader);
 
 	GLint ok;
@@ -270,7 +269,7 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
 		char *log = (char*)malloc(logLen);
 		glGetShaderInfoLog(shader, logLen, &logLen, log);
-		printf("Shader error: %s\n%s%s%s\n", log, strings[0], strings[1], strings[2]);
+		printf("Shader error: %s\n%s%s\n", log, shaderStrings[0], shaderStrings[1]);
 		fflush(stdout);
 		free(log);
 		glDeleteShader(shader);
@@ -311,8 +310,26 @@ static GLuint shaderLoad(const char *src)
 	for (int i = 0; i < 3; i++)
 		glBindAttribLocation(prog, i, attribs[i]);
 	glLinkProgram(prog);
+
+	GLint ok;
+	glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+	if (!ok)
+	{
+		GLint logLen;
+		glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLen);
+		char *log = (char*)malloc(logLen);
+		glGetProgramInfoLog(prog, logLen, &logLen, log);
+		printf(">>> [GLInterface] Shader Link Error: %s <<<\n", log);
+		fflush(stdout);
+		free(log);
+		glDeleteProgram(prog);
+		return 0;
+	}
+
 	glDeleteShader(vert);
 	glDeleteShader(frag);
+
+	printf(">>> [GLInterface] Shader Program Linked Successfully (ID: %d) <<<\n", prog);
 	return prog;
 }
 
