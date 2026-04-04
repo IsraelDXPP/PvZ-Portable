@@ -1691,17 +1691,11 @@ bool SexyAppBase::DrawDirtyStuff()
 
 	mIsDrawing = true;
 	bool drewScreen = mWidgetManager->DrawScreen();
-	
-	// MAIN LOOP HEARTBEAT FOR SWITCH
+
 #ifdef NINTENDO_SWITCH
-	static int frameCount = 0;
-	if (++frameCount % 60 == 0) {
-		printf(">>> [SexyAppBase] Heartbeat: Loop frame %d (drewScreen=%d) <<<\n", frameCount, drewScreen);
-		fflush(stdout);
-	}
-	// FORCE REDRAW ON SWITCH: This ensures eglSwapBuffers is called even if widgets aren't 'dirty'
-	drewScreen = true;
+	drewScreen = true; // Force swap buffers even if no widgets are dirty to satisfy Switch OS/EGL
 #endif
+
 
 	mIsDrawing = false;
 	
@@ -2690,20 +2684,7 @@ void SexyAppBase::DoMainLoop()
 		if (mExitToTop)
 			mExitToTop = false;
 
-#ifdef NINTENDO_SWITCH
-		static int coreLoops = 0;
-		if (++coreLoops % 60 == 0) {
-			printf(">>> [SexyAppBase:DoMainLoop] Heartbeat: Loop %d active. <<<\n", coreLoops);
-			fflush(stdout);
-		}
-#endif
-
 		UpdateApp();
-
-#ifdef NINTENDO_SWITCH
-		// BRUTE-FORCE DRAW: Ensure drawing happens even if the update state machine gets stuck
-		DrawDirtyStuff();
-#endif
 	}
 #endif
 }

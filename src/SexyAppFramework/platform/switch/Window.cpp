@@ -80,6 +80,7 @@ void SexyAppBase::MakeWindow()
 	EGLint numConfigs;
 	static const EGLint framebufferAttributeList[] =
 	{
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
 		EGL_RED_SIZE,     8,
 		EGL_GREEN_SIZE,   8,
 		EGL_BLUE_SIZE,    8,
@@ -90,11 +91,13 @@ void SexyAppBase::MakeWindow()
 	};
 	if (eglChooseConfig(mWindow, framebufferAttributeList, &config, 1, &numConfigs) == EGL_FALSE)
 	{
+		printf(">>> [EGL] eglChooseConfig failed: 0x%x <<<\n", eglGetError());
 		eglTerminate(mWindow);
 		return;
 	}
 	if (numConfigs == 0)
 	{
+		printf(">>> [EGL] No matching EGL configs found! <<<\n");
 		eglTerminate(mWindow);
 		return;
 	}
@@ -118,6 +121,7 @@ void SexyAppBase::MakeWindow()
 	mContext = eglCreateContext(mWindow, config, EGL_NO_CONTEXT, contextAttributeList);
 	if (!mContext)
 	{
+		printf(">>> [EGL] eglCreateContext failed: 0x%x <<<\n", eglGetError());
 		eglDestroySurface(mWindow, mSurface);
 		eglTerminate(mWindow);
 		return;
@@ -126,6 +130,7 @@ void SexyAppBase::MakeWindow()
 	// Connect the context to the surface
 	if (eglMakeCurrent(mWindow, mSurface, mSurface, mContext) == EGL_FALSE)
 	{
+		printf(">>> [EGL] eglMakeCurrent failed: 0x%x <<<\n", eglGetError());
 		eglDestroyContext(mWindow, mContext);
 		mContext = nullptr;
 		eglDestroySurface(mWindow, mSurface);

@@ -328,8 +328,13 @@ static void CopyImageToTexture8888(MemoryImage *img, int offx, int offy,
 		for (int y = 0; y < h; y++)
 		{
 			uint32_t *s = srcRow, *d = dstRow;
+#ifdef NINTENDO_SWITCH
+			memcpy(d, s, sizeof(uint32_t) * w);
+			d += w;
+#else
 			for (int x = 0; x < w; x++)
 				*d++ = ArgbToRgba(*s++);
+#endif
 			if (padR) *d = *(d - 1);
 			srcRow += img->GetWidth();
 			dstRow += pitch;
@@ -378,9 +383,13 @@ static void CopyImageToTexture4444(MemoryImage *img, int offx, int offy,
 	uint16_t *dst = new uint16_t[pitch * dstH];
 
 	auto argbTo4444 = [](uint32_t p) -> uint16_t {
+#ifdef NINTENDO_SWITCH
+		return static_cast<uint16_t>(((p >> 16) & 0xF000) | ((p >> 12) & 0x0F00) | ((p >> 8) & 0x00F0) | ((p >> 4) & 0x000F));
+#else
 		return static_cast<uint16_t>(
 			((p >> 8)  & 0xF000) | ((p >> 4) & 0x0F00) |
 			 (p        & 0x00F0) | ((p >> 28) & 0x000F));
+#endif
 	};
 
 	if (img->mColorTable == nullptr)
@@ -500,7 +509,13 @@ static void CopyImageToTexturePalette8(MemoryImage *img, int offx, int offy,
 	{
 		uint8_t *s = srcRow; uint32_t *d = dstRow;
 		for (int x = 0; x < w; x++)
+		{
+#ifdef NINTENDO_SWITCH
+			*d++ = pal[*s++];
+#else
 			*d++ = ArgbToRgba(pal[*s++]);
+#endif
+		}
 		if (padR) *d = *(d - 1);
 		srcRow += img->GetWidth();
 		dstRow += pitch;
@@ -513,10 +528,17 @@ static void CopyImageToTexturePalette8(MemoryImage *img, int offx, int offy,
 			memcpy(dst + pitch * y, lastRow, pitch * sizeof(uint32_t));
 	}
 
+#ifdef NINTENDO_SWITCH
+	if (create)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, dst);
+	else
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, dst);
+#else
 	if (create)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, dstH, 0, GL_RGBA, GL_UNSIGNED_BYTE, dst);
 	else
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pitch, dstH, GL_RGBA, GL_UNSIGNED_BYTE, dst);
+#endif
 	delete[] dst;
 }
 
@@ -820,7 +842,7 @@ void TextureData::Blt(float theX, float theY, const Rect& theSrcRect, const Colo
 		{
 			w = srcRight - srcX; h = srcBottom - srcY;
 			GLuint &tex = GetTexture(srcX, srcY, w, h, u1, v1, u2, v2, uvb);
-			float x = dstX, y = dstY;
+			float x = dstX - 0.5f, y = dstY - 0.5f;
 
 			GLVertex v[4] = {
 				{ x,     y,     0, aColor, u1, v1 },
@@ -1295,6 +1317,7 @@ int GLInterface::Init(bool IsWindowed)
     glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 	glUniform1i(gUfTexture, 0);
 	glUniform1i(gUfUseTexture, 1);
+	glActiveTexture(GL_TEXTURE0);
 
 	glEnable(GL_BLEND);
 	glDisable(GL_DITHER);
