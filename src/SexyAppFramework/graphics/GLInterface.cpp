@@ -109,6 +109,7 @@ static GLenum gVertexMode;
 static GLuint gProgram;
 static GLuint gVao, gVbo;
 static GLint gUfViewMtx, gUfProjMtx, gUfTexture, gUfUseTexture, gUfUvBounds;
+static int gScreenWidth, gScreenHeight;
 
 static void GfxBegin(GLenum vertexMode)
 {
@@ -122,6 +123,14 @@ static void GfxEnd()
 	{
 #ifdef NINTENDO_SWITCH
 		glBindVertexArray(gVao);
+		glUseProgram(gProgram);
+
+		// Re-sync matrices in every batch to prevent state loss on Switch
+		float viewMtx[16];
+		float identity[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+		MakeOrthoMatrix(0, (float)gScreenWidth, (float)gScreenHeight, 0, -10, 10, viewMtx);
+		glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
+		glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 #endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
@@ -233,8 +242,8 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
         else
             base = v2f_color;
             
-        // YELLOW TINT FOR COORDINATE VERIFICATION: If we see frames, vertices are OK.
-        fragColor = base * vec4(1.0, 1.0, 0.5, 1.0) + vec4(0.2, 0.2, 0.0, 0.0);
+        // AGGRESSIVE MAGENTA FOR VERTEX VERIFICATION: If we see frames, vertices are OK.
+        fragColor = vec4(1.0, 0.0, 1.0, 1.0); 
     }
 #endif
 )DELIMITER";
@@ -1173,6 +1182,13 @@ void GLInterface::UpdateViewport()
 	eglQuerySurface(mApp->mWindow, mApp->mSurface, EGL_WIDTH, &width);
 	eglQuerySurface(mApp->mWindow, mApp->mSurface, EGL_HEIGHT, &height);
 
+	gScreenWidth = width;
+	gScreenHeight = height;
+	mWidth = width;
+	mHeight = height;
+	mDisplayWidth = width;
+	mDisplayHeight = height;
+
 	// Auto-stretch: use full resolution regardless of aspect ratio, exactly as reference
 	glViewport(0, 0, width, height);
 	mPresentationRect = Rect(0, 0, width, height);
@@ -1180,7 +1196,8 @@ void GLInterface::UpdateViewport()
 	// Debug GREEN Background to confirm build is NEW
 	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	Flush();
+	glFlush();
+	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
 #else
 	int vx = 0, vy = 0, vw, vh;
 	int width, height;
@@ -1276,6 +1293,8 @@ int GLInterface::Init(bool IsWindowed)
 	glDisable(GL_CULL_FACE);
 
 	glUseProgram(gProgram);
+	gScreenWidth = mWidth;
+	gScreenHeight = mHeight;
     float viewMtx[16];
     MakeOrthoMatrix(0, (float)mWidth, (float)mHeight, 0, -10, 10, viewMtx);
     float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
