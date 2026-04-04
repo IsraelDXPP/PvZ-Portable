@@ -222,7 +222,8 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// Robust Diagnostic Shader for Switch
+// TOTAL MATRIX BYPASS: Mapping game coordinates (0-800, 0-600) directly to NDC (-1 to 1) 
+// to see if the issue is with uniform state or matrix calculation.
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 #ifdef VERTEX
     layout(location = 0) in vec3 position;
@@ -235,7 +236,10 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     void main() {
         v2f_color = color;
         v2f_uv = uv;
-        gl_Position = projection * view * vec4(position, 1.0);
+        // Manual mapping: 0-800 -> -1 to 1, 0-600 -> 1 to -1 (flip Y)
+        float nx = (position.x / 400.0) - 1.0;
+        float ny = 1.0 - (position.y / 300.0);
+        gl_Position = vec4(nx, ny, 0.0, 1.0);
     }
 #endif
 
@@ -247,13 +251,7 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     in vec2 v2f_uv;
     out vec4 fragColor;
     void main() {
-        vec4 base;
-        if (UseTexture == 1)
-            base = texture(TextureSamp, v2f_uv) * v2f_color;
-        else
-            base = v2f_color;
-            
-        // AGGRESSIVE MAGENTA FOR VERTEX VERIFICATION: If we see frames, vertices are OK.
+        // AGGRESSIVE DIAGNOSTIC: Ignore everything and output Magenta
         fragColor = vec4(1.0, 0.0, 1.0, 1.0); 
     }
 #endif
@@ -1354,13 +1352,22 @@ bool GLInterface::PreDraw()
 
 void GLInterface::Flush()
 {
-	gNumVertices = 0;
 #ifdef NINTENDO_SWITCH
+	GfxEnd();
+	
+	static int frameCount = 0;
+	if (++frameCount % 60 == 0) {
+		printf(">>> [GLInterface] Heartbeat: Frame %d rendered & swapped <<<\n", frameCount);
+		fflush(stdout);
+	}
+
 	glFlush();
 	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
 #else
+	GfxEnd();
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
 #endif
+	gNumVertices = 0;
 }
 
 bool GLInterface::CreateImageTexture(MemoryImage *theImage)
