@@ -1,7 +1,7 @@
 /*
  * Portions of this file are based on the PopCap Games Framework
  * Copyright (C) 2005-2009 PopCap Games, Inc.
- * 
+ *
  * Copyright (C) 2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later AND LicenseRef-PopCap
@@ -22,14 +22,10 @@
  * along with PvZ-Portable. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NINTENDO_SWITCH
 #define GLAD_GLES2_IMPLEMENTATION
-#endif
 #include "graphics/GLPlatform.h"
 
-#ifndef NINTENDO_SWITCH
 #include <SDL.h>
-#endif
 
 #include "graphics/GLInterface.h"
 #include "graphics/GLImage.h"
@@ -1260,7 +1256,7 @@ bool GLInterface::PreDraw()
 void GLInterface::Flush()
 {
 	gNumVertices = 0;
-#ifdef NINTENDO_SWITCH
+#ifdef __SWITCH__
 	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
 #else
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
