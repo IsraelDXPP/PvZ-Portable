@@ -30,9 +30,7 @@
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include <glad/glad.h>
 #else
 
 #ifdef _MSC_VER
@@ -65,7 +63,9 @@ extern bool gDesktopGLFallback;
 
 inline void PlatformGLInit()
 {
-#ifndef NINTENDO_SWITCH
+#ifdef NINTENDO_SWITCH
+	gladLoadGL();
+#else
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif
 }

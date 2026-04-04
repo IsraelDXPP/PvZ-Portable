@@ -304,7 +304,8 @@ jobs:
             switch-libpng \
             switch-libjpeg-turbo \
             switch-zlib \
-            switch-cmake
+            switch-cmake \
+            switch-glad
 
       - name: Compile libopenmpt for Switch
         if: steps.cache-switch-libopenmpt.outputs.cache-hit != 'true'

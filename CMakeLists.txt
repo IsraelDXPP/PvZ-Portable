@@ -299,7 +299,7 @@ if (WIN32)
 		endif()
 	endif()
 elseif (NINTENDO_SWITCH)
-	target_link_libraries(pvz-portable PRIVATE GLESv2 EGL glapi drm_nouveau)
+	target_link_libraries(pvz-portable PRIVATE glad EGL glapi drm_nouveau)
 	target_compile_definitions(pvz-portable PRIVATE NINTENDO_SWITCH)
 
 	nx_generate_nacp(pvz-portable.nacp

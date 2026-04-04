@@ -128,31 +128,23 @@ static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f
 }
 
 static void GfxEnd()
-
 {
 	if (gNumVertices > 0)
 	{
 #ifdef NINTENDO_SWITCH
 		glBindVertexArray(gVao);
-		glUseProgram(gProgram);
-
-		// Re-sync matrices in every batch to prevent state loss on Switch
-		float viewMtx[16];
-		float identity[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-		MakeOrthoMatrix(0, (float)gScreenWidth, (float)gScreenHeight, 0, -10, 10, viewMtx);
-		glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
-		glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
 #endif
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
 
-		// Explicit attribute setup for every draw call (Solves state loss on Switch/Ryujinx Intel drivers)
+#ifndef NINTENDO_SWITCH
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3));
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)));
 		glEnableVertexAttribArray(2);
+#endif
 
 		glDrawArrays(gVertexMode, 0, gNumVertices);
 	}
@@ -179,12 +171,6 @@ static void GfxAddVertices(const GLVertex *arr, int arrCount)
 	gNumVertices += arrCount;
 	gVertices.resize(gNumVertices);
 	memcpy(gVertices.data() + oldCount, arr, sizeof(GLVertex) * arrCount);
-
-#ifdef NINTENDO_SWITCH
-    // Match reference project's dynamic VBO upload
-    glBindBuffer(GL_ARRAY_BUFFER, gVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * gNumVertices, gVertices.data(), GL_DYNAMIC_DRAW);
-#endif
 
 	GfxFlushIfOverBudget();
 }
@@ -222,8 +208,6 @@ static void GfxAddVertices(const TriVertex arr[][3], int arrCount, unsigned int 
 	GfxFlushIfOverBudget();
 }
 
-// TOTAL MATRIX BYPASS: Mapping game coordinates (0-800, 0-600) directly to NDC (-1 to 1) 
-// to see if the issue is with uniform state or matrix calculation.
 static constexpr const char *SHADER_CODE = R"DELIMITER(
 #ifdef VERTEX
     layout(location = 0) in vec3 position;
@@ -236,10 +220,7 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     void main() {
         v2f_color = color;
         v2f_uv = uv;
-        // Manual mapping: 0-800 -> -1 to 1, 0-600 -> 1 to -1 (flip Y)
-        float nx = (position.x / 400.0) - 1.0;
-        float ny = 1.0 - (position.y / 300.0);
-        gl_Position = vec4(nx, ny, 0.0, 1.0);
+        gl_Position = projection * view * vec4(position, 1.0);
     }
 #endif
 
@@ -251,19 +232,16 @@ static constexpr const char *SHADER_CODE = R"DELIMITER(
     in vec2 v2f_uv;
     out vec4 fragColor;
     void main() {
-        // AGGRESSIVE DIAGNOSTIC: Ignore everything and output Magenta
-        fragColor = vec4(1.0, 0.0, 1.0, 1.0); 
+        if (UseTexture == 1)
+            fragColor = texture(TextureSamp, v2f_uv) * v2f_color;
+        else
+            fragColor = v2f_color;
     }
 #endif
 )DELIMITER";
 
 static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 {
-	// Switch uses GLES 2.0 context + GLSL ES 1.00 shaders — the same path as any
-	// other GLES platform (Android, iOS).  GLPlatform.h includes <GLES2/gl2.h> and
-	// GLSL_VERT/FRAG_MACROS expand to attribute/varying/gl_FragColor/texture2D,
-	// all of which are ES 1.00 / ES 2.0 and work on real Switch hardware and
-	// every emulator (Ryujinx, Suyu, Eden) without special casing.
 	const char *versionLine = (gDesktopGLFallback || 
 #ifdef NINTENDO_SWITCH
         true
@@ -272,10 +250,10 @@ static GLuint shaderCompile(const char *src, uint32_t srcLen, GLenum type)
 #endif
     )
 		? "#version 330 core\n"
-		: "#version 100\nprecision mediump float;\n";
+		: "#version 300 es\nprecision mediump float;\n";
 	const char *macros = (type == GL_VERTEX_SHADER)
-		? "#define VERTEX\n#define v2f out\n"
-		: "#define FRAGMENT\n#define v2f in\n";
+		? "#define VERTEX\n"
+		: "#define FRAGMENT\n";
 
 	const GLchar *strings[3]  = { versionLine, macros, src };
 	GLint         lengths[3]  = { (GLint)strlen(versionLine), (GLint)strlen(macros), (GLint)srcLen };
@@ -1193,6 +1171,13 @@ void GLInterface::UpdateViewport()
 	glViewport(0, 0, width, height);
 	mPresentationRect = Rect(0, 0, width, height);
 
+	glUseProgram(gProgram);
+	float viewMtx[16];
+	MakeOrthoMatrix(0, (float)width, (float)height, 0, -10, 10, viewMtx);
+	float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+	glUniformMatrix4fv(gUfViewMtx, 1, GL_FALSE, identity);
+	glUniformMatrix4fv(gUfProjMtx, 1, GL_FALSE, viewMtx);
+
 	// Debug GREEN Background to confirm build is NEW
 	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1259,15 +1244,23 @@ int GLInterface::Init(bool IsWindowed)
 		gUfProjMtx = glGetUniformLocation(gProgram, "projection");
 		gUfTexture = glGetUniformLocation(gProgram, "TextureSamp");
 		gUfUseTexture = glGetUniformLocation(gProgram, "UseTexture");
+
+		glGenBuffers(1, &gVbo);
+
 #ifdef NINTENDO_SWITCH
 		glGenVertexArrays(1, &gVao);
 		glBindVertexArray(gVao);
-		// Setup on draw call instead to prevent state loss
-#endif
-		glGenBuffers(1, &gVbo);
+
 		glBindBuffer(GL_ARRAY_BUFFER, gVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLVertex) * MAX_VERTICES, 0, GL_DYNAMIC_DRAW);
 
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLVertex), (void*)(sizeof(float)*3));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (void*)(sizeof(float)*3 + sizeof(uint32_t)));
+		glEnableVertexAttribArray(2);
+#endif
 	}
 
 	int aMaxSize;
