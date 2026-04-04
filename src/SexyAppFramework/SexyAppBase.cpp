@@ -2689,7 +2689,21 @@ void SexyAppBase::DoMainLoop()
 	{
 		if (mExitToTop)
 			mExitToTop = false;
+
+#ifdef NINTENDO_SWITCH
+		static int coreLoops = 0;
+		if (++coreLoops % 60 == 0) {
+			printf(">>> [SexyAppBase:DoMainLoop] Heartbeat: Loop %d active. <<<\n", coreLoops);
+			fflush(stdout);
+		}
+#endif
+
 		UpdateApp();
+
+#ifdef NINTENDO_SWITCH
+		// BRUTE-FORCE DRAW: Ensure drawing happens even if the update state machine gets stuck
+		DrawDirtyStuff();
+#endif
 	}
 #endif
 }
