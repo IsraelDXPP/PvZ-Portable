@@ -117,7 +117,18 @@ static void GfxBegin(GLenum vertexMode)
 	gVertexMode = vertexMode;
 }
 
+
+// Orthographic projection
+static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f, float* m)
+{
+	m[0]  = 2.0f / (r - l);  m[1]  = 0;                m[2]  = 0;                 m[3]  = 0;
+	m[4]  = 0;                m[5]  = 2.0f / (t - b);   m[6]  = 0;                 m[7]  = 0;
+	m[8]  = 0;                m[9]  = 0;                 m[10] = -2.0f / (f - n);   m[11] = 0;
+	m[12] = -(r+l)/(r-l);    m[13] = -(t+b)/(t-b);     m[14] = -(f+n)/(f-n);      m[15] = 1;
+}
+
 static void GfxEnd()
+
 {
 	if (gNumVertices > 0)
 	{
@@ -327,15 +338,6 @@ static GLuint shaderLoad(const char *src)
 	glDeleteShader(vert);
 	glDeleteShader(frag);
 	return prog;
-}
-
-// Orthographic projection
-static void MakeOrthoMatrix(float l, float r, float b, float t, float n, float f, float* m)
-{
-	m[0]  = 2.0f / (r - l);  m[1]  = 0;                m[2]  = 0;                 m[3]  = 0;
-	m[4]  = 0;                m[5]  = 2.0f / (t - b);   m[6]  = 0;                 m[7]  = 0;
-	m[8]  = 0;                m[9]  = 0;                 m[10] = -2.0f / (f - n);   m[11] = 0;
-	m[12] = -(r+l)/(r-l);    m[13] = -(t+b)/(t-b);     m[14] = -(f+n)/(f-n);      m[15] = 1;
 }
 
 static void CopyImageToTexture8888(MemoryImage *img, int offx, int offy,
