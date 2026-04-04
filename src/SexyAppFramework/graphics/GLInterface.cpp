@@ -37,6 +37,10 @@
 #include <mutex>
 #include <vector>
 
+#ifdef __SWITCH__
+#include <EGL/egl.h>
+#endif
+
 #define MAX_VERTICES 16384
 
 #ifndef GL_FRAMEBUFFER_SRGB
