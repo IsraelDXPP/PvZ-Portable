@@ -96,14 +96,20 @@ jobs:
       run: |
         cp -r /tmp/openmpt-install/* $DEVKITPRO/portlibs/switch/ || true
 
-    # Cache the CMake build directory per build type so they don't interfere
-    - name: Cache CMake build directory
+    # Install ccache for incremental per-object-file caching
+    - name: Install ccache
+      shell: bash
+      run: pacman -S --noconfirm ccache
+
+    # ccache caches each .o by content hash — if a file compiled OK in a previous
+    # run (even a failed one), it is reused instantly next time.
+    - name: Cache ccache directory
       uses: actions/cache@v4
       with:
-        path: build
-        key: switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', 'src/**/*.cpp', 'src/**/*.h') }}
+        path: /root/.ccache
+        key: switch-ccache-${{ env.BUILD_TYPE }}-${{ runner.os }}-${{ github.sha }}
         restore-keys: |
-          switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-
+          switch-ccache-${{ env.BUILD_TYPE }}-${{ runner.os }}-
         save-always: true
 
     - name: Compile PvZ-Portable for Switch
@@ -111,12 +117,19 @@ jobs:
       run: |
         echo "Building in $BUILD_TYPE mode"
         source $DEVKITPRO/switchvars.sh
+        # Tell ccache where its cache lives and set a generous max size
+        export CCACHE_DIR=/root/.ccache
+        export CCACHE_MAXSIZE=2G
+        ccache --zero-stats
         mkdir -p build
         cd build
         aarch64-none-elf-cmake .. \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-          -DCMAKE_CXX_FLAGS_RELEASE=-O2
+          -DCMAKE_CXX_FLAGS_RELEASE=-O2 \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         make -j$(nproc)
+        ccache --show-stats
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

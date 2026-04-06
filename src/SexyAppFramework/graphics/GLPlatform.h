@@ -39,11 +39,15 @@
 #include <SDL.h>
 
 #ifdef __SWITCH__
-// switch.h redefines EGLAPIENTRY in a way that breaks egl.h's own EGLAPIENTRYP
-// function-pointer typedefs, causing dozens of parse errors. Since we only need
-// SDL_GL_GetProcAddress (not eglGetProcAddress), there is no reason to pull in
-// the EGL headers at all. switch.h is still needed for other Switch-specific APIs.
+// devkitPro bug: switch.h redefines EGLAPIENTRY in a way that breaks the
+// EGLAPIENTRYP macro chain in <EGL/eglplatform.h>. Define EGLAPIENTRYP
+// explicitly before pulling in egl.h so the function-pointer typedefs compile.
+#ifndef EGLAPIENTRYP
+#  define EGLAPIENTRYP *
+#endif
 #include <switch.h>
+#include <EGL/egl.h>  // needed for eglGetProcAddress used in PlatformGLInit()
+// eglext.h intentionally omitted: not needed here, and has the same EGLAPIENTRYP bug.
 #endif
 
 // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
@@ -61,9 +65,16 @@ extern bool gDesktopGLFallback;
 
 inline void PlatformGLInit()
 {
-	// SDL_GL_GetProcAddress works on all platforms including Switch (SDL2
-	// delegates to eglGetProcAddress internally on EGL builds).
+#ifdef __SWITCH__
+	// Window.cpp sets up the EGL context manually (eglCreateContext), not through
+	// SDL. This means SDL_GL_GetProcAddress has no knowledge of our EGL context
+	// and returns garbage pointers — causing glCreateShader to jump to random
+	// memory and crash. Use eglGetProcAddress directly instead.
+	gladLoadGLES2((GLADloadfunc)eglGetProcAddress);
+#else
+	// On all other platforms SDL created the GL context, so SDL_GL_GetProcAddress works.
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+#endif
 }
 
 #endif // __GLPLATFORM_H__
