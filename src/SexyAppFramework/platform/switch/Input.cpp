@@ -101,7 +101,7 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 
 	u64 kDown = padGetButtonsDown(&pad);
 	u64 kUp = padGetButtonsUp(&pad);
-	u64 kHeld = padGetButtonsHeld(&pad);
+	u64 kHeld = padGetButtons(&pad);
 
 	static int x=1280/2, y=720/2;
 	bool mouseMoved = false;

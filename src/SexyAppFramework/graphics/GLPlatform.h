@@ -42,13 +42,16 @@
 #include <switch.h>
 // Declaramos la API de EGL manualmente para evitar incluir <EGL/egl.h>,
 // el cual tiene conflictos de macros con <switch.h> en el entorno de devkitPro.
+#ifndef SEXY_EGL_DECLARED
+#define SEXY_EGL_DECLARED
 typedef void *EGLDisplay;
 typedef void *EGLSurface;
-typedef void *EGLBoolean;
+typedef unsigned int EGLBoolean;
 extern "C" {
     EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
     void* eglGetProcAddress(const char *name);
 }
+#endif // SEXY_EGL_DECLARED
 #endif
 
 // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20

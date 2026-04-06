@@ -29,6 +29,7 @@
 #  define EGLAPIENTRYP *
 #endif
 #include <EGL/egl.h>   // eglGetDisplay, eglCreateContext, eglSwapBuffers, etc.
+#define SEXY_EGL_DECLARED // Prevent GLPlatform.h from redeclaring these
 // eglext.h intentionally omitted: not used here and has the same EGLAPIENTRYP bug.
 
 #include <switch.h>
