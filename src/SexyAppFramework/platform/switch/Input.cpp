@@ -37,6 +37,8 @@ static std::unordered_map<u64, KeyCode> keyMaps = {
 	{HidNpadButton_Plus,  KEYCODE_ESCAPE},
 	{HidNpadButton_Minus, KEYCODE_SPACE},
 	{HidNpadButton_A,     KEYCODE_RETURN},
+	{HidNpadButton_B,     KEYCODE_ESCAPE},
+	{HidNpadButton_X,     KEYCODE_SPACE},
 	{HidNpadButton_L,     KEYCODE_LBUTTON},
 	{HidNpadButton_R,     KEYCODE_RBUTTON},
 };
@@ -99,6 +101,25 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 
 	u64 kDown = padGetButtonsDown(&pad);
 	u64 kUp = padGetButtonsUp(&pad);
+	u64 kHeld = padGetButtonsHeld(&pad);
+
+	static int x=1280/2, y=720/2;
+	bool mouseMoved = false;
+
+	// Analog sticks for cursor movement
+	HidAnalogStickState lStick = padGetStickPos(&pad, 0);
+	if (abs(lStick.x) > 5000 || abs(lStick.y) > 5000)
+	{
+		mLastUserInputTick = mLastTimerTime;
+		x += lStick.x / 10000;
+		y -= lStick.y / 10000; // Y is inverted on sticks vs screen
+
+		if (x < 0) x = 0;
+		if (x > 1280) x = 1280;
+		if (y < 0) y = 0;
+		if (y > 720) y = 720;
+		mouseMoved = true;
+	}
 
 	if (kDown)
 	{
@@ -107,7 +128,11 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 		for (auto& k : keyMaps)
 		{
 			if (kDown & k.first)
+			{
 				mWidgetManager->KeyDown(k.second);
+				if (k.first == HidNpadButton_A)
+					mWidgetManager->MouseDown(x, y, 1);
+			}
 		}
 	}
 
@@ -117,22 +142,43 @@ bool SexyAppBase::ProcessDeferredMessages(bool singleMessage)
 
 		for (auto& k : keyMaps)
 		{
-			if (kDown & k.first)
+			if (kUp & k.first)
+			{
 				mWidgetManager->KeyUp(k.second);
+				if (k.first == HidNpadButton_A)
+					mWidgetManager->MouseUp(x, y, 1);
+			}
 		}
 	}
 
 	HidTouchScreenState state = {0};
 	hidGetTouchScreenStates(&state, 1);
-	static int x=0, y=0;
 	if (state.count)
 	{
 		mLastUserInputTick = mLastTimerTime;
 
-		x = (int)state.touches[0].x;
-		y = (int)state.touches[0].y;
+		int nx = (int)state.touches[0].x;
+		int ny = (int)state.touches[0].y;
+		
+		if (nx != x || ny != y)
+		{
+			x = nx;
+			y = ny;
+			mouseMoved = true;
+			if (prev_touchcount)
+				mWidgetManager->MouseDrag(x, y);
+		}
+	}
+	else if (mouseMoved && kHeld & HidNpadButton_A)
+	{
+		mWidgetManager->MouseDrag(x, y);
+	}
+
+	if (mouseMoved)
+	{
 		mWidgetManager->RemapMouse(x, y);
-		mWidgetManager->MouseMove(x, y);
+		if (!prev_touchcount)
+			mWidgetManager->MouseMove(x, y);
 	}
 
 	if (state.count && !prev_touchcount)

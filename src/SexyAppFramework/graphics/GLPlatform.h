@@ -39,15 +39,16 @@
 #include <SDL.h>
 
 #ifdef __SWITCH__
-// devkitPro bug: switch.h redefines EGLAPIENTRY in a way that breaks the
-// EGLAPIENTRYP macro chain in <EGL/eglplatform.h>. Define EGLAPIENTRYP
-// explicitly before pulling in egl.h so the function-pointer typedefs compile.
-#ifndef EGLAPIENTRYP
-#  define EGLAPIENTRYP *
-#endif
 #include <switch.h>
-#include <EGL/egl.h>  // needed for eglGetProcAddress used in PlatformGLInit()
-// eglext.h intentionally omitted: not needed here, and has the same EGLAPIENTRYP bug.
+// Declaramos la API de EGL manualmente para evitar incluir <EGL/egl.h>,
+// el cual tiene conflictos de macros con <switch.h> en el entorno de devkitPro.
+typedef void *EGLDisplay;
+typedef void *EGLSurface;
+typedef void *EGLBoolean;
+extern "C" {
+    EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
+    void* eglGetProcAddress(const char *name);
+}
 #endif
 
 // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20

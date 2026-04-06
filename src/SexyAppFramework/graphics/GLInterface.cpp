@@ -1233,11 +1233,15 @@ bool GLInterface::PreDraw()
 void GLInterface::Flush()
 {
 	gNumVertices = 0;
-	// SDL_GL_SwapWindow works on all platforms including Switch.
-	// On Switch, SDL2 delegates to eglSwapBuffers internally, so there is
-	// no need to call eglSwapBuffers directly (which would require EGL headers
-	// that conflict with devkitPro's switch.h redefinition of EGLAPIENTRY).
+#ifdef __SWITCH__
+	// On Switch we use raw EGL (not SDL) for window creation in Window.cpp.
+	// Therefore, we must call eglSwapBuffers directly instead of SDL_GL_SwapWindow.
+	// The EGL functions are declared manually in GLPlatform.h to avoid header conflicts.
+	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
+#else
+	// On all other platforms, SDL handles the double buffering swap.
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
+#endif
 #ifndef __EMSCRIPTEN__
 	// Clear back buffer after swap (content undefined)
 	glClear(GL_COLOR_BUFFER_BIT);
