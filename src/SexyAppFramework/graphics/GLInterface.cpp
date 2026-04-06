@@ -1233,11 +1233,11 @@ bool GLInterface::PreDraw()
 void GLInterface::Flush()
 {
 	gNumVertices = 0;
-#ifdef __SWITCH__
-	eglSwapBuffers(mApp->mWindow, mApp->mSurface);
-#else
+	// SDL_GL_SwapWindow works on all platforms including Switch.
+	// On Switch, SDL2 delegates to eglSwapBuffers internally, so there is
+	// no need to call eglSwapBuffers directly (which would require EGL headers
+	// that conflict with devkitPro's switch.h redefinition of EGLAPIENTRY).
 	SDL_GL_SwapWindow((SDL_Window*)mApp->mWindow);
-#endif
 #ifndef __EMSCRIPTEN__
 	// Clear back buffer after swap (content undefined)
 	glClear(GL_COLOR_BUFFER_BIT);
