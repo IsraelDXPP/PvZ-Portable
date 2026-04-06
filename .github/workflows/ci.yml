@@ -70,6 +70,7 @@ jobs:
         key: devkitpro-portlibs-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: |
           devkitpro-portlibs-${{ runner.os }}-
+        save-always: true
 
     # Cache the libopenmpt build to avoid recompiling it from source each time
     - name: Cache libopenmpt build
@@ -78,6 +79,7 @@ jobs:
       with:
         path: /tmp/openmpt-install
         key: switch-libopenmpt-${{ runner.os }}-v1
+        save-always: true
 
     - name: Compile libopenmpt for Switch
       if: steps.cache-openmpt.outputs.cache-hit != 'true'
@@ -102,6 +104,7 @@ jobs:
         key: switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', 'src/**/*.cpp', 'src/**/*.h') }}
         restore-keys: |
           switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-
+        save-always: true
 
     - name: Compile PvZ-Portable for Switch
       shell: bash
