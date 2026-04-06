@@ -40,8 +40,10 @@
 
 #ifdef __SWITCH__
 #include <switch.h>
+// eglext.h is intentionally NOT included: devkitPro's version uses EGLAPIENTRYP
+// before it is defined, causing parse errors. The extension types it provides
+// are not needed here.
 #include <EGL/egl.h>
-#include <EGL/eglext.h>
 #endif
 
 // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
@@ -60,7 +62,10 @@ extern bool gDesktopGLFallback;
 inline void PlatformGLInit()
 {
 #ifdef __SWITCH__
-	gladLoadGLES2((GLADloadfunc)eglGetProcAddress);
+	// SDL_GL_GetProcAddress is used instead of eglGetProcAddress because
+	// eglGetProcAddress is not in scope (EGL headers are only partially
+	// included) and SDL2 wraps it correctly on Switch anyway.
+	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #else
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif
