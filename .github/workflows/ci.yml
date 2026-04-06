@@ -2,7 +2,7 @@ name: CI build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "switch-crash-fix" ]
     tags: [ "*" ]
   pull_request:
     branches: [ "main" ]
@@ -14,8 +14,8 @@ concurrency:
 jobs:
   auto-tag:
     name: Auto Tag
-    # Only run on direct pushes to main (not on PRs and not on tag pushes to avoid loops)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Run on pushes to main OR switch-crash-fix (not on PRs and not on tag pushes to avoid loops)
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/switch-crash-fix')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,7 +30,12 @@ jobs:
     - name: Create and push date-based tag
       id: create-tag
       run: |
-        TAG="v$(date -u +'%Y.%m.%d-%H%M')"
+        # Add branch suffix so tags from different branches don't collide
+        if [ "$GITHUB_REF" = "refs/heads/switch-crash-fix" ]; then
+          TAG="v$(date -u +'%Y.%m.%d-%H%M')-debug"
+        else
+          TAG="v$(date -u +'%Y.%m.%d-%H%M')"
+        fi
         echo "Creating tag: $TAG"
         git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,8 +46,16 @@ jobs:
   build-switch:
     name: Build for Nintendo Switch
     runs-on: ubuntu-latest
+    # On branch pushes wait for auto-tag; on tag-triggered runs auto-tag is skipped so don't wait
+    needs: [ 'auto-tag' ]
+    if: |
+      always() &&
+      (github.ref_type == 'tag' || needs.auto-tag.result == 'success')
     container:
       image: devkitpro/devkita64:latest
+    env:
+      # Debug on switch-crash-fix, Release everywhere else
+      BUILD_TYPE: ${{ (github.ref == 'refs/heads/switch-crash-fix' || endsWith(github.ref, '-debug')) && 'Debug' || 'Release' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -81,23 +94,24 @@ jobs:
       run: |
         cp -r /tmp/openmpt-install/* $DEVKITPRO/portlibs/switch/ || true
 
-    # Cache the CMake build directory so incremental builds are fast
+    # Cache the CMake build directory per build type so they don't interfere
     - name: Cache CMake build directory
       uses: actions/cache@v4
       with:
         path: build
-        key: switch-cmake-build-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', 'src/**/*.cpp', 'src/**/*.h') }}
+        key: switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', 'src/**/*.cpp', 'src/**/*.h') }}
         restore-keys: |
-          switch-cmake-build-${{ runner.os }}-
+          switch-cmake-build-${{ env.BUILD_TYPE }}-${{ runner.os }}-
 
     - name: Compile PvZ-Portable for Switch
       shell: bash
       run: |
+        echo "Building in $BUILD_TYPE mode"
         source $DEVKITPRO/switchvars.sh
         mkdir -p build
         cd build
         aarch64-none-elf-cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_CXX_FLAGS_RELEASE=-O2
         make -j$(nproc)
 
@@ -139,4 +153,5 @@ jobs:
         files: release_files/*
         generate_release_notes: true
         draft: false
-        prerelease: false
+        # Tags ending in -debug are pre-releases (from switch-crash-fix branch)
+        prerelease: ${{ endsWith(github.ref_name, '-debug') }}
