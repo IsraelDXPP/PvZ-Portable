@@ -45,6 +45,13 @@ extern "C" {
 #include <fstream>
 #endif
 
+#ifdef __SWITCH__
+#include <switch.h>
+extern "C" {
+	u32 __nx_stack_size = 4 * 1024 * 1024; // 4MB
+}
+#endif
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif

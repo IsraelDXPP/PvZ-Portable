@@ -55,6 +55,7 @@ list(REMOVE_ITEM SOURCES
 set(LOW_MEMORY OFF CACHE BOOL "Enable low memory mode")
 set(DOWNSCALE_COUNT 1 CACHE STRING "Image downscale count")
 if(NINTENDO_SWITCH)
+	set(LOW_MEMORY ON)
 	set(VORBIS_LIB vorbisfile vorbis)
 	list(APPEND SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/SexyAppFramework/platform/switch/Window.cpp
