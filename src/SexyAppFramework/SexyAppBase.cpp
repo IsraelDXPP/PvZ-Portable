@@ -3214,7 +3214,11 @@ void SexyAppBase::Init()
 	{
 		SetAppDataFolder("/saves/");
 	}
-#elif !defined(__SWITCH__) && !defined(__3DS__)
+#elif defined(__SWITCH__)
+	{
+		SetAppDataFolder("sdmc:/switch/PvZPortable/");
+	}
+#elif !defined(__3DS__)
 	{
 		char* aPrefPath = SDL_GetPrefPath("io.github.wszqkzqk", "PvZPortable"); // Avoid conflict with official Plants vs. Zombies
 		if (aPrefPath)

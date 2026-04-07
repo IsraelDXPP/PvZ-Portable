@@ -328,7 +328,7 @@ unsigned int DefinitionGetSize(DefMap* theDefMap, void* theDefinition) {
 
 void* DefinitionAlloc(int theSize)
 {
-    void* aPtr = operator new[](theSize);
+    void* aPtr = new char[theSize];
     TOD_ASSERT(aPtr);
     memset(aPtr, 0, theSize);
     return aPtr;
@@ -1204,7 +1204,7 @@ bool DefinitionLoadMap(XMLParser* theXmlParser, DefMap* theDefMap, void* theDefi
 
 // @Patoke implemented
 void DefWriteToCacheString(void*& theWritePtr, const char** theValue) {
-    unsigned int aStringSize = strlen(*theValue);
+    unsigned int aStringSize = (*theValue) ? strlen(*theValue) : 0;
     SMemW(theWritePtr, &aStringSize, sizeof(unsigned int));
     if (aStringSize > 0)
         SMemW(theWritePtr, *theValue, aStringSize);
@@ -1297,6 +1297,7 @@ bool DefinitionWriteCompiledFile(const std::string& theCompiledFilePath, DefMap*
 
     std::string aFullCompiledPath = DefinitionGetCompiledCacheFullPath(theCompiledFilePath);
     std::string aFilePath = GetFileDir(aFullCompiledPath);
+    TodTrace("Writing compiled file: %s", aFullCompiledPath.c_str());
     MkDir(aFilePath);
 
     std::ofstream aFileStream(Sexy::PathFromU8(aFullCompiledPath), std::ios::binary);
@@ -1304,9 +1305,12 @@ bool DefinitionWriteCompiledFile(const std::string& theCompiledFilePath, DefMap*
         aFileStream.write(reinterpret_cast<const char*>(aCompressedDef), (std::streamsize)aCompressedSize);
 
         delete[] (char *)aCompressedDef;
-        return aFileStream.good();
+        bool isGood = aFileStream.good();
+        TodTrace("Write success: %d", isGood);
+        return isGood;
     }
 
+    TodTrace("Failed to open file for writing: %s", aFullCompiledPath.c_str());
     delete[] (char *)aCompressedDef;
     return false;
 }
