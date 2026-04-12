@@ -5594,7 +5594,14 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
         aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
         aColorOverride.mAlpha = aFadeAlpha;
 #ifdef DO_FIX_BUGS
-        if (mZombieType != ZombieType::ZOMBIE_BOSS)
+        if (mZombieType == ZombieType::ZOMBIE_BOSS)
+        {
+            // For Dr. Zomboss, we skip the triple-render additive pass to prevent invisibility bugs 
+            // caused by over-blending his many internal glowing tracks.
+            aExtraAdditiveColor = Color::Black;
+            aEnableExtraAdditiveDraw = false;
+        }
+        else
         {
             aExtraAdditiveColor = aColorOverride;
             aEnableExtraAdditiveDraw = true;
@@ -9618,18 +9625,19 @@ void Zombie::BossPlayIdle()
 
 void Zombie::DrawBossFireBall(Graphics* g)
 {
-    MakeParentGraphicsFrame(g);
-
     Reanimation* aFireBallReanim = mApp->ReanimationTryToGet(mBossFireBallReanimID);
     if (aFireBallReanim)
     {
-        aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_NORMAL);
+        GraphicsState aState;
+        g->PushState(aState);
 
+        aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_NORMAL);
         g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
-
         g->SetDrawMode(Graphics::DRAWMODE_NORMAL);
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_BOSS_FIREBALL_TOP);
+
+        g->PopState(aState);
     }
 }
 
