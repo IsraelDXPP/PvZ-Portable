@@ -5554,8 +5554,16 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
 
     if (theDrawPos.mClipHeight > CLIP_HEIGHT_LIMIT)
     {
+#ifdef DO_FIX_BUGS
+        if (mZombieType != ZombieType::ZOMBIE_BOSS)
+        {
+            float aDrawHeight = 120.0f - theDrawPos.mClipHeight + 71.0f;
+            g->SetClipRect(theDrawPos.mImageOffsetX - 200.0f, theDrawPos.mImageOffsetY + theDrawPos.mBodyY - 78.0f, 520, aDrawHeight);
+        }
+#else
         float aDrawHeight = 120.0f - theDrawPos.mClipHeight + 71.0f;
         g->SetClipRect(theDrawPos.mImageOffsetX - 200.0f, theDrawPos.mImageOffsetY + theDrawPos.mBodyY - 78.0f, 520, aDrawHeight);
+#endif
     }
 
     int aFadeAlpha = 255;
@@ -10033,7 +10041,7 @@ void Zombie::BossHeadSpitContact()
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    float aPosY = mBoard->GetPosYBasedOnRow(700.0f, mFireballRow) - 90.0f;
+    float aPosY = mBoard->GetPosYBasedOnRow(700.0f, mFireballRow) - 180.0f;
     Reanimation* aFireBallReanim;
     if (mIsFireBall)
     {
@@ -10065,7 +10073,7 @@ void Zombie::UpdateBossFireball()
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
     aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
     float aPosX = aFireballReanim->mOverlayMatrix.m02;
-    float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 90.0f;
+    float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 180.0f;
     aFireballReanim->mOverlayMatrix.m12 = aPosY;
 
     if (aPosX < -180.0f)
