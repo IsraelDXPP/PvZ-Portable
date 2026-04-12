@@ -256,7 +256,7 @@ public:
     TodParticleSystem*      AddAttachedParticle(int thePosX, int thePosY, int theRenderPosition, ParticleEffect theEffect);
     void                    GetPeaHeadOffset(int& theOffsetX, int& theOffsetY);
     /*inline*/ bool         MakesSun();
-    static void             DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitaterType, DrawVariation theDrawVariation, float thePosX, float thePosY);
+    static void             DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitaterType, DrawVariation theDrawVariation, float thePosX, float thePosY, float theRad = 0.0f);
     void                    KillAllPlantsNearDoom();
     bool                    IsOnHighGround();
     void                    UpdateTorchwood();

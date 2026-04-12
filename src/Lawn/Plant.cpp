@@ -4207,7 +4207,7 @@ void Plant::Draw(Graphics* g)
 }
 
 // GOTY @Patoke: 0x469AF0
-void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitaterType, DrawVariation theDrawVariation, float thePosX, float thePosY)
+void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitaterType, DrawVariation theDrawVariation, float thePosX, float thePosY, float theRad)
 {
     Graphics aSeedG(*g);
     int aCelRow = 0;
@@ -4257,11 +4257,25 @@ void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitater
         {
             aSeedG.mScaleX *= 1.4f;
             aSeedG.mScaleY *= 1.4f;
-            TodDrawImageScaledF(&aSeedG, IMAGE_REANIM_WALLNUT_BODY, thePosX - 53.0f, thePosY - 56.0f, aSeedG.mScaleX, aSeedG.mScaleY);
+            if (theRad != 0.0f)
+            {
+                SexyMatrix3 aTransform;
+                Image* aImage = IMAGE_REANIM_WALLNUT_BODY;
+                float aTransX = aImage->mWidth * 0.5f * aSeedG.mScaleX + (thePosX - 53.0f) + aSeedG.mTransX;
+                float aTransY = aImage->mHeight * 0.5f * aSeedG.mScaleY + (thePosY - 56.0f) + aSeedG.mTransY;
+                TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                Rect aSrcRect(0, 0, aImage->mWidth, aImage->mHeight);
+                const Color& aColor = aSeedG.mColorizeImages ? aSeedG.mColor : Color::White;
+                TodBltMatrix(&aSeedG, aImage, aTransform, aSeedG.mClipRect, aColor, aSeedG.mDrawMode, aSrcRect);
+            }
+            else
+            {
+                TodDrawImageScaledF(&aSeedG, IMAGE_REANIM_WALLNUT_BODY, thePosX - 53.0f, thePosY - 56.0f, aSeedG.mScaleX, aSeedG.mScaleY);
+            }
         }
         else if (aPlantDef.mReanimationType != ReanimationType::REANIM_NONE)
         {
-            gLawnApp->mReanimatorCache->DrawCachedPlant(&aSeedG, thePosX + aOffsetX, thePosY + aOffsetY, aSeedType, aDrawVariation);
+            gLawnApp->mReanimatorCache->DrawCachedPlant(&aSeedG, thePosX + aOffsetX, thePosY + aOffsetY, aSeedType, aDrawVariation, theRad);
         }
         else
         {
@@ -4280,7 +4294,22 @@ void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitater
                 aCelCol = aPlantImage->mNumCols - 1;
             }
 
-            TodDrawImageCelScaledF(&aSeedG, aPlantImage, thePosX + aOffsetX, thePosY + aOffsetY, aCelCol, aCelRow, aSeedG.mScaleX, aSeedG.mScaleY);
+            if (theRad != 0.0f)
+            {
+                int aCelWidth = aPlantImage->GetCelWidth();
+                int aCelHeight = aPlantImage->GetCelHeight();
+                Rect aSrcRect(aCelWidth * aCelCol, aCelHeight * aCelRow, aCelWidth, aCelHeight);
+                float aTransX = aCelWidth * 0.5f * aSeedG.mScaleX + (thePosX + aOffsetX) + aSeedG.mTransX;
+                float aTransY = aCelHeight * 0.5f * aSeedG.mScaleY + (thePosY + aOffsetY) + aSeedG.mTransY;
+                SexyMatrix3 aTransform;
+                TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                const Color& aColor = aSeedG.mColorizeImages ? aSeedG.mColor : Color::White;
+                TodBltMatrix(&aSeedG, aPlantImage, aTransform, aSeedG.mClipRect, aColor, aSeedG.mDrawMode, aSrcRect);
+            }
+            else
+            {
+                TodDrawImageCelScaledF(&aSeedG, aPlantImage, thePosX + aOffsetX, thePosY + aOffsetY, aCelCol, aCelRow, aSeedG.mScaleX, aSeedG.mScaleY);
+            }
         }
     }
 }

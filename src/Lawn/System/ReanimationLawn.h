@@ -57,7 +57,7 @@ public:
 
     void                    ReanimatorCacheInitialize();
     void                    ReanimatorCacheDispose();
-    void                    DrawCachedPlant(Graphics* g, float thePosX, float thePosY, SeedType theSeedType, DrawVariation theDrawVariation);
+    void                    DrawCachedPlant(Graphics* g, float thePosX, float thePosY, SeedType theSeedType, DrawVariation theDrawVariation, float theRad = 0.0f);
     void                    DrawCachedMower(Graphics* g, float thePosX, float thePosY, LawnMowerType theMowerType);
     void                    DrawCachedZombie(Graphics* g, float thePosX, float thePosY, ZombieType theZombieType);
     MemoryImage*            MakeBlankMemoryImage(int theWidth, int theHeight);

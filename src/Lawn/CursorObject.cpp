@@ -315,6 +315,7 @@ void CursorPreview::Draw(Graphics* g)
     else
     {
         float aOffsetX, aOffsetY;
+        float aRad = 0.0f;
         if (mApp->IsIZombieLevel())
         {
             float aHeight = PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, mGridY);
@@ -330,9 +331,27 @@ void CursorPreview::Draw(Graphics* g)
         {
             aOffsetY = PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, mGridY);
             aOffsetX = 0.0f;
+#ifdef _HAS_ROOF_SLOPE_ANGLE
+            if (mBoard->StageHasRoof())
+            {
+                if (mGridX < 5 || (aSeedType == SeedType::SEED_COBCANNON && mGridX < 4))
+                {
+                    int nextColoumn = mGridX + 1;
+                    if (aSeedType == SeedType::SEED_COBCANNON) nextColoumn++;
+                    const float x1 = mBoard->GridToPixelX(mGridX, mGridY);
+                    const float y1 = mBoard->GridToPixelY(mGridX, mGridY);
+                    const float x2 = mBoard->GridToPixelX(nextColoumn, mGridY);
+                    const float y2 = mBoard->GridToPixelY(nextColoumn, mGridY);
+                    aRad = -atan2(y2 - y1, x2 - x1);
+                    float rotatedHeightX = sin(aRad) * aOffsetY;
+                    aOffsetX = -cos(aRad) * 15 + rotatedHeightX;
+                    aOffsetY = sin(aRad) * 40;
+                }
+            }
+#endif
         }
 
-        Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aOffsetX, aOffsetY);
+        Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aOffsetX, aOffsetY, aRad);
     }
 
     if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)

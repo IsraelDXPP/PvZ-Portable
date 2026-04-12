@@ -360,7 +360,7 @@ void ReanimatorCache::ReanimatorCacheDispose()
 }
 
 
-void ReanimatorCache::DrawCachedPlant(Graphics* g, float thePosX, float thePosY, SeedType theSeedType, DrawVariation theDrawVariation)
+void ReanimatorCache::DrawCachedPlant(Graphics* g, float thePosX, float thePosY, SeedType theSeedType, DrawVariation theDrawVariation, float theRad)
 {
 	TOD_ASSERT(theSeedType >= 0 && theSeedType < SeedType::NUM_SEED_TYPES);
 
@@ -399,7 +399,17 @@ void ReanimatorCache::DrawCachedPlant(Graphics* g, float thePosX, float thePosY,
 
 	int aOffsetX, aOffsetY, aWidth, aHeight;
 	GetPlantImageSize(theSeedType, aOffsetX, aOffsetY, aWidth, aHeight);
-	if (!mApp->Is3DAccelerated() && g->mScaleX == 1.0f && g->mScaleY == 1.0f)
+	if (theRad != 0.0f)
+	{
+		Rect aSrcRect(0, 0, aImage->mWidth, aImage->mHeight);
+		float aTransX = aImage->mWidth * 0.5f * g->mScaleX + thePosX + (aOffsetX * g->mScaleX) + g->mTransX;
+		float aTransY = aImage->mHeight * 0.5f * g->mScaleY + thePosY + (aOffsetY * g->mScaleY) + g->mTransY;
+		SexyMatrix3 aTransform;
+		TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, g->mScaleX, g->mScaleY);
+		const Color& aColor = g->mColorizeImages ? g->mColor : Color::White;
+		TodBltMatrix(g, aImage, aTransform, g->mClipRect, aColor, g->mDrawMode, aSrcRect);
+	}
+	else if (!mApp->Is3DAccelerated() && g->mScaleX == 1.0f && g->mScaleY == 1.0f)
 		g->DrawImage(aImage, thePosX + aOffsetX, thePosY + aOffsetY);
 	else
 		TodDrawImageScaledF(g, aImage, thePosX + (aOffsetX * g->mScaleX), thePosY + (aOffsetY * g->mScaleY), g->mScaleX, g->mScaleY);

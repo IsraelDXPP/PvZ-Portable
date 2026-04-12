@@ -5594,12 +5594,13 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
 #ifdef DO_FIX_BUGS
         if (mZombieType == ZombieType::ZOMBIE_BOSS)
         {
-            // For Dr. Zomboss, replacing the base colors with dark purple makes him turn invisible
-            // due to how his intricate reanimations blend. Instead, we keep his base color white
-            // and apply a slightly softer purple additive glow.
-            aColorOverride = Color::White;
-            aExtraAdditiveColor = Color(ZOMBIE_MINDCONTROLLED_COLOR.mRed, ZOMBIE_MINDCONTROLLED_COLOR.mGreen, ZOMBIE_MINDCONTROLLED_COLOR.mBlue, 150);
-            aEnableExtraAdditiveDraw = true;
+            // For Dr. Zomboss, the additive pass doubles his massive vertex/sprite count.
+            // When multiple bosses spawn or a boss is hypnotized, this causes a vertex overflow limit, 
+            // making him completely invisible. We keep the purple color override but disable the additive glow.
+            aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
+            aColorOverride.mAlpha = aFadeAlpha;
+            aExtraAdditiveColor = Color::Black;
+            aEnableExtraAdditiveDraw = false;
         }
         else
         {
