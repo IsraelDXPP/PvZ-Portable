@@ -60,6 +60,10 @@
 #include "Lawn/Widget/ChallengeScreen.h"
 #include "Lawn/Widget/NewOptionsDialog.h"
 #include "Lawn/Widget/SeedChooserScreen.h"
+#ifdef _MORE_OPTIONS
+#include "Lawn/Widget/MoreOptionsDialog.h"
+#include "Lawn/Widget/SpawnZombieDialog.h"
+#endif
 #include "widget/WidgetManager.h"
 #include "misc/ResourceManager.h"
 
@@ -735,6 +739,28 @@ void LawnApp::DoNewOptions(bool theFromGameSelector)
 	AddDialog(Dialogs::DIALOG_NEWOPTIONS, aDialog);
 	mWidgetManager->SetFocus(aDialog);
 }
+
+#ifdef _MORE_OPTIONS
+MoreOptionsDialog* LawnApp::DoMoreOptionsDialog(bool theFromPauseMenu)
+{
+	MoreOptionsDialog* aDialog = new MoreOptionsDialog(this, theFromPauseMenu);
+	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+	AddDialog(Dialogs::DIALOG_MORE_OPTIONS, aDialog);
+	return aDialog;
+}
+
+void LawnApp::DoSpawnZombieDialog()
+{
+	SpawnZombieDialog* aDialog = new SpawnZombieDialog(this);
+	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+	AddDialog(Dialogs::DIALOG_SPAWN_ZOMBIE, aDialog);
+}
+
+bool LawnApp::KillSpawnZombieDialog()
+{
+	return KillDialog(Dialogs::DIALOG_SPAWN_ZOMBIE);
+}
+#endif
 
 //0x450180
 // GOTY @Patoke: 0x453410
