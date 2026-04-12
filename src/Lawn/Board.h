@@ -93,9 +93,9 @@ public:
 		Reanimation*				mReanimation;
 		GridItem*					mGridItem;
 		LawnMower*					mMower;
-		BossPart					mBossPart;
-		int							mBoardGridY;
 	};
+	BossPart						mBossPart;
+	int								mBoardGridY;
 };
 bool RenderItemSortFunc(const RenderItem& theItem1, const RenderItem& theItem2);
 
