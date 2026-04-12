@@ -4103,7 +4103,6 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
                         aBodyReanim->mOffsetY = sin(mRad) * 40;
                         TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                        UpdateReanim();
                     }
                     else
                     {
@@ -4111,7 +4110,6 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetY = 0.0f;
                         aBodyReanim->mOverlayMatrix.LoadIdentity();
                         mRad = 0.0f;
-                        UpdateReanim();
                     }
                 }
 #else
@@ -4127,7 +4125,6 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
                         aBodyReanim->mOffsetY = sin(mRad) * 40;
                         TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
-                        UpdateReanim();
                     }
                     else
                     {
@@ -4135,7 +4132,6 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetY = 0.0f;
                         aBodyReanim->mOverlayMatrix.LoadIdentity();
                         mRad = 0.0f;
-                        UpdateReanim();
                     }
                 }
 #endif
