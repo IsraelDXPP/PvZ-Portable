@@ -10056,9 +10056,9 @@ void Zombie::UpdateBossFireball()
 
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
     aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
-    float aGlobalPosX = aFireballReanim->mOverlayMatrix.m02 + aFireballReanim->mLastX;
-    float aPosY = mBoard->GetPosYBasedOnRow(aGlobalPosX, mFireballRow) - 90.0f;
-    aFireballReanim->mOverlayMatrix.m12 = aPosY;
+    float aPosX = aFireballReanim->mOverlayMatrix.m02 + aFireballReanim->mOffsetX;
+    float aPosY = mBoard->GetPosYBasedOnRow(aPosX, mFireballRow) - 90.0f;
+    aFireballReanim->mOverlayMatrix.m12 = aPosY - aFireballReanim->mOffsetY;
 
     if (aPosX < -180.0f)
     {
