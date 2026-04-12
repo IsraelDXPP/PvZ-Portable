@@ -234,7 +234,9 @@ Board::Board(LawnApp* theApp)
 #else
 	mSpeedMod = SPEED_NORMAL;
 #endif
+#ifdef _REPLANTED_SPEED_CONTROL
 	UpdateSpeedButtons();
+#endif
 
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
@@ -6007,7 +6009,9 @@ void Board::Update()
 		mStoreButton->mDisabled = aDisabled;
 		mStoreButton->Update();
 	}
+#ifdef _REPLANTED_SPEED_CONTROL
 	UpdateSpeedButtons();
+#endif
 
 	if (mQECounter > 0) mQECounter--;
 

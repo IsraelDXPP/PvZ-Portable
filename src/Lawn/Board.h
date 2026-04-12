@@ -51,6 +51,7 @@ class LawnApp;
 class CursorObject;
 class CursorPreview;
 class GameButton;
+class NewLawnButton;
 class MessageWidget;
 class SeedBank;
 class ToolTipWidget;
@@ -285,9 +286,15 @@ public:
 	SpeedMod						mSpeedMod;
 	int32_t							mSlowMoCounter;
 	int32_t							mQECounter;
+#ifdef _REPLANTED_SPEED_CONTROL
+	NewLawnButton*					mSlowdownButton;
+	NewLawnButton*					mPauseButton;
+	NewLawnButton*					mSpeedupButton;
+#else
 	GameButton*						mSlowdownButton;
 	GameButton*						mPauseButton;
 	GameButton*						mSpeedupButton;
+#endif
 
 public:
 	Board(LawnApp* theApp);
