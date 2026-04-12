@@ -280,6 +280,14 @@ public:
 	int32_t							mDiamondsCollected;										//+GOTY @Patoke: 0x57CC
 	int32_t							mPottedPlantsCollected;
 	int32_t							mChocolateCollected;
+	bool							mAllowSpeedMod;
+	SpeedMod						mPrevSpeedMod;
+	SpeedMod						mSpeedMod;
+	int32_t							mSlowMoCounter;
+	int32_t							mQECounter;
+	GameButton*						mSlowdownButton;
+	GameButton*						mPauseButton;
+	GameButton*						mSpeedupButton;
 
 public:
 	Board(LawnApp* theApp);
