@@ -9628,16 +9628,13 @@ void Zombie::DrawBossFireBall(Graphics* g)
     Reanimation* aFireBallReanim = mApp->ReanimationTryToGet(mBossFireBallReanimID);
     if (aFireBallReanim)
     {
-        GraphicsState aState;
-        g->PushState(aState);
+        GraphicsAutoState aState(g);
 
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_NORMAL);
         g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
         g->SetDrawMode(Graphics::DRAWMODE_NORMAL);
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_BOSS_FIREBALL_TOP);
-
-        g->PopState(aState);
     }
 }
 
