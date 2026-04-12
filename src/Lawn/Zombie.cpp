@@ -5591,22 +5591,24 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     }
     else if (mMindControlled)
     {
-        aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
-        aColorOverride.mAlpha = aFadeAlpha;
 #ifdef DO_FIX_BUGS
         if (mZombieType == ZombieType::ZOMBIE_BOSS)
         {
-            // For Dr. Zomboss, we skip the triple-render additive pass to prevent invisibility bugs 
-            // caused by over-blending his many internal glowing tracks.
-            aExtraAdditiveColor = Color::Black;
-            aEnableExtraAdditiveDraw = false;
+            // Use a brighter purple for the Boss to prevent him from becoming too dark and invisible
+            aColorOverride = Color(255, 150, 255, 255); 
+            aExtraAdditiveColor = aColorOverride;
+            aEnableExtraAdditiveDraw = true;
         }
         else
         {
+            aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
+            aColorOverride.mAlpha = aFadeAlpha;
             aExtraAdditiveColor = aColorOverride;
             aEnableExtraAdditiveDraw = true;
         }
 #else
+        aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
+        aColorOverride.mAlpha = aFadeAlpha;
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
 #endif
@@ -10031,11 +10033,11 @@ void Zombie::BossHeadSpitContact()
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    float aPosY = mBoard->GetPosYBasedOnRow(550.0f, mFireballRow) - 90.0f;
+    float aPosY = mBoard->GetPosYBasedOnRow(700.0f, mFireballRow) - 90.0f;
     Reanimation* aFireBallReanim;
     if (mIsFireBall)
     {
-        aFireBallReanim = mApp->AddReanimation(455.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_FIREBALL);
+        aFireBallReanim = mApp->AddReanimation(700.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_FIREBALL);
         aFireBallReanim->PlayReanim("anim_form", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0, 16.0f);
         aFireBallReanim->mIsAttachment = true;
         aFireBallReanim->AssignRenderGroupToTrack("additive", RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
@@ -10043,7 +10045,7 @@ void Zombie::BossHeadSpitContact()
     }
     else
     {
-        aFireBallReanim = mApp->AddReanimation(455.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_ICEBALL);
+        aFireBallReanim = mApp->AddReanimation(700.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_ICEBALL);
         aFireBallReanim->PlayReanim("anim_form", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0, 16.0f);
         aFireBallReanim->mIsAttachment = true;
         aFireBallReanim->AssignRenderGroupToTrack("ice_highlight", RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
