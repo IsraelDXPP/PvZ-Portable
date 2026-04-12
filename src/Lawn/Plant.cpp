@@ -4261,9 +4261,12 @@ void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitater
             {
                 SexyMatrix3 aTransform;
                 Image* aImage = IMAGE_REANIM_WALLNUT_BODY;
-                float aTransX = aImage->mWidth * 0.5f * aSeedG.mScaleX + (thePosX - 53.0f) + aSeedG.mTransX;
-                float aTransY = aImage->mHeight * 0.5f * aSeedG.mScaleY + (thePosY - 56.0f) + aSeedG.mTransY;
-                TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                TodScaleRotateTransformMatrix(aTransform, thePosX + aSeedG.mTransX, thePosY + aSeedG.mTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                SexyMatrix3 aTranslate;
+                aTranslate.LoadIdentity();
+                aTranslate.m02 = -53.0f + aImage->mWidth  * 0.5f;
+                aTranslate.m12 = -56.0f + aImage->mHeight * 0.5f;
+                SexyMatrix3Multiply(aTransform, aTransform, aTranslate);
                 Rect aSrcRect(0, 0, aImage->mWidth, aImage->mHeight);
                 const Color& aColor = aSeedG.mColorizeImages ? aSeedG.mColor : Color::White;
                 TodBltMatrix(&aSeedG, aImage, aTransform, aSeedG.mClipRect, aColor, aSeedG.mDrawMode, aSrcRect);
@@ -4299,10 +4302,13 @@ void Plant::DrawSeedType(Graphics* g, SeedType theSeedType, SeedType theImitater
                 int aCelWidth = aPlantImage->GetCelWidth();
                 int aCelHeight = aPlantImage->GetCelHeight();
                 Rect aSrcRect(aCelWidth * aCelCol, aCelHeight * aCelRow, aCelWidth, aCelHeight);
-                float aTransX = aCelWidth * 0.5f * aSeedG.mScaleX + (thePosX + aOffsetX) + aSeedG.mTransX;
-                float aTransY = aCelHeight * 0.5f * aSeedG.mScaleY + (thePosY + aOffsetY) + aSeedG.mTransY;
                 SexyMatrix3 aTransform;
-                TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                TodScaleRotateTransformMatrix(aTransform, thePosX + aSeedG.mTransX, thePosY + aSeedG.mTransY, theRad, aSeedG.mScaleX, aSeedG.mScaleY);
+                SexyMatrix3 aTranslate;
+                aTranslate.LoadIdentity();
+                aTranslate.m02 = aOffsetX + aCelWidth  * 0.5f;
+                aTranslate.m12 = aOffsetY + aCelHeight * 0.5f;
+                SexyMatrix3Multiply(aTransform, aTransform, aTranslate);
                 const Color& aColor = aSeedG.mColorizeImages ? aSeedG.mColor : Color::White;
                 TodBltMatrix(&aSeedG, aPlantImage, aTransform, aSeedG.mClipRect, aColor, aSeedG.mDrawMode, aSrcRect);
             }

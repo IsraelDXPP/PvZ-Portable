@@ -402,10 +402,16 @@ void ReanimatorCache::DrawCachedPlant(Graphics* g, float thePosX, float thePosY,
 	if (theRad != 0.0f)
 	{
 		Rect aSrcRect(0, 0, aImage->mWidth, aImage->mHeight);
-		float aTransX = aImage->mWidth * 0.5f * g->mScaleX + thePosX + (aOffsetX * g->mScaleX) + g->mTransX;
-		float aTransY = aImage->mHeight * 0.5f * g->mScaleY + thePosY + (aOffsetY * g->mScaleY) + g->mTransY;
 		SexyMatrix3 aTransform;
-		TodScaleRotateTransformMatrix(aTransform, aTransX, aTransY, theRad, g->mScaleX, g->mScaleY);
+		TodScaleRotateTransformMatrix(aTransform, thePosX + g->mTransX, thePosY + g->mTransY, theRad, g->mScaleX, g->mScaleY);
+		// Translate by the offset PLUS half the image size so the rotation pivot is at the
+		// plant's ground origin (thePosX,thePosY) and the image appears at the correct
+		// offset from it - matching the non-rotated DrawImage(aImage, thePosX+aOffsetX, thePosY+aOffsetY).
+		SexyMatrix3 aTranslate;
+		aTranslate.LoadIdentity();
+		aTranslate.m02 = aOffsetX + aImage->mWidth  * 0.5f;
+		aTranslate.m12 = aOffsetY + aImage->mHeight * 0.5f;
+		SexyMatrix3Multiply(aTransform, aTransform, aTranslate);
 		const Color& aColor = g->mColorizeImages ? g->mColor : Color::White;
 		TodBltMatrix(g, aImage, aTransform, g->mClipRect, aColor, g->mDrawMode, aSrcRect);
 	}

@@ -5567,6 +5567,10 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     Color aColorOverride(255, 255, 255, aFadeAlpha);
     Color aExtraAdditiveColor = Color::Black;
     bool aEnableExtraAdditiveDraw = false;
+#ifdef DO_FIX_BUGS
+    Color aExtraOverlayColor = Color::Black;
+    bool aEnableExtraOverlayDraw = false;
+#endif
     if (mZombiePhase == ZombiePhase::PHASE_ZOMBIE_BURNED)
     {
         aColorOverride = Color(0, 0, 0, aFadeAlpha);
@@ -5594,13 +5598,16 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
 #ifdef DO_FIX_BUGS
         if (mZombieType == ZombieType::ZOMBIE_BOSS)
         {
-            // For Dr. Zomboss, the additive pass doubles his massive vertex/sprite count.
-            // When multiple bosses spawn or a boss is hypnotized, this causes a vertex overflow limit, 
-            // making him completely invisible. We keep the purple color override but disable the additive glow.
-            aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
-            aColorOverride.mAlpha = aFadeAlpha;
+            // For Dr. Zomboss, setting a dark purple mColorOverride causes all his
+            // tracks to be darkened to near-black (ColorsMultiply), making him invisible.
+            // Instead, keep the base color white (fully visible) and use the ExtraOverlay
+            // path which draws a white-silhouette of each track blended with the purple
+            // color ON TOP - giving a proper purple tint without the additive vertex cost.
+            aColorOverride = Color(255, 255, 255, aFadeAlpha);
             aExtraAdditiveColor = Color::Black;
             aEnableExtraAdditiveDraw = false;
+            aExtraOverlayColor = Color(ZOMBIE_MINDCONTROLLED_COLOR.mRed, ZOMBIE_MINDCONTROLLED_COLOR.mGreen, ZOMBIE_MINDCONTROLLED_COLOR.mBlue, 160);
+            aEnableExtraOverlayDraw = true;
         }
         else
         {
@@ -5638,6 +5645,10 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     aBodyReanim->mColorOverride = aColorOverride;
     aBodyReanim->mExtraAdditiveColor = aExtraAdditiveColor;
     aBodyReanim->mEnableExtraAdditiveDraw = aEnableExtraAdditiveDraw;
+#ifdef DO_FIX_BUGS
+    aBodyReanim->mExtraOverlayColor = aExtraOverlayColor;
+    aBodyReanim->mEnableExtraOverlayDraw = aEnableExtraOverlayDraw;
+#endif
 
     if (mZombieType == ZombieType::ZOMBIE_BOBSLED)
     {
