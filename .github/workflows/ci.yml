@@ -55,6 +55,7 @@ jobs:
     container: archlinux:latest
     env:
       PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      DO_FIX_BUGS: ${{ vars.DO_FIX_BUGS || 'ON' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
@@ -114,7 +115,7 @@ jobs:
           set -e
           export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
           mkdir -p build
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DDO_FIX_BUGS=${{ env.DO_FIX_BUGS }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
           
           mkdir -p dist
@@ -135,6 +136,7 @@ jobs:
     runs-on: windows-latest
     env:
       PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      DO_FIX_BUGS: ${{ vars.DO_FIX_BUGS || 'ON' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
@@ -182,7 +184,7 @@ jobs:
       run: |
         export CCACHE_DIR=$(cygpath -u "$GITHUB_WORKSPACE")/.ccache
         mkdir -p build
-        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DBUILD_STATIC=ON -DCMAKE_COLOR_DIAGNOSTICS=ON -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DDO_FIX_BUGS=${{ env.DO_FIX_BUGS }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
         
         mkdir -p dist
@@ -202,6 +204,7 @@ jobs:
     runs-on: windows-latest
     env:
       PVZ_DEBUG: ${{ vars.PVZ_DEBUG || 'ON' }}
+      DO_FIX_BUGS: ${{ vars.DO_FIX_BUGS || 'ON' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
@@ -240,7 +243,7 @@ jobs:
       shell: pwsh
       run: |
         $env:CCACHE_DIR = "$(Get-Location)/.ccache"
-        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release -DCONSOLE=OFF -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DDO_FIX_BUGS=${{ env.DO_FIX_BUGS }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build build
 
         New-Item -ItemType Directory -Force -Path dist | Out-Null
@@ -326,7 +329,7 @@ jobs:
           source $DEVKITPRO/switchvars.sh
           export CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
           mkdir -p build
-          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake -DPVZ_DEBUG=${{ env.PVZ_DEBUG }} -DDO_FIX_BUGS=${{ env.DO_FIX_BUGS }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
 
       - name: Upload Artifact
