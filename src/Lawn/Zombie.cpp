@@ -5554,16 +5554,8 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
 
     if (theDrawPos.mClipHeight > CLIP_HEIGHT_LIMIT)
     {
-#ifdef DO_FIX_BUGS
-        if (mZombieType != ZombieType::ZOMBIE_BOSS)
-        {
-            float aDrawHeight = 120.0f - theDrawPos.mClipHeight + 71.0f;
-            g->SetClipRect(theDrawPos.mImageOffsetX - 200.0f, theDrawPos.mImageOffsetY + theDrawPos.mBodyY - 78.0f, 520, aDrawHeight);
-        }
-#else
         float aDrawHeight = 120.0f - theDrawPos.mClipHeight + 71.0f;
         g->SetClipRect(theDrawPos.mImageOffsetX - 200.0f, theDrawPos.mImageOffsetY + theDrawPos.mBodyY - 78.0f, 520, aDrawHeight);
-#endif
     }
 
     int aFadeAlpha = 255;
@@ -5599,10 +5591,29 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     }
     else if (mMindControlled)
     {
+#ifdef DO_FIX_BUGS
+        if (mZombieType == ZombieType::ZOMBIE_BOSS)
+        {
+            // For Dr. Zomboss, replacing the base colors with dark purple makes him turn invisible
+            // due to how his intricate reanimations blend. Instead, we keep his base color white
+            // and apply a slightly softer purple additive glow.
+            aColorOverride = Color::White;
+            aExtraAdditiveColor = Color(ZOMBIE_MINDCONTROLLED_COLOR.mRed, ZOMBIE_MINDCONTROLLED_COLOR.mGreen, ZOMBIE_MINDCONTROLLED_COLOR.mBlue, 150);
+            aEnableExtraAdditiveDraw = true;
+        }
+        else
+        {
+            aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
+            aColorOverride.mAlpha = aFadeAlpha;
+            aExtraAdditiveColor = aColorOverride;
+            aEnableExtraAdditiveDraw = true;
+        }
+#else
         aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
         aColorOverride.mAlpha = aFadeAlpha;
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
+#endif
     }
     else if (mChilledCounter > 0 || mIceTrapCounter > 0)
     {
@@ -9622,6 +9633,7 @@ void Zombie::DrawBossFireBall(Graphics* g)
     if (aFireBallReanim)
     {
         GraphicsAutoState aState(g);
+        MakeParentGraphicsFrame(g);
 
         aFireBallReanim->DrawRenderGroup(g, RENDER_GROUP_NORMAL);
         g->SetDrawMode(Graphics::DRAWMODE_ADDITIVE);
@@ -10024,12 +10036,11 @@ void Zombie::BossHeadSpitContact()
         mBossFireBallReanimID = ReanimationID::REANIMATIONID_NULL;
     }
 
-    float aStartPosX = mBoard->GridToPixelX(7, mFireballRow) + 35.0f;
-    float aPosY = mBoard->GetPosYBasedOnRow(aStartPosX, mFireballRow) - 90.0f;
+    float aPosY = mBoard->GetPosYBasedOnRow(550.0f, mFireballRow) - 90.0f;
     Reanimation* aFireBallReanim;
     if (mIsFireBall)
     {
-        aFireBallReanim = mApp->AddReanimation(aStartPosX, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_FIREBALL);
+        aFireBallReanim = mApp->AddReanimation(455.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_FIREBALL);
         aFireBallReanim->PlayReanim("anim_form", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0, 16.0f);
         aFireBallReanim->mIsAttachment = true;
         aFireBallReanim->AssignRenderGroupToTrack("additive", RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
@@ -10037,7 +10048,7 @@ void Zombie::BossHeadSpitContact()
     }
     else
     {
-        aFireBallReanim = mApp->AddReanimation(700.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_ICEBALL);
+        aFireBallReanim = mApp->AddReanimation(455.0f, aPosY, mRenderOrder + 1, ReanimationType::REANIM_BOSS_ICEBALL);
         aFireBallReanim->PlayReanim("anim_form", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0, 16.0f);
         aFireBallReanim->mIsAttachment = true;
         aFireBallReanim->AssignRenderGroupToTrack("ice_highlight", RENDER_GROUP_BOSS_FIREBALL_ADDITIVE);
@@ -10056,9 +10067,9 @@ void Zombie::UpdateBossFireball()
 
     float aSpeed = aFireballReanim->GetTrackVelocity("_ground");
     aFireballReanim->mOverlayMatrix.m02 -= aSpeed;
-    float aPosX = aFireballReanim->mOverlayMatrix.m02 + aFireballReanim->mOffsetX;
-    float aPosY = mBoard->GetPosYBasedOnRow(aPosX, mFireballRow) - 90.0f;
-    aFireballReanim->mOverlayMatrix.m12 = aPosY - aFireballReanim->mOffsetY;
+    float aPosX = aFireballReanim->mOverlayMatrix.m02;
+    float aPosY = mBoard->GetPosYBasedOnRow(aPosX + 75.0f, mFireballRow) - 90.0f;
+    aFireballReanim->mOverlayMatrix.m12 = aPosY;
 
     if (aPosX < -180.0f)
     {
@@ -10435,15 +10446,6 @@ void Zombie::BossSetupReanim()
 
 void Zombie::DrawBossPart(Graphics* g, BossPart theBossPart)
 {
-    GraphicsAutoState aState(g);
-#ifdef DO_FIX_BUGS
-    if (mMindControlled)
-    {
-        // To turn Zomboss around and keep him visible, we mirror him around the horizontal center.
-        g->SetScale(-1, 1, 400, 0); 
-    }
-#endif
-
     ZombieDrawPosition aDrawPos;
     GetDrawPos(aDrawPos);
 
