@@ -2821,8 +2821,6 @@ void Plant::UpdateReanim()
         aOffsetY += 80.0f - 80.0f * aScaleFactor;
     }
 
-    aBodyReanim->Update();
-
     if (mSeedType == SeedType::SEED_LEFTPEATER)
     {
         aOffsetX += 80.0f * aScaleX;
@@ -2916,6 +2914,11 @@ void Plant::Update()
         }
 
         UpdateReanim();
+        Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mBodyReanimID);
+        if (aBodyReanim)
+        {
+            aBodyReanim->Update();
+        }
     }
 }
 
@@ -4103,6 +4106,7 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
                         aBodyReanim->mOffsetY = sin(mRad) * 40;
                         TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
                     }
                     else
                     {
@@ -4110,6 +4114,7 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetY = 0.0f;
                         aBodyReanim->mOverlayMatrix.LoadIdentity();
                         mRad = 0.0f;
+                        UpdateReanim();
                     }
                 }
 #else
@@ -4125,6 +4130,7 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetX = -cos(mRad) * 15 + rotatedHeightX;
                         aBodyReanim->mOffsetY = sin(mRad) * 40;
                         TodScaleRotateTransformMatrix(aBodyReanim->mOverlayMatrix, 0.0f, 0.0f, mRad, 1.0f, 1.0f);
+                        UpdateReanim();
                     }
                     else
                     {
@@ -4132,6 +4138,7 @@ void Plant::Draw(Graphics* g)
                         aBodyReanim->mOffsetY = 0.0f;
                         aBodyReanim->mOverlayMatrix.LoadIdentity();
                         mRad = 0.0f;
+                        UpdateReanim();
                     }
                 }
 #endif
