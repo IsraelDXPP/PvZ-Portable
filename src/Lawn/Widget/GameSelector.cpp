@@ -42,9 +42,8 @@
 #include "widget/Dialog.h"
 #include "widget/WidgetManager.h"
 
-static float gFlowerCenter[3][2] = { { 765.0f, 483.0f }, { 663.0f, 455.0f }, { 701.0f, 439.0f } };  //0x665430
+static float gFlowerCenter[3][2] = { { 765.0f, 483.0f }, { 663.0f, 455.0f }, { 701.0f, 439.0f } };
 
-//0x448C80
 void GameSelectorOverlay::Draw(Graphics* g)
 { 
 	mParent->DrawOverlay(g);
@@ -57,7 +56,6 @@ GameSelectorOverlay::GameSelectorOverlay(GameSelector* theGameSelector)
 	mHasAlpha = true;
 }
 
-//0x448CB0
 // GOTY @Patoke: 0x44B8D0
 GameSelector::GameSelector(LawnApp* theApp)
 {
@@ -364,7 +362,6 @@ GameSelector::GameSelector(LawnApp* theApp)
 	TodHesitationTrace("gameselectorinit");
 }
 
-//0x449D00 and 0x449D20
 GameSelector::~GameSelector()
 {
 	if (mAdventureButton)
@@ -406,7 +403,6 @@ GameSelector::~GameSelector()
 	delete mToolTip;
 }
 
-//0x449E60
 // GOTY @Patoke: 0x44CDD0
 void GameSelector::SyncButtons()
 {
@@ -504,7 +500,6 @@ void GameSelector::SyncButtons()
 	}
 }
 
-//0x44A2E0
 // GOTY @Patoke: 0x44D230
 void GameSelector::AddTrophySparkle()
 {
@@ -513,7 +508,6 @@ void GameSelector::AddTrophySparkle()
 	mTrophyParticleID = mApp->ParticleGetID(aTrophyParticle);
 }
 
-//0x44A320
 // GOTY @Patoke: 0x44D270
 void GameSelector::SyncProfile(bool theShowLoading)
 {
@@ -583,7 +577,6 @@ void GameSelector::SyncProfile(bool theShowLoading)
 	ReportAchievement::AchievementInitForPlayer(mApp); // @Patoke: add call
 }
 
-//0x44A650
 // GOTY @Patoke: seems to be inlined? 0x44DCC6
 void GameSelector::Draw(Graphics* g)
 {
@@ -638,7 +631,6 @@ void GameSelector::Draw(Graphics* g)
 	}
 }
 
-//0x44AB50
 // GOTY @Patoke: 0x44D750
 void GameSelector::DrawOverlay(Graphics* g)
 {
@@ -747,7 +739,6 @@ void GameSelector::DrawOverlay(Graphics* g)
 	mToolTip->Draw(g);
 }
 
-//0x44B0D0
 // GOTY @Patoke: 0x44DE6D
 void GameSelector::UpdateTooltip()
 {
@@ -758,7 +749,7 @@ void GameSelector::UpdateTooltip()
 	{
 		int aMouseX = mApp->mWidgetManager->mLastMouseX;
 		int aMouseY = mApp->mWidgetManager->mLastMouseY;
-		if (aMouseX >= 50 && aMouseX < 135 && aMouseY >= 325 && aMouseY <= 550)
+		if (aMouseX >= 50 && aMouseX < 135 && aMouseY >= 275 && aMouseY < 500)
 		{
 			if (mApp->EarnedGoldTrophy())
 			{
@@ -783,7 +774,6 @@ void GameSelector::UpdateTooltip()
 	mToolTip->Update();
 }
 
-//0x44B2A0
 // GOTY @Patoke: 0x44E030
 void GameSelector::Update()
 {
@@ -1008,7 +998,6 @@ void GameSelector::Update()
 	aSelectorReanim->SetImageOverride("woodsign3", (mZombatarButton->mIsOver || mZombatarButton->mIsDown) ? Sexy::IMAGE_REANIM_SELECTORSCREEN_WOODSIGN3_PRESS : nullptr);
 }
 
-//0x44BB20
 // GOTY @Patoke: 0x44EA40
 void GameSelector::TrackButton(DialogButton* theButton, const char* theTrackName, float theOffsetX, float theOffsetY)
 {
@@ -1021,7 +1010,6 @@ void GameSelector::TrackButton(DialogButton* theButton, const char* theTrackName
 	theButton->mY = static_cast<int>(aTransform.mTransY + theOffsetY);
 }
 
-//0x44BBC0
 void GameSelector::AddedToManager(WidgetManager* theWidgetManager)
 {
 	Widget::AddedToManager(theWidgetManager);
@@ -1045,7 +1033,6 @@ void GameSelector::AddedToManager(WidgetManager* theWidgetManager)
 	//theWidgetManager->AddWidget(mQuickPlayButton);
 }
 
-//0x44BCA0
 void GameSelector::RemovedFromManager(WidgetManager* theWidgetManager)
 {
 	Widget::RemovedFromManager(theWidgetManager);
@@ -1069,7 +1056,6 @@ void GameSelector::RemovedFromManager(WidgetManager* theWidgetManager)
 	//theWidgetManager->RemoveWidget(mQuickPlayButton);
 }
 
-//0x44BD80
 void GameSelector::OrderInManagerChanged()
 {
 	mWidgetManager->PutInfront(mAchievementsWidget, this);
@@ -1090,7 +1076,6 @@ void GameSelector::OrderInManagerChanged()
 	//mWidgetManager->PutInfront(mQuickPlayButton, this);
 }
 
-//0x44BE60
 // GOTY @Patoke: 0x44EB11
 void GameSelector::KeyDown(KeyCode theKey)
 {
@@ -1168,7 +1153,6 @@ void GameSelector::KeyDown(KeyCode theKey)
 	}
 }
 
-//0x44C200
 // GOTY @Patoke: 0x44EEE0
 void GameSelector::KeyChar(char theChar)
 {
@@ -1209,7 +1193,6 @@ void GameSelector::KeyChar(char theChar)
 	}
 }
 
-//0x44C360
 // GOTY @Patoke: 0x44F040
 void GameSelector::MouseDown(int x, int y, int theClickCount)
 {
@@ -1228,7 +1211,6 @@ void GameSelector::MouseDown(int x, int y, int theClickCount)
 		mStartingGameCounter = 450;
 }
 
-//0x44C4C0
 // GOTY @Patoke: 0x44F1A0
 void GameSelector::ButtonMouseEnter(int theId)
 {
@@ -1240,7 +1222,6 @@ void GameSelector::ButtonMouseEnter(int theId)
 	mApp->PlayFoley(FoleyType::FOLEY_BLEEP);
 }
 
-//0x44C540
 // GOTY @Patoke: 0x44F220
 void GameSelector::ButtonPress(int theId)
 {
@@ -1252,7 +1233,6 @@ void GameSelector::ButtonPress(int theId)
 		mApp->PlaySample(Sexy::SOUND_TAP);
 }
 
-//0x44C590
 // GOTY @Patoke: 0x44F270
 void GameSelector::ClickedAdventure()
 {
@@ -1299,17 +1279,18 @@ void GameSelector::ClickedAdventure()
 			aHandReanim->mTrackInstances[i].mIgnoreClipRect = true;
 }
 
-//0x44C890
 // GOTY @Patoke: 0x44F590
 bool GameSelector::ShouldDoZenTuturialBeforeAdventure()
 {
 	return !mApp->HasFinishedAdventure() && mApp->mPlayerInfo->GetLevel() == 45 && mApp->mPlayerInfo->mNumPottedPlants == 0;
 }
 
-//0x44C8C0
 // GOTY @Patoke: 0x44F5C0
 void GameSelector::ButtonDepress(int theId)
 {
+	if (mSlideCounter > 0)
+		return;
+
 	if (theId == GameSelector::GameSelector_Minigame && mMinigamesLocked)
 	{
 		mApp->LawnMessageBox(Dialogs::DIALOG_MESSAGE, "[MODE_LOCKED]", "[MINIGAME_LOCKED_MESSAGE]", "[DIALOG_BUTTON_OK]", "", Dialog::BUTTONS_FOOTER);
@@ -1398,7 +1379,6 @@ void GameSelector::ButtonDepress(int theId)
 	}
 }
 
-//0x44CB00
 // GOTY @Patoke: 0x44F880
 void GameSelector::AddPreviewProfiles()
 {
@@ -1505,6 +1485,9 @@ void GameSelector::AddPreviewProfiles()
 // @Patoke: implemented functions
 // GOTY @Patoke: 0x450140
 void GameSelector::SlideTo(int theX, int theY) {
+	if (mSlideCounter > 0)
+		return;
+
 	mSlideCounter = 75;
 	mDestX = theX;
 	mDestY = theY;

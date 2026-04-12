@@ -57,7 +57,7 @@ void SexyAppBase::InitInput()
 
 bool SexyAppBase::StartTextInput(std::string& theInput)
 {
-	char buf[512];
+	char buf[512] = {0};
 
 	SwkbdConfig kbd;
 	swkbdCreate(&kbd, 0);

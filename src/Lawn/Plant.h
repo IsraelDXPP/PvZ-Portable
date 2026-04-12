@@ -149,11 +149,11 @@ enum MagnetItemType : int32_t
 class MagnetItem
 {
 public:
-    float                   mPosX;                          //+0x0
-    float                   mPosY;                          //+0x4
-    float                   mDestOffsetX;                   //+0x8
-    float                   mDestOffsetY;                   //+0xC
-    MagnetItemType          mItemType;                      //+0x10
+    float                   mPosX;
+    float                   mPosY;
+    float                   mDestOffsetX;
+    float                   mDestOffsetY;
+    MagnetItemType          mItemType;
 };
 
 class Coin;
@@ -325,15 +325,15 @@ float                       PlantFlowerPotHeightOffset(SeedType theSeedType, flo
 class PlantDefinition
 {
 public:
-    SeedType                mSeedType;          //+0x0
-    Image**                 mPlantImage;        //+0x4
-    ReanimationType         mReanimationType;   //+0x8
-    int                     mPacketIndex;       //+0xC
-    int                     mSeedCost;          //+0x10
-    int                     mRefreshTime;       //+0x14
-    PlantSubClass           mSubClass;          //+0x18
-    int                     mLaunchRate;        //+0x1C
-    const char*         mPlantName;         //+0x20
+    SeedType                mSeedType;
+    Image**                 mPlantImage;
+    ReanimationType         mReanimationType;
+    int                     mPacketIndex;
+    int                     mSeedCost;
+    int                     mRefreshTime;
+    PlantSubClass           mSubClass;
+    int                     mLaunchRate;
+    const char*         mPlantName;
 };
 extern PlantDefinition gPlantDefs[SeedType::NUM_SEED_TYPES];
 

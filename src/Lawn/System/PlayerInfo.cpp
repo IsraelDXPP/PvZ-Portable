@@ -64,7 +64,6 @@ PlayerInfo::PlayerInfo()
 	Reset();
 }
 
-//0x468310
 void PlayerInfo::SyncSummary(DataSync& theSync)
 {
 	theSync.SyncString(mName);
@@ -72,7 +71,6 @@ void PlayerInfo::SyncSummary(DataSync& theSync)
 	theSync.SyncUInt32(mId);
 }
 
-//0x468390
 void PlayerInfo::SyncDetails(DataSync& theSync)
 {
 	if (theSync.GetReader())
@@ -161,7 +159,6 @@ void PlayerInfo::SyncDetails(DataSync& theSync)
 	theSync.SyncUInt8(mZombatarCreatedBefore);
 }
 
-//0x469400
 void PlayerInfo::LoadDetails()
 {
 	try
@@ -186,7 +183,6 @@ void PlayerInfo::LoadDetails()
 	}
 }
 
-//0x4695F0
 // GOTY @Patoke: 0x46D750
 void PlayerInfo::SaveDetails()
 {
@@ -288,7 +284,6 @@ void PlayerInfo::DeleteUserFiles()
 	}
 }
 
-//0x469940
 void PlayerInfo::Reset()
 {
 	mLevel = 1;
@@ -364,7 +359,6 @@ void PlayerInfo::ResetChallengeRecord(GameMode theGameMode)
 	mChallengeRecords[aGameMode] = 0;
 }
 
-//0x469A00
 void PottedPlant::InitializePottedPlant(SeedType theSeedType)
 {
 	memset(this, 0, sizeof(PottedPlant));

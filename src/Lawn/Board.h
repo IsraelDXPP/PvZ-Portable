@@ -172,20 +172,6 @@ public:
 	SeedBank*						mSeedBank;												//+0x144
 	GameButton*						mMenuButton;											//+0x148
 	GameButton*						mStoreButton;											//+0x14C
-#ifdef _REPLANTED_SPEED_CONTROL
-	NewLawnButton*					mSlowdownButton;
-	NewLawnButton*					mPauseButton;
-	NewLawnButton*					mSpeedupButton;
-#else
-	GameButton*						mSlowdownButton;
-	GameButton*						mPauseButton;
-	GameButton*						mSpeedupButton;
-#endif
-	bool							mAllowSpeedMod;
-	SpeedMod						mPrevSpeedMod;
-	SpeedMod						mSpeedMod;
-	int								mSlowMoCounter;
-	int								mQECounter;
 	bool							mIgnoreMouseUp;											//+0x150
 	ToolTipWidget*					mToolTip;												//+0x154
 	//_Font*							mDebugFont;											//+0x158
@@ -290,10 +276,10 @@ public:
 	bool							mMushroomsUsed;											//+GOTY @Patoke: 0x5791
 	int32_t							mLevelCoinsCollected;									//+GOTY @Patoke: 0x5788
 	int32_t							mGargantuarsKillsByCornCob;								//+GOTY @Patoke: 0x578C
-	int32_t							mCoinsCollected;										//+0x57A0 GOTY @Patoke: 0x57C8
-	int32_t							mDiamondsCollected;										//+0x57A4 GOTY @Patoke: 0x57CC
-	int32_t							mPottedPlantsCollected;									//+0x57A8
-	int32_t							mChocolateCollected;									//+0x57AC
+	int32_t							mCoinsCollected;										//+GOTY @Patoke: 0x57C8
+	int32_t							mDiamondsCollected;										//+GOTY @Patoke: 0x57CC
+	int32_t							mPottedPlantsCollected;
+	int32_t							mChocolateCollected;
 
 public:
 	Board(LawnApp* theApp);

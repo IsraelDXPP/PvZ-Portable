@@ -54,7 +54,7 @@ Image::Image()
 
 Image::~Image()
 {
-	delete mBits;
+	delete[] mBits;
 }
 
 int	Image::GetWidth()
@@ -404,7 +404,7 @@ Image* GetGIFImage(const std::string& theFileName)
 				if (comments == (char*)nullptr)
 					break;
 
-				delete comments;
+				delete[] comments;
 				break;
 			}
 			case 0xff:
@@ -536,7 +536,7 @@ Image* GetGIFImage(const std::string& theFileName)
 
 				colortable[i] = 0xFF000000 | (r << 16) | (g << 8) | (b);
 			}
-			delete colormap;
+			delete[] colormap;
 		}
 
 		/*if (opacity >= (int) colors)
@@ -804,10 +804,10 @@ Image* GetGIFImage(const std::string& theFileName)
 			if (QuantumTick(y,image->rows))
 			MagickMonitor(LoadImageText,y,image->rows);*/
 		}
-		delete pixel_stack;
-		delete suffix;
-		delete prefix;
-		delete packet;
+		delete[] pixel_stack;
+		delete[] suffix;
+		delete[] prefix;
+		delete[] packet;
 
 		delete[] colortable;
 
@@ -861,7 +861,7 @@ bool ImageLib::WriteJPEGImage(const std::string& theFileName, Image* theImage)
 	if ((fp = fopen(theFileName.c_str(), "wb")) == nullptr)
 		return false;
 
-	struct jpeg_compress_struct cinfo;
+	struct jpeg_compress_struct cinfo{};
 	struct my_error_mgr jerr;
 
 	cinfo.err = jpeg_std_error(&jerr.pub);
@@ -1175,7 +1175,7 @@ Image* GetJPEGImage(const std::string& theFileName)
 	if ((fp = p_fopen(theFileName.c_str(), "rb")) == nullptr)
 		return nullptr;
 
-	struct jpeg_decompress_struct cinfo;
+	struct jpeg_decompress_struct cinfo{};
 	struct my_error_mgr jerr;
 
 	cinfo.err = jpeg_std_error(&jerr.pub);
@@ -1325,8 +1325,7 @@ static bool CheckSinglePath(std::string_view thePath)
 	}
 
 	const std::string aPathString(thePath);
-	const std::filesystem::path aFilePath = Sexy::PathFromU8(aPathString);
-	if (!aFilePath.has_root_path())
+	if (!Sexy::IsPathRooted(aPathString))
 	{
 		const auto& aResourceBase = Sexy::GetResourceFolder();
 		if (!aResourceBase.empty())
@@ -1363,7 +1362,7 @@ static bool FastFileExists(std::string_view thePath)
 	if (thePath.empty())
 		return false;
 
-	const auto aFilePath = Sexy::PathFromU8(std::string(thePath));
+	const auto aFilePath = Sexy::PathFromU8(thePath);
 	if (aFilePath.has_extension())
 		return CheckSinglePath(thePath);
 

@@ -25,15 +25,11 @@
 #ifndef __GLPLATFORM_H__
 #define __GLPLATFORM_H__
 
-#ifdef NINTENDO_SWITCH
-
+#ifdef __SWITCH__
 #include <switch.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-
-#else
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -48,9 +44,7 @@
 
 #include <SDL.h>
 
-#endif
-
- // Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
+// Shared macro definitions — identical keywords in GLSL ES 1.00 and GLSL 1.20
 #define GLSL_VERT_MACROS \
 	"#define VERT_IN attribute\n" \
 	"#define V2F varying\n"
@@ -65,7 +59,9 @@ extern bool gDesktopGLFallback;
 
 inline void PlatformGLInit()
 {
-#ifndef NINTENDO_SWITCH
+#ifdef __SWITCH__
+	gladLoadGLES2((GLADloadfunc)eglGetProcAddress);
+#else
 	gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif
 }
