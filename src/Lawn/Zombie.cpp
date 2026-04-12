@@ -5593,8 +5593,16 @@ void Zombie::DrawReanim(Graphics* g, const ZombieDrawPosition& theDrawPos, int t
     {
         aColorOverride = ZOMBIE_MINDCONTROLLED_COLOR;
         aColorOverride.mAlpha = aFadeAlpha;
+#ifdef DO_FIX_BUGS
+        if (mZombieType != ZombieType::ZOMBIE_BOSS)
+        {
+            aExtraAdditiveColor = aColorOverride;
+            aEnableExtraAdditiveDraw = true;
+        }
+#else
         aExtraAdditiveColor = aColorOverride;
         aEnableExtraAdditiveDraw = true;
+#endif
     }
     else if (mChilledCounter > 0 || mIceTrapCounter > 0)
     {
@@ -9899,7 +9907,8 @@ void Zombie::BossHeadSpit()
 
     mZombiePhase = ZombiePhase::PHASE_BOSS_HEAD_SPIT;
 #ifdef DO_FIX_BUGS
-    mFireballRow = RandRangeInt(0, mBoard->StageHas6Rows() ? 5 : 4);  // 泳池僵王兼容
+    int aMaxRow = mBoard->StageHas6Rows() ? 5 : 4;
+    mFireballRow = RandRangeInt(0, aMaxRow);
 #else
     mFireballRow = RandRangeInt(0, 4);
 #endif

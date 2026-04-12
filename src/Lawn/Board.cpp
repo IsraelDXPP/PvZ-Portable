@@ -109,6 +109,8 @@ Board::Board(LawnApp* theApp)
 	mShakeCounter = 0;
 	mShakeAmountX = 0;
 	mShakeAmountY = 0;
+	mShakeX = 0;
+	mShakeY = 0;
 	mPaused = false;
 	mLevelAwardSpawned = false;
 	mFlagRaiseCounter = 0;
@@ -6067,6 +6069,26 @@ void Board::Update()
 		{
 			mOutOfMoneyCounter--;
 		}
+#ifdef DO_FIX_BUGS
+		if (mShakeCounter > 0)
+		{
+			mShakeCounter--;
+			if (mShakeCounter == 0)
+			{
+				mShakeX = 0;
+				mShakeY = 0;
+			}
+			else
+			{
+				if (!Rand(3))
+				{
+					mShakeAmountX = -mShakeAmountX;
+				}
+				mShakeX = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountX, TodCurves::CURVE_BOUNCE);
+				mShakeY = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, TodCurves::CURVE_BOUNCE);
+			}
+		}
+#else
 		if (mShakeCounter > 0)
 		{
 			mShakeCounter--;
@@ -6085,6 +6107,7 @@ void Board::Update()
 				mY = TodAnimateCurve(12, 0, mShakeCounter, 0, mShakeAmountY, TodCurves::CURVE_BOUNCE);
 			}
 		}
+#endif
 		if (mCoinBankFadeCount > 0 && mApp->GetDialog(Dialogs::DIALOG_PURCHASE_PACKET_SLOT) == nullptr)
 		{
 			mCoinBankFadeCount--;
@@ -6330,21 +6353,25 @@ void Board::AddBossRenderItem(RenderItem* theRenderList, int& theCurRenderItem, 
 	aItem->mRenderObjectType = RenderObjectType::RENDER_ITEM_BOSS_PART;
 	aItem->mZPos = MakeRenderOrder(RenderLayer::RENDER_LAYER_BOSS, aBackLegRow, 2);
 	aItem->mBossPart = BossPart::BOSS_PART_BACK_LEG;
+	aItem->mZombie = theBossZombie;
 	theCurRenderItem++;
 	aItem = &theRenderList[theCurRenderItem];
 	aItem->mRenderObjectType = RenderObjectType::RENDER_ITEM_BOSS_PART;
 	aItem->mZPos = MakeRenderOrder(RenderLayer::RENDER_LAYER_BOSS, aFrontLegRow, 2);
 	aItem->mBossPart = BossPart::BOSS_PART_FRONT_LEG;
+	aItem->mZombie = theBossZombie;
 	theCurRenderItem++;
 	aItem = &theRenderList[theCurRenderItem];
 	aItem->mRenderObjectType = RenderObjectType::RENDER_ITEM_BOSS_PART;
 	aItem->mZPos = MakeRenderOrder(RenderLayer::RENDER_LAYER_BOSS, 4, 2);
 	aItem->mBossPart = BossPart::BOSS_PART_MAIN;
+	aItem->mZombie = theBossZombie;
 	theCurRenderItem++;
 	aItem = &theRenderList[theCurRenderItem];
 	aItem->mRenderObjectType = RenderObjectType::RENDER_ITEM_BOSS_PART;
 	aItem->mZPos = MakeRenderOrder(RenderLayer::RENDER_LAYER_BOSS, aBackArmRow, 3);
 	aItem->mBossPart = BossPart::BOSS_PART_BACK_ARM;
+	aItem->mZombie = theBossZombie;
 	theCurRenderItem++;
 
 	Reanimation* aBallReanim = mApp->ReanimationTryToGet(theBossZombie->mBossFireBallReanimID);
@@ -6354,6 +6381,7 @@ void Board::AddBossRenderItem(RenderItem* theRenderList, int& theCurRenderItem, 
 		aItem->mRenderObjectType = RenderObjectType::RENDER_ITEM_BOSS_PART;
 		aItem->mZPos = aBallReanim->mRenderOrder;
 		aItem->mBossPart = BossPart::BOSS_PART_FIREBALL;
+		aItem->mZombie = theBossZombie;
 		theCurRenderItem++;
 	}
 }
@@ -6440,6 +6468,9 @@ static inline void AddUIRenderItem(RenderItem* theRenderList, int& theCurRenderI
 
 void Board::DrawGameObjects(Graphics* g)
 {
+#ifdef DO_FIX_BUGS
+	g->Translate(mShakeX, mShakeY);
+#endif
 	TodHesitationTrace("creating render list");
 
 	RenderItem aRenderList[MAX_RENDER_ITEMS];
@@ -6723,7 +6754,7 @@ void Board::DrawGameObjects(Graphics* g)
 
 		case RenderObjectType::RENDER_ITEM_BOSS_PART:
 		{
-			Zombie* aBossZombie = GetBossZombie();
+			Zombie* aBossZombie = aRenderItem.mZombie;
 			if (aBossZombie && aBossZombie->BeginDraw(g))
 			{
 				aBossZombie->DrawBossPart(g, aRenderItem.mBossPart);
@@ -6849,6 +6880,9 @@ void Board::DrawGameObjects(Graphics* g)
 	TodHesitationTrace("end draw");
 #ifdef _REPLANTED_SPEED_CONTROL
 	DrawSpeed(g);
+#endif
+#ifdef DO_FIX_BUGS
+	g->Translate(-mShakeX, -mShakeY);
 #endif
 }
 

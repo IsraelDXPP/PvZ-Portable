@@ -202,6 +202,8 @@ public:
 	int32_t							mShakeCounter;											//+0x5540
 	int32_t							mShakeAmountX;											//+0x5544
 	int32_t							mShakeAmountY;											//+0x5548
+	float							mShakeX;
+	float							mShakeY;
 	BackgroundType					mBackground;											//+0x554C
 	int32_t							mLevel;													//+0x5550
 	int32_t							mSodPosition;											//+0x5554
