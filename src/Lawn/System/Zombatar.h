@@ -2,8 +2,8 @@
 #define __ZOMBATAR_H__
 
 #include "../../ConstEnums.h"
-#include "../../SexyAppFramework/Color.h"
-#include "../../SexyAppFramework/Image.h"
+#include "../../SexyAppFramework/graphics/Color.h"
+#include "../../SexyAppFramework/graphics/Image.h"
 
 #ifdef _ZOMBATAR
 
