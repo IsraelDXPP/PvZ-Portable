@@ -384,7 +384,7 @@ void CursorPreview::Draw(Graphics* g)
                 {
                     if (aPlantOnLawn.mUnderPlant) continue;
                 }
-                else if (aSeedType != SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mNormalPlant)
+                else if (aSeedType != SeedType::SEED_PUMPKINSHELL && aSeedType != SeedType::SEED_INSTANT_COFFEE && aPlantOnLawn.mNormalPlant)
                 {
                     // Si la planta existente es upgradeable al tipo actual, mostrar el fantasma igualmente
                     if (!aPlantOnLawn.mNormalPlant->IsUpgradableTo(aSeedType))
@@ -393,8 +393,28 @@ void CursorPreview::Draw(Graphics* g)
             }
 #endif
 
-            float aOffsetY = 85.0f * (y - mGridY) + PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
-            Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, 0.0f, aOffsetY);
+#ifdef _HAS_ROOF_SLOPE_ANGLE
+            if (mBoard->StageHasRoof() && (mGridX < 5 || (aSeedType == SeedType::SEED_COBCANNON && mGridX < 4)))
+            {
+                // Posición pixel de la celda (mGridX, y) relativa al origen de dibujo (mX, mY)
+                int nextColumn = mGridX + 1;
+                if (aSeedType == SeedType::SEED_COBCANNON) nextColumn++;
+                const float cx1 = mBoard->GridToPixelX(mGridX, y);
+                const float cy1 = mBoard->GridToPixelY(mGridX, y);
+                const float cx2 = mBoard->GridToPixelX(nextColumn, y);
+                const float cy2 = mBoard->GridToPixelY(nextColumn, y);
+                float aColRad      = -atan2(cy2 - cy1, cx2 - cx1);
+                float aColHeight   = PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
+                float aColOffsetX  = (cx1 - mX) + (-cos(aColRad) * 15 + sin(aColRad) * aColHeight);
+                float aColOffsetY  = (cy1 - mY) + sin(aColRad) * 40;
+                Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aColOffsetX, aColOffsetY, aColRad);
+            }
+            else
+#endif
+            {
+                float aOffsetY = 85.0f * (y - mGridY) + PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
+                Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, 0.0f, aOffsetY);
+            }
         }
     }
 
