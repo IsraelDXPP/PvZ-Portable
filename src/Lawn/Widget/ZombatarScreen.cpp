@@ -2394,11 +2394,11 @@ void ZombatarWidget::CreateZombatarClothes() {
 		offsetY *= scale;
 		outlineX *= scale;
 		outlineY *= scale;
-		if (aDef.mImage)
-			TodDrawImageScaledF(&aMemoryGraphics, aDef.mImage, offsetX - outlineX, offsetY - outlineY, scale, scale);
+		if (aDef.mImage && *aDef.mImage)
+			TodDrawImageScaledF(&aMemoryGraphics, *aDef.mImage, offsetX - outlineX, offsetY - outlineY, scale, scale);
 		aMemoryGraphics.SetColor(Color::White);
-		if (aDef.mOutlineImage)
-			TodDrawImageScaledF(&aMemoryGraphics, aDef.mOutlineImage, offsetX, offsetY, scale, scale);
+		if (aDef.mOutlineImage && *aDef.mOutlineImage)
+			TodDrawImageScaledF(&aMemoryGraphics, *aDef.mOutlineImage, offsetX, offsetY, scale, scale);
 		aMemoryGraphics.PopState();
 		
 		aImage->mBitsChangedCount++;
