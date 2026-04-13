@@ -18,9 +18,9 @@ ZombatarTOS::ZombatarTOS(LawnApp* theApp) : LawnDialog(
 	theApp,
 	DIALOG_ZOMBATARTOS,
 	true,
-	_S("[ZOMBATAR_TOS_HEADER]"),
-	_S("[ZOMBATAR_TOS]"),
-	_S(""),
+	"[ZOMBATAR_TOS_HEADER]",
+	"[ZOMBATAR_TOS]",
+	"",
 	Dialog::BUTTONS_NONE)
 {
     mScrollAmount = 0;
@@ -42,7 +42,7 @@ ZombatarTOS::ZombatarTOS(LawnApp* theApp) : LawnDialog(
     mBackButton = MakeNewButton(
         ZombatarTOS::ZOMBATARTOS_BACK,
         this,
-        _S(""),
+        "",
         nullptr,
         Sexy::IMAGE_ZOMBATAR_BACK_BUTTON,
         Sexy::IMAGE_ZOMBATAR_BACK_BUTTON_HIGHLIGHT,
@@ -57,7 +57,7 @@ ZombatarTOS::ZombatarTOS(LawnApp* theApp) : LawnDialog(
     mAcceptButton = MakeNewButton(
         ZombatarTOS::ZOMBATARTOS_ACCEPT,
         this,
-        _S(""),
+        "",
         nullptr,
         Sexy::IMAGE_ZOMBATAR_ACCEPT_BUTTON,
         Sexy::IMAGE_ZOMBATAR_ACCEPT_BUTTON_HIGHLIGHT,
@@ -359,7 +359,7 @@ void ZombatarTOS::Update()
                 mIsDraggingThumb = true;
                 float aThumbHeight = mScrollArea.mHeight / mMaxScrollPosition * mScrollArea.mHeight;
                 float aScrollPosition = (mWidgetManager->mLastMouseY - mY - 75 - (mScrollArea.mHeight / 2.0f)) / (mScrollArea.mHeight - aThumbHeight) * mMaxScrollPosition;
-                mScrollPosition = max(0.0f, min(aScrollPosition, mMaxScrollPosition));
+                mScrollPosition = std::max(0.0f, std::min(aScrollPosition, (float)mMaxScrollPosition));
             }
         }
         else if (mScrollableDown && IS_DOWN) {
@@ -367,7 +367,7 @@ void ZombatarTOS::Update()
             {
                 float aThumbHeight = mScrollArea.mHeight / mMaxScrollPosition * mScrollArea.mHeight;
                 float aScrollPosition = (mWidgetManager->mLastMouseY - mY - 75 - (mScrollArea.mHeight / 2.0f)) / (mScrollArea.mHeight - aThumbHeight) * mMaxScrollPosition;
-                mScrollPosition = max(0.0f, min(aScrollPosition, mMaxScrollPosition));
+                mScrollPosition = std::max(0.0f, std::min(aScrollPosition, (float)mMaxScrollPosition));
             }
         }
         else {
@@ -449,7 +449,7 @@ void ZombatarTOS::ButtonDepress(int theId)
                 mApp->WriteCurrentUserConfig();
                 mApp->KillDialog(Dialogs::DIALOG_ZOMBATARTOS);
                 mApp->mWidgetManager->SetFocus(mApp->mGameSelector);
-                mApp->mGameSelector->ShowZombatarScreen();
+                mApp->ShowZombatarScreen();
             }
             break;
         }
