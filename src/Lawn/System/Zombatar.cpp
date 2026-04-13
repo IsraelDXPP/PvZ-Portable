@@ -183,7 +183,6 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_HAT_13,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_13,				ZombatarCategory::ZombatarCategory_Hats,		  0, 2,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_HAT_14,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_14,				ZombatarCategory::ZombatarCategory_Hats,		  1, 2,		gZombatarBrightPalletes},
 };
-};
 
 ZombatarDefinition& GetZombatarDefinition(ZombatarItem theItem)
 {
