@@ -4109,7 +4109,11 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 					if (aPlantOnLawn.mUnderPlant) continue;
 				}
 				else if (aPlantingSeedType != SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mNormalPlant)
-					continue;
+				{
+					// Si ya hay planta pero es upgradeable al tipo actual, permitir (se plantará el upgrade)
+					if (!aPlantOnLawn.mNormalPlant->IsUpgradableTo(aPlantingSeedType))
+						continue;
+				}
 			}
 
 

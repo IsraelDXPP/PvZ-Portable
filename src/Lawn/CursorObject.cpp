@@ -354,15 +354,47 @@ void CursorPreview::Draw(Graphics* g)
         Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aOffsetX, aOffsetY, aRad);
     }
 
-    if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)
+    bool aIsColumnMode = (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN);
+#ifdef _MORE_OPTIONS
+    bool aIsPlantInColumns = (mApp->mPlayerInfo->mPlantInColumns &&
+                              mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN &&
+                              mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM);
+#else
+    constexpr bool aIsPlantInColumns = false;
+#endif
+    if (aIsColumnMode || aIsPlantInColumns)
     {
-        for (int y = 0; y < MAX_GRID_SIZE_Y; y++)
+        int aMaxRow = mBoard->StageHas6Rows() ? 6 : 5;
+        for (int y = 0; y < aMaxRow; y++)
         {
-            if (y != mGridY && mBoard->CanPlantAt(mGridX, y, aSeedType) == PlantingReason::PLANTING_OK)
+            if (y == mGridY)
+                continue;
+            if (mBoard->CanPlantAt(mGridX, y, aSeedType) != PlantingReason::PLANTING_OK)
+                continue;
+
+#ifdef _MORE_OPTIONS
+            // En modo mPlantInColumns (no COLUMN puro), respetar restricciones de ocupación de celda
+            if (aIsPlantInColumns && !aIsColumnMode && !mApp->mPlayerInfo->mPlantAnywhere)
             {
-                float aOffsetY = 85.0f * (y - mGridY) + PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
-                Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, 0.0f, aOffsetY);
+                PlantsOnLawn aPlantOnLawn;
+                mBoard->GetPlantsOnLawn(mGridX, y, &aPlantOnLawn);
+                if (aSeedType == SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mPumpkinPlant)
+                    continue;
+                else if (aSeedType == SeedType::SEED_LILYPAD || aSeedType == SeedType::SEED_FLOWERPOT)
+                {
+                    if (aPlantOnLawn.mUnderPlant) continue;
+                }
+                else if (aSeedType != SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mNormalPlant)
+                {
+                    // Si la planta existente es upgradeable al tipo actual, mostrar el fantasma igualmente
+                    if (!aPlantOnLawn.mNormalPlant->IsUpgradableTo(aSeedType))
+                        continue;
+                }
             }
+#endif
+
+            float aOffsetY = 85.0f * (y - mGridY) + PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
+            Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, 0.0f, aOffsetY);
         }
     }
 
