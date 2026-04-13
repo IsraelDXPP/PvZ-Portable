@@ -1373,12 +1373,7 @@ void GameSelector::ButtonDepress(int theId)
 		if (ShouldDoZenTuturialBeforeAdventure())
 			mApp->mZenGarden->SetupForZenTutorial();
 		break;
-	case GameSelector::GameSelector_Zombatar:
-		//if (mApp->mPlayerInfo->mAckZombatarTOS)
-		//	GameSelector::ShowZombatarScreen();
-		//else
-		//	LawnApp::ShowZombatarTOS();
-		break;
+
 	case GameSelector::GameSelector_AchievementsBack: // @Patoke: seems to be unused
 		//SlideTo(0, 0);
 		break;
