@@ -272,9 +272,6 @@ enum Dialogs : int32_t
     DIALOG_NEWOPTIONS,                          // 2：菜单
     DIALOG_ALMANAC,                             // 3：图鉴
     DIALOG_STORE,                               // 4：商店
-#ifdef _ZOMBATAR
-    DIALOG_ZOMBATARTOS,
-#endif
     DIALOG_PREGAME_NAG,                         // 5：
     DIALOG_LOAD_GAME,                           // 6：
     DIALOG_CONFIRM_UPDATE_CHECK,                // 7：
