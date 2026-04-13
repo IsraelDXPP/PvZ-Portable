@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PvZ Portable</string>
+
+    <!-- ResourceImportActivity -->
+    <string name="status_ready">Recursos del juego encontrados. ¡Listo para jugar!</string>
+    <string name="status_missing">Recursos del juego no encontrados.\nPor favor, importa main.pak + properties/ para continuar.</string>
+
+    <string name="section_import_resources">Importar recursos del juego</string>
+    <string name="import_help">Selecciona un archivo ZIP o una carpeta que contenga una copia comprada legalmente de main.pak y el directorio properties/.</string>
+    <string name="btn_pick_zip">Seleccionar archivo ZIP</string>
+    <string name="btn_pick_dir">Seleccionar carpeta de recursos</string>
+
+    <string name="section_save_data">Importar/Exportar datos de guardado (Opcional)</string>
+    <string name="btn_export_save">Exportar datos de guardado</string>
+    <string name="btn_import_save_zip">Importar ZIP de guardado</string>
+    <string name="btn_import_save_dir">Importar carpeta de guardado</string>
+
+    <string name="btn_launch_game">Iniciar juego</string>
+
+    <string name="import_success">¡Importación completada con éxito!</string>
+    <string name="import_failed">La importación falló: %1$s</string>
+    <string name="export_success">¡Datos de guardado exportados con éxito!</string>
+    <string name="export_failed">La exportación falló: %1$s</string>
+    <string name="no_save_data">No se encontraron datos de guardado para exportar.</string>
+    <string name="shortcut_manage_data">Gestionar datos</string>
+    <string name="shortcut_manage_data_long">Gestionar recursos y guardados</string>
+</resources>
