@@ -1337,6 +1337,18 @@ void GameSelector::ButtonDepress(int theId)
 	case GameSelector::GameSelector_ChangeUser:
 		mApp->DoUserDialog();
 		break;
+#ifdef _ZOMBATAR
+    case GameSelector::GameSelector_Zombatar:
+        if (mApp->mPlayerInfo->mAckZombatarTOS)
+        {
+            mApp->ShowZombatarScreen();
+        }
+        else
+        {
+            mApp->ShowZombatarTOS();
+        }
+        break;
+#endif
 	case GameSelector::GameSelector_Store:
 	{
 		StoreScreen* aStore = mApp->ShowStoreScreen();

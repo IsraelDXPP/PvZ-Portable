@@ -141,6 +141,9 @@ LawnApp::LawnApp()
 	mZenGarden = nullptr;
 	mEffectSystem = nullptr;
 	mReanimatorCache = nullptr;
+#ifdef _ZOMBATAR
+    mZombatarWidget = nullptr;
+#endif
 	mCloseRequest = false;
 	mWidth = BOARD_WIDTH/IMG_DOWNSCALE;
 	mHeight = BOARD_HEIGHT/IMG_DOWNSCALE;
@@ -268,6 +271,15 @@ LawnApp::~LawnApp()
 		mWidgetManager->RemoveWidget(mAwardScreen);
 		delete mAwardScreen;
 	}
+#ifdef _ZOMBATAR
+    if (mZombatarWidget)
+    {
+        mWidgetManager->RemoveWidget(mZombatarWidget);
+        delete mZombatarWidget;
+    }
+    extern void DisposeZombatarClothesCache();
+    DisposeZombatarClothesCache();
+#endif
 	if (mCreditScreen)
 	{
 		mWidgetManager->RemoveWidget(mCreditScreen);
@@ -600,6 +612,39 @@ void LawnApp::KillAwardScreen()
 		mAwardScreen = nullptr;
 	}
 }
+
+#ifdef _ZOMBATAR
+#include "Lawn/Widget/ZombatarScreen.h"
+#include "Lawn/Widget/ZombatarTOS.h"
+
+void LawnApp::ShowZombatarScreen()
+{
+    mGameScene = GameScenes::SCENE_MENU;
+    mZombatarWidget = new ZombatarWidget(this);
+    mZombatarWidget->Resize(0, 0, mWidth, mHeight);
+    mWidgetManager->AddWidget(mZombatarWidget);
+    mWidgetManager->BringToBack(mZombatarWidget);
+    mWidgetManager->SetFocus(mZombatarWidget);
+}
+
+void LawnApp::KillZombatarScreen()
+{
+    if (mZombatarWidget)
+    {
+        mWidgetManager->RemoveWidget(mZombatarWidget);
+        SafeDeleteWidget(mZombatarWidget);
+        mZombatarWidget = nullptr;
+    }
+}
+
+void LawnApp::ShowZombatarTOS()
+{
+    ZombatarTOS* aDialog = new ZombatarTOS(this);
+    CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+    AddDialog(Dialogs::DIALOG_ZOMBATARTOS, aDialog);
+    mWidgetManager->SetFocus(aDialog);
+}
+#endif
 
 // GOTY @Patoke: 0x452DC0
 void LawnApp::ShowCreditScreen()

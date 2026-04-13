@@ -104,6 +104,9 @@ public:
     std::vector<unsigned char> mZombatarData;               // raw 0x48 * count
     unsigned char       mZombatarTrailingUnknown[0x14];     // unknown bytes after Zombatars
     unsigned char       mZombatarCreatedBefore;             // created at least one Zombatar (0/1)
+#ifdef _ZOMBATAR
+    bool                mAckZombatarTOS;
+#endif
 
 #ifdef _MORE_OPTIONS
     int32_t             mNoCrazyDaveSeeds;
