@@ -985,6 +985,10 @@ void Zombie::LoadPlainZombieReanim()
         EnableFuture(mBoard->mFutureMode);
     }
 
+#ifdef _ZOMBATAR
+    ApplyZombatar();
+#endif
+
     if ((mBoard && mBoard->mPlantRow[mRow] == PlantRowType::PLANTROW_POOL && mFromWave != Zombie::ZOMBIE_WAVE_CUTSCENE) || mZombieType == ZombieType::ZOMBIE_DUCKY_TUBE)
     {
         ReanimShowPrefix("zombie_duckytube", RENDER_GROUP_NORMAL);
@@ -10723,9 +10727,32 @@ void Zombie::SetupZombatar(const ZombatarData& theData)
     };
 
     SetupPart(ZombatarCategory::ZombatarCategory_Tidbits, mZombatarTidbitID, nullptr, "tidBits", (int)ZombatarItem::ZOMBATAR_TIDBIT_1, (int)ZombatarItem::ZOMBATAR_TIDBIT_14);
+    SetupPart(ZombatarCategory::ZombatarCategory_FacialHair, mZombatarFacialHairID, nullptr, "facialHair", (int)ZombatarItem::ZOMBATAR_FACIAL_HAIR_1, (int)ZombatarItem::ZOMBATAR_FACIAL_HAIR_24);
     SetupPart(ZombatarCategory::ZombatarCategory_Hairs, mZombatarHairID, &mZombatarHairLineID, "hair", (int)ZombatarItem::ZOMBATAR_HAIR_1, (int)ZombatarItem::ZOMBATAR_HAIR_16);
     SetupPart(ZombatarCategory::ZombatarCategory_EyeWears, mZombatarEyeWearID, &mZombatarEyeWearLineID, "eyeWear", (int)ZombatarItem::ZOMBATAR_EYEWEAR_1, (int)ZombatarItem::ZOMBATAR_EYEWEAR_16);
     SetupPart(ZombatarCategory::ZombatarCategory_Accessories, mZombatarAccessoryID, nullptr, "accessories", (int)ZombatarItem::ZOMBATAR_ACCESSORY_1, (int)ZombatarItem::ZOMBATAR_ACCESSORY_15);
     SetupPart(ZombatarCategory::ZombatarCategory_Hats, mZombatarHatID, &mZombatarHatLineID, "hats", (int)ZombatarItem::ZOMBATAR_HAT_1, (int)ZombatarItem::ZOMBATAR_HAT_14);
+}
+
+void Zombie::ApplyZombatar()
+{
+    if (mApp->mPlayerInfo == nullptr || mApp->mPlayerInfo->mZombatarHeadCount == 0)
+        return;
+
+    if (mZombieType != ZombieType::ZOMBIE_NORMAL && mZombieType != ZombieType::ZOMBIE_DUCKY_TUBE && mZombieType != ZombieType::ZOMBIE_FLAG)
+        return;
+
+    // Use a random Zombatar if multiple are present
+    int aZombatarIndex = Rand(mApp->mPlayerInfo->mZombatarHeadCount);
+    const unsigned char* aRawData = &mApp->mPlayerInfo->mZombatarData[aZombatarIndex * 0x48];
+
+    ZombatarData aData;
+    for (int i = 0; i < (int)ZombatarCategory::MAX_ZOMBATAR_CATEGORIES; i++)
+    {
+        aData.mSelectedItems[i] = (int)((int8_t)aRawData[i]);
+        aData.mSelectedColors[i] = (int)((int8_t)aRawData[i + 20]); // Colors offset in original GOTY
+    }
+    
+    SetupZombatar(aData);
 }
 #endif

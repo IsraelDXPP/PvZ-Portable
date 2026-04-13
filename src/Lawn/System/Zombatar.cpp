@@ -64,6 +64,7 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_BACKGROUND_MENU_DOS,    nullptr,							&Sexy::IMAGE_ZOMBATAR_BACKGROUND_MENU_DOS,  ZombatarCategory::ZombatarCategory_Backdrops,	  2, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_BACKGROUND_ROOF,	    nullptr,							&Sexy::IMAGE_ZOMBATAR_BACKGROUND_ROOF,		ZombatarCategory::ZombatarCategory_Backdrops,	  3, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_BACKGROUND_BLANK,		nullptr,							&Sexy::IMAGE_ZOMBATAR_BACKGROUND_BLANK,		ZombatarCategory::ZombatarCategory_Backdrops,	  4, 0,		gZombatarBrightPalletes},
+	
 	{ZombatarItem::ZOMBATAR_HAIR_1,					&Sexy::IMAGE_ZOMBATAR_HAIR_1,		&Sexy::IMAGE_ZOMBATAR_HAIR_1_MASK,			ZombatarCategory::ZombatarCategory_Hairs,		  0, 0,		gZombatarDimPalletes},
 	{ZombatarItem::ZOMBATAR_HAIR_2,					&Sexy::IMAGE_ZOMBATAR_HAIR_2,		&Sexy::IMAGE_ZOMBATAR_HAIR_2_MASK,			ZombatarCategory::ZombatarCategory_Hairs,		  1, 0,		gZombatarDimPalletes},
 	{ZombatarItem::ZOMBATAR_HAIR_3,					&Sexy::IMAGE_ZOMBATAR_HAIR_3,		nullptr,									ZombatarCategory::ZombatarCategory_Hairs,		  2, 0,		nullptr},
@@ -80,6 +81,32 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_HAIR_14,				&Sexy::IMAGE_ZOMBATAR_HAIR_14,		&Sexy::IMAGE_ZOMBATAR_HAIR_14_MASK,			ZombatarCategory::ZombatarCategory_Hairs,		  1, 2,		gZombatarDimPalletes},
 	{ZombatarItem::ZOMBATAR_HAIR_15,				&Sexy::IMAGE_ZOMBATAR_HAIR_15,		&Sexy::IMAGE_ZOMBATAR_HAIR_15_MASK,			ZombatarCategory::ZombatarCategory_Hairs,		  2, 2,		gZombatarDimPalletes},
 	{ZombatarItem::ZOMBATAR_HAIR_16,				nullptr,							&Sexy::IMAGE_ZOMBATAR_HAIR_16,				ZombatarCategory::ZombatarCategory_Hairs,		  3, 2,		gZombatarDimPalletes},
+    
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_1,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_1_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_1,		ZombatarCategory::ZombatarCategory_FacialHair,	  0, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_2,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_2,		ZombatarCategory::ZombatarCategory_FacialHair,	  1, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_3,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_3,		ZombatarCategory::ZombatarCategory_FacialHair,	  2, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_4,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_4_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_4,		ZombatarCategory::ZombatarCategory_FacialHair,	  3, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_5,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_5,		ZombatarCategory::ZombatarCategory_FacialHair,	  4, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_6,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_6,		ZombatarCategory::ZombatarCategory_FacialHair,	  5, 0,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_7,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_7,		ZombatarCategory::ZombatarCategory_FacialHair,	  0, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_8,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_8_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_8,		ZombatarCategory::ZombatarCategory_FacialHair,	  1, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_9,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_9_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_9,		ZombatarCategory::ZombatarCategory_FacialHair,	  2, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_10,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_10,	ZombatarCategory::ZombatarCategory_FacialHair,	  3, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_11,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_11,	ZombatarCategory::ZombatarCategory_FacialHair,	  4, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_12,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_12,	ZombatarCategory::ZombatarCategory_FacialHair,	  5, 1,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_13,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_13,	ZombatarCategory::ZombatarCategory_FacialHair,	  0, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_14,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_14,	ZombatarCategory::ZombatarCategory_FacialHair,	  1, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_15,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_15,	ZombatarCategory::ZombatarCategory_FacialHair,	  2, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_16,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_16,	ZombatarCategory::ZombatarCategory_FacialHair,	  3, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_17,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_17,	ZombatarCategory::ZombatarCategory_FacialHair,	  4, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_18,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_18,	ZombatarCategory::ZombatarCategory_FacialHair,	  5, 2,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_19,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_19,	ZombatarCategory::ZombatarCategory_FacialHair,	  0, 3,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_20,			nullptr,							&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_20,	ZombatarCategory::ZombatarCategory_FacialHair,	  1, 3,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_21,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_21_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_21,	ZombatarCategory::ZombatarCategory_FacialHair,	  2, 3,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_22,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_22_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_22,	ZombatarCategory::ZombatarCategory_FacialHair,	  3, 3,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_23,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_23_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_23,	ZombatarCategory::ZombatarCategory_FacialHair,	  4, 3,		gZombatarDimPalletes},
+	{ZombatarItem::ZOMBATAR_FACIAL_HAIR_24,			&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_24_MASK,	&Sexy::IMAGE_ZOMBATAR_FACIALHAIR_24,	ZombatarCategory::ZombatarCategory_FacialHair,	  5, 3,		gZombatarDimPalletes},
+    
 	{ZombatarItem::ZOMBATAR_TIDBIT_1,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_1,			ZombatarCategory::ZombatarCategory_Tidbits,		  0, 0,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_TIDBIT_2,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_2,			ZombatarCategory::ZombatarCategory_Tidbits,		  1, 0,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_TIDBIT_3,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_3,			ZombatarCategory::ZombatarCategory_Tidbits,		  2, 0,		gZombatarBrightPalletes},
@@ -94,6 +121,7 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_TIDBIT_12,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_12,			ZombatarCategory::ZombatarCategory_Tidbits,		  5, 1,		nullptr},
 	{ZombatarItem::ZOMBATAR_TIDBIT_13,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_13,			ZombatarCategory::ZombatarCategory_Tidbits,		  0, 2,		nullptr},
 	{ZombatarItem::ZOMBATAR_TIDBIT_14,				nullptr,							&Sexy::IMAGE_ZOMBATAR_TIDBITS_14,			ZombatarCategory::ZombatarCategory_Tidbits,		  1, 2,		nullptr},
+
 	{ZombatarItem::ZOMBATAR_EYEWEAR_1,				&Sexy::IMAGE_ZOMBATAR_EYEWEAR_1,	&Sexy::IMAGE_ZOMBATAR_EYEWEAR_1_MASK,		ZombatarCategory::ZombatarCategory_EyeWears,	  0, 0,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_EYEWEAR_2,				&Sexy::IMAGE_ZOMBATAR_EYEWEAR_2,	&Sexy::IMAGE_ZOMBATAR_EYEWEAR_2_MASK,		ZombatarCategory::ZombatarCategory_EyeWears,	  1, 0,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_EYEWEAR_3,				&Sexy::IMAGE_ZOMBATAR_EYEWEAR_3,	&Sexy::IMAGE_ZOMBATAR_EYEWEAR_3_MASK,		ZombatarCategory::ZombatarCategory_EyeWears,	  2, 0,		gZombatarBrightPalletes},
@@ -110,6 +138,7 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_EYEWEAR_14,				nullptr,							&Sexy::IMAGE_ZOMBATAR_EYEWEAR_14,			ZombatarCategory::ZombatarCategory_EyeWears,	  1, 2,		nullptr},
 	{ZombatarItem::ZOMBATAR_EYEWEAR_15,				nullptr,							&Sexy::IMAGE_ZOMBATAR_EYEWEAR_15,			ZombatarCategory::ZombatarCategory_EyeWears,	  2, 2,		nullptr},
 	{ZombatarItem::ZOMBATAR_EYEWEAR_16,				nullptr,							&Sexy::IMAGE_ZOMBATAR_EYEWEAR_16,			ZombatarCategory::ZombatarCategory_EyeWears,	  3, 2,		nullptr},
+
 	{ZombatarItem::ZOMBATAR_CLOTHE_1,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_1,			ZombatarCategory::ZombatarCategory_Clothes,		  0, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_CLOTHE_2,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_2,			ZombatarCategory::ZombatarCategory_Clothes,		  1, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_CLOTHE_3,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_3,			ZombatarCategory::ZombatarCategory_Clothes,		  2, 0,		nullptr},
@@ -122,6 +151,7 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_CLOTHE_10,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_10,			ZombatarCategory::ZombatarCategory_Clothes,		  3, 1,		nullptr},
 	{ZombatarItem::ZOMBATAR_CLOTHE_11,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_11,			ZombatarCategory::ZombatarCategory_Clothes,		  4, 1,		nullptr},
 	{ZombatarItem::ZOMBATAR_CLOTHE_12,				nullptr,							&Sexy::IMAGE_ZOMBATAR_CLOTHES_12,			ZombatarCategory::ZombatarCategory_Clothes,		  5, 1,		nullptr},
+
 	{ZombatarItem::ZOMBATAR_ACCESSORY_1,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_1,			ZombatarCategory::ZombatarCategory_Accessories,	  0, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_ACCESSORY_2,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_2,			ZombatarCategory::ZombatarCategory_Accessories,	  1, 0,		nullptr},
 	{ZombatarItem::ZOMBATAR_ACCESSORY_3,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_3,			ZombatarCategory::ZombatarCategory_Accessories,	  2, 0,		nullptr},
@@ -137,9 +167,22 @@ ZombatarDefinition gZombatarDefinitions[] = {
 	{ZombatarItem::ZOMBATAR_ACCESSORY_13,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_14,			ZombatarCategory::ZombatarCategory_Accessories,	  0, 2,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_ACCESSORY_14,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_15,			ZombatarCategory::ZombatarCategory_Accessories,	  1, 2,		nullptr},
 	{ZombatarItem::ZOMBATAR_ACCESSORY_15,			nullptr,							&Sexy::IMAGE_ZOMBATAR_ACCESSORY_16,			ZombatarCategory::ZombatarCategory_Accessories,	  2, 2,		nullptr},
+
 	{ZombatarItem::ZOMBATAR_HAT_1,					&Sexy::IMAGE_ZOMBATAR_HATS_1,		&Sexy::IMAGE_ZOMBATAR_HATS_1_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  0, 0,		gZombatarBrightPalletes},
 	{ZombatarItem::ZOMBATAR_HAT_2,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_2,				ZombatarCategory::ZombatarCategory_Hats,		  1, 0,		gZombatarBrightPalletes},
-    // ... etc. I'll need to copy more if needed, but this is a start.
+	{ZombatarItem::ZOMBATAR_HAT_3,					&Sexy::IMAGE_ZOMBATAR_HATS_3,		&Sexy::IMAGE_ZOMBATAR_HATS_3_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  2, 0,		nullptr},
+	{ZombatarItem::ZOMBATAR_HAT_4,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_4,				ZombatarCategory::ZombatarCategory_Hats,		  3, 0,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_5,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_5,				ZombatarCategory::ZombatarCategory_Hats,		  4, 0,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_6,					&Sexy::IMAGE_ZOMBATAR_HATS_6,		&Sexy::IMAGE_ZOMBATAR_HATS_6_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  5, 0,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_7,					&Sexy::IMAGE_ZOMBATAR_HATS_7,		&Sexy::IMAGE_ZOMBATAR_HATS_7_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  0, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_8,					&Sexy::IMAGE_ZOMBATAR_HATS_8,		&Sexy::IMAGE_ZOMBATAR_HATS_8_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  1, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_9,					&Sexy::IMAGE_ZOMBATAR_HATS_9,		&Sexy::IMAGE_ZOMBATAR_HATS_9_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  2, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_10,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_10,				ZombatarCategory::ZombatarCategory_Hats,		  3, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_11,					&Sexy::IMAGE_ZOMBATAR_HATS_11,		&Sexy::IMAGE_ZOMBATAR_HATS_11_MASK,			ZombatarCategory::ZombatarCategory_Hats,		  4, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_12,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_12,				ZombatarCategory::ZombatarCategory_Hats,		  5, 1,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_13,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_13,				ZombatarCategory::ZombatarCategory_Hats,		  0, 2,		gZombatarBrightPalletes},
+	{ZombatarItem::ZOMBATAR_HAT_14,					nullptr,							&Sexy::IMAGE_ZOMBATAR_HATS_14,				ZombatarCategory::ZombatarCategory_Hats,		  1, 2,		gZombatarBrightPalletes},
+};
 };
 
 ZombatarDefinition& GetZombatarDefinition(ZombatarItem theItem)

@@ -1069,9 +1069,6 @@ void ZombatarWidget::DrawZombiePortrait(Graphics* g) {
 	g->PopState();
 }
 
-ZombatarDefinition& GetZombatarDefinition(ZombatarItem theItem) {
-	return gZombatarDefinitions[theItem];
-}
 
 void ZombatarWidget::DrawZombieAvatar(Graphics* g) {
 	g->PushState();

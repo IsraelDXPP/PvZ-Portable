@@ -194,6 +194,7 @@ public:
     int32_t                         mLastPortalX;
 #ifdef _ZOMBATAR
     ReanimationID                   mZombatarTidbitID;
+    ReanimationID                   mZombatarFacialHairID;
     ReanimationID                   mZombatarHairID;
     ReanimationID                   mZombatarHairLineID;
     ReanimationID                   mZombatarEyeWearID;
@@ -269,6 +270,7 @@ public:
     bool                            IsWalkingBackwards();
 #ifdef _ZOMBATAR
     void                            SetupZombatar(const ZombatarData& theData);
+    void                            ApplyZombatar();
 #endif
     TodParticleSystem*              AddAttachedParticle(int thePosX, int thePosY, ParticleEffect theEffect);
     void                            PogoBreak(unsigned int theDamageFlags);
