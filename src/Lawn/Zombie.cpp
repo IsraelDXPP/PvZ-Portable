@@ -179,7 +179,7 @@ void Zombie::ZombieInitialize(int theRow, ZombieType theType, bool theVariant, Z
 #ifdef _ZOMBATAR
     mZombatarHairID = ReanimationID::REANIMATIONID_NULL;
     mZombatarTidbitID = ReanimationID::REANIMATIONID_NULL;
-    mZombatarEyewearID = ReanimationID::REANIMATIONID_NULL;
+    mZombatarEyeWearID = ReanimationID::REANIMATIONID_NULL;
     mZombatarAccessoryID = ReanimationID::REANIMATIONID_NULL;
     mZombatarHatID = ReanimationID::REANIMATIONID_NULL;
     mZombatarHatLineID = ReanimationID::REANIMATIONID_NULL;
@@ -7357,7 +7357,7 @@ void Zombie::DieNoLoot()
 #ifdef _ZOMBATAR
     mApp->RemoveReanimation(mZombatarHairID);
     mApp->RemoveReanimation(mZombatarTidbitID);
-    mApp->RemoveReanimation(mZombatarEyewearID);
+    mApp->RemoveReanimation(mZombatarEyeWearID);
     mApp->RemoveReanimation(mZombatarAccessoryID);
     mApp->RemoveReanimation(mZombatarHatID);
     mApp->RemoveReanimation(mZombatarHatLineID);
@@ -10724,7 +10724,7 @@ void Zombie::SetupZombatar(const ZombatarData& theData)
 
     SetupPart(ZombatarCategory::ZombatarCategory_Tidbits, mZombatarTidbitID, nullptr, "tidBits", (int)ZombatarItem::ZOMBATAR_TIDBIT_1, (int)ZombatarItem::ZOMBATAR_TIDBIT_14);
     SetupPart(ZombatarCategory::ZombatarCategory_Hairs, mZombatarHairID, &mZombatarHairLineID, "hair", (int)ZombatarItem::ZOMBATAR_HAIR_1, (int)ZombatarItem::ZOMBATAR_HAIR_16);
-    SetupPart(ZombatarCategory::ZombatarCategory_EyeWears, mZombatarEyewearID, &mZombatarEyeWearLineID, "eyeWear", (int)ZombatarItem::ZOMBATAR_EYEWEAR_1, (int)ZombatarItem::ZOMBATAR_EYEWEAR_16);
+    SetupPart(ZombatarCategory::ZombatarCategory_EyeWears, mZombatarEyeWearID, &mZombatarEyeWearLineID, "eyeWear", (int)ZombatarItem::ZOMBATAR_EYEWEAR_1, (int)ZombatarItem::ZOMBATAR_EYEWEAR_16);
     SetupPart(ZombatarCategory::ZombatarCategory_Accessories, mZombatarAccessoryID, nullptr, "accessories", (int)ZombatarItem::ZOMBATAR_ACCESSORY_1, (int)ZombatarItem::ZOMBATAR_ACCESSORY_15);
     SetupPart(ZombatarCategory::ZombatarCategory_Hats, mZombatarHatID, &mZombatarHatLineID, "hats", (int)ZombatarItem::ZOMBATAR_HAT_1, (int)ZombatarItem::ZOMBATAR_HAT_14);
 }

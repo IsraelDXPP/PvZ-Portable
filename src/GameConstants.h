@@ -21,6 +21,13 @@
 
 #pragma once
 
+//New Options
+#define _REPLANTED_SPEED_CONTROL
+#define _MORE_OPTIONS
+#define _HAS_KERNELPULT_BUTTER_IDLE
+#define _HAS_ROOF_SLOPE_ANGLE
+#define _ZOMBATAR
+
 #include "ConstEnums.h"
 constexpr const double PI = 3.141592653589793;
 
@@ -81,12 +88,3 @@ constexpr const int STORESCREEN_COINBANK_X = 650;
 constexpr const int STORESCREEN_COINBANK_Y = 559;
 constexpr const int STORESCREEN_PAGESTRING_X = 470;
 constexpr const int STORESCREEN_PAGESTRING_Y = 500;
-
-//New Options
-#define _REPLANTED_SPEED_CONTROL
-#define _MORE_OPTIONS
-#define _HAS_KERNELPULT_BUTTER_IDLE
-#define _HAS_ROOF_SLOPE_ANGLE
-#define _ZOMBATAR
-
-

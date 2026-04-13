@@ -86,6 +86,9 @@ public:
 	virtual void                ButtonMouseEnter(int theId);
 	virtual void                ButtonDepress(int theId);
 	virtual void                ButtonPress(int theId);
+	virtual void                ButtonDownTick(int) {}
+	virtual void                ButtonMouseLeave(int) {}
+	virtual void                ButtonMouseMove(int, int, int) {}
 	void						ResetZombatar();
 	void						SetupZombie();
 	void						SetCategory(ZombatarCategory theCategory);

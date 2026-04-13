@@ -64,6 +64,10 @@
 #include "Lawn/Widget/MoreOptionsDialog.h"
 #include "Lawn/Widget/SpawnZombieDialog.h"
 #endif
+#ifdef _ZOMBATAR
+#include "Lawn/Widget/ZombatarScreen.h"
+#include "Lawn/Widget/ZombatarTOS.h"
+#endif
 #include "widget/WidgetManager.h"
 #include "misc/ResourceManager.h"
 
@@ -614,9 +618,6 @@ void LawnApp::KillAwardScreen()
 }
 
 #ifdef _ZOMBATAR
-#include "Lawn/Widget/ZombatarScreen.h"
-#include "Lawn/Widget/ZombatarTOS.h"
-
 void LawnApp::ShowZombatarScreen()
 {
     mGameScene = GameScenes::SCENE_MENU;
