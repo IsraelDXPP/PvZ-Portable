@@ -1370,6 +1370,7 @@ void LawnApp::Init()
 //#ifdef _PVZ_DEBUG
 	TodAssertInitForApp();
 	TodLog("session id: %u", mSessionID);
+	TodLog("Parsing resources...");
 //#endif
 
 	if (!mResourceManager->ParseResourcesFile("properties/resources.xml"))
@@ -1378,6 +1379,7 @@ void LawnApp::Init()
 		return;
 	}
 
+	TodLog("Loading initial resources...");
 	if (!TodLoadResources("Init"))
 	{
 		return;
@@ -1386,6 +1388,7 @@ void LawnApp::Init()
 	PerfTimer mTimer;
 	mTimer.Start();
 
+	TodLog("Loading profiles...");
 	mProfileMgr->Load();
 
 	std::string aCurUser;
@@ -1444,7 +1447,7 @@ void LawnApp::Init()
 	TodTrace("loading: 'system' %d ms", aDuration);
 #endif
 	mTimer.Start();
-
+	TodLog("Loading reanimations...");
 	ReanimatorLoadDefinitions(gLawnReanimationArray, ReanimationType::NUM_REANIMS);
 	ReanimatorEnsureDefinitionLoaded(ReanimationType::REANIM_LOADBAR_SPROUT, true);
 	ReanimatorEnsureDefinitionLoaded(ReanimationType::REANIM_LOADBAR_ZOMBIEHEAD, true);
