@@ -10743,7 +10743,7 @@ void Zombie::ApplyZombatar()
         return;
 
     // Use a random Zombatar if multiple are present
-    int aZombatarIndex = Rand(mApp->mPlayerInfo->mZombatarHeadCount);
+    int aZombatarIndex = Rand((int)mApp->mPlayerInfo->mZombatarHeadCount);
     const unsigned char* aRawData = &mApp->mPlayerInfo->mZombatarData[aZombatarIndex * 0x48];
 
     ZombatarData aData;
