@@ -2,7 +2,7 @@
 #include "../../Resources.h"
 #include "../../ConstEnums.h"
 #ifdef _ZOMBATAR
-
+using namespace Sexy;
 Color gZombatarSkinPalletes[] = {
     Color(204, 255, 51),
     Color(153, 204, 51),
