@@ -21,7 +21,15 @@
 
 #pragma once
 
+//New Options
+#define _REPLANTED_SPEED_CONTROL
+#define _MORE_OPTIONS
+#define _HAS_KERNELPULT_BUTTER_IDLE
+#define _HAS_ROOF_SLOPE_ANGLE
+#define _ZOMBATAR
+
 #include <cstdint>
+#include <string>
 
 enum AdviceType : int32_t
 {

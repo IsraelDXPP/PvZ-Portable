@@ -10,12 +10,15 @@
 #include "../../Sexy.TodLib/TodDebug.h"
 #include "../../Sexy.TodLib/TodFoley.h"
 #include "graphics/Image.h"
+#include "graphics/MemoryImage.h"
 #include "../../Sexy.TodLib/Reanimator.h"
 #include "../Zombie.h"
 #include "../../Sexy.TodLib/Attachment.h"
 #include "graphics/Font.h"
 #include "../../Sexy.TodLib/TodStringFile.h"
 #include "../System/Zombatar.h"
+
+MemoryImage* gZombatarClothes[NUM_CLOTHES];
 
 // GOTY @Inliothixi
 ZombatarWidget::ZombatarWidget(LawnApp* theApp) {
@@ -2351,8 +2354,6 @@ void ZombatarWidget::UpdateZombieAvatar() {
 		}
 	}
 }
-
-MemoryImage* gZombatarClothes[NUM_CLOTHES];
 
 void ZombatarWidget::CreateZombatarClothes() {
 	for (int i = ZombatarItem::ZOMBATAR_CLOTHE_1; i <= ZombatarItem::ZOMBATAR_CLOTHE_12; i++) {
