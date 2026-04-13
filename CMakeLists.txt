@@ -140,7 +140,7 @@ endif()
 
 option(PVZ_DEBUG "Enable _PVZ_DEBUG macro to enable cheats, hidden features, etc." ${PVZ_DEBUG_DEFAULT})
 option(LIMBO_PAGE "Enable limbo page to access hidden levels" ON)
-option(CONSOLE "Show console on Windows" ${WIN_CONSOLE_DEFAULT})
+option(CONSOLE "Show console on Windows" ON)
 option(DO_FIX_BUGS "Define DO_FIX_BUGS macro (Community fixes for original game bugs of 1.2.0.1073 GOTY Edition)" ON)
 
 if(EMSCRIPTEN)
