@@ -4007,7 +4007,7 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	Plant* aPumpkinPlant = aPlantOnLawn.mPumpkinPlant;
 	if (aNormalPlant && aNormalPlant->IsUpgradableTo(aPlantingSeedType))
 	{
-		if (aPlantingSeedType == SeedType::SEED_GLOOMSHROOM)
+		if (Plant::IsNocturnal(aPlantingSeedType))
 		{
 			aIsAwake = !aNormalPlant->mIsAsleep;
 			aWakeUpCounter = aNormalPlant->mWakeUpCounter;
@@ -4087,7 +4087,7 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	// 柱子关卡中，一列种植
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN
 #ifdef _MORE_OPTIONS
-		|| (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN && mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM)
+		|| (mApp->mPlayerInfo->mPlantInColumns && mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN && mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM && !mApp->IsIZombieLevel())
 #endif
 	)
 	{
@@ -4124,8 +4124,15 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 			Plant* aColNormalPlant = aColPlantOnLawn.mNormalPlant;
 			Plant* aColPumpkinPlant = aColPlantOnLawn.mPumpkinPlant;
 
+			bool aColIsAwake = false;
+			int aColWakeUpCounter = 0;
 			if (aColNormalPlant && aColNormalPlant->IsUpgradableTo(aPlantingSeedType))
 			{
+				if (Plant::IsNocturnal(aPlantingSeedType))
+				{
+					aColIsAwake = !aColNormalPlant->mIsAsleep;
+					aColWakeUpCounter = aColNormalPlant->mWakeUpCounter;
+				}
 				aColNormalPlant->Die();
 			}
 
@@ -4156,7 +4163,15 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 				Plant* aRightPlant = GetTopPlantAt(aGridX + 1, aRow, PlantPriority::TOPPLANT_ONLY_NORMAL_POSITION);
 				if (aRightPlant) aRightPlant->Die();
 			}
-			AddPlant(aGridX, aRow, mCursorObject->mType, mCursorObject->mImitaterType);
+			Plant* aColPlant = AddPlant(aGridX, aRow, mCursorObject->mType, mCursorObject->mImitaterType);
+			if (aColIsAwake)
+			{
+				aColPlant->SetSleeping(false);
+			}
+			else
+			{
+				aColPlant->mWakeUpCounter = aColWakeUpCounter;
+			}
 		}
 	}
 
@@ -6122,7 +6137,7 @@ void Board::Update()
 			break;
 
 		mEffectCounter++;
-		if (StageHasPool() && !mIceTrapCounter && mApp->mGameScene != GameScenes::SCENE_ZOMBIES_WON && !mCutScene->IsSurvivalRepick())
+		if (StageHasPool() && !mIceTrapCounter && mApp->mGameScene != GameScenes::SCENE_ZOMBIES_WON && !mApp->mPaused && !mCutScene->mSeedChoosing)
 		{
 			mApp->mPoolEffect->mPoolCounter++;
 		}

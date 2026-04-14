@@ -9816,8 +9816,9 @@ void Zombie::BossStompAttack()
     mBossStompCounter = RandRangeInt(5500, 6500);
 
     int aRowsCount = 0;
-    int aRowArray[4];
-    for (int i = 0; i < 4; i++)
+    int aRowArray[5];
+    int aMaxStomp = mBoard->StageHas6Rows() ? 5 : 4;
+    for (int i = 0; i < aMaxStomp; i++)
     {
         if (BossCanStompRow(i))
         {
@@ -9838,7 +9839,11 @@ void Zombie::BossStompAttack()
     case 1:     aTrackName = "anim_stomp_2";    break;
     case 2:     aTrackName = "anim_stomp_3";    break;
     case 3:     aTrackName = "anim_stomp_4";    break;
+#ifdef DO_FIX_BUGS
+    default:    aTrackName = "anim_stomp_4";    break;  // 泳池场景践踏崩溃的一种妥协的修复方式（不修改动画时）
+#else
     default:    TOD_ASSERT(false);                   break;
+#endif
     }
     PlayZombieReanim(aTrackName, ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 20, 12.0f);
     mApp->PlayFoley(FoleyType::FOLEY_HYDRAULIC_SHORT);

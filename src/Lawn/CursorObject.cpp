@@ -358,7 +358,8 @@ void CursorPreview::Draw(Graphics* g)
 #ifdef _MORE_OPTIONS
     bool aIsPlantInColumns = (mApp->mPlayerInfo->mPlantInColumns &&
                               mApp->mGameMode != GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN &&
-                              mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM);
+                              mApp->mGameMode != GameMode::GAMEMODE_TREE_OF_WISDOM &&
+                              !mApp->IsIZombieLevel());
 #else
     constexpr bool aIsPlantInColumns = false;
 #endif
