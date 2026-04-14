@@ -366,56 +366,75 @@ void CursorPreview::Draw(Graphics* g)
     if (aIsColumnMode || aIsPlantInColumns)
     {
         int aMaxRow = mBoard->StageHas6Rows() ? 6 : 5;
+
+        // Coordenadas pixel de la celda base (donde está el ratón), igual a mX/mY.
+        float aBasePixX = mBoard->GridToPixelX(mGridX, mGridY);
+        float aBasePixY = mBoard->GridToPixelY(mGridX, mGridY);
+
         for (int y = 0; y < aMaxRow; y++)
         {
             if (y == mGridY)
                 continue;
-            if (mBoard->CanPlantAt(mGridX, y, aSeedType) != PlantingReason::PLANTING_OK)
-                continue;
 
-#ifdef _MORE_OPTIONS
-            // En modo mPlantInColumns (no COLUMN puro), respetar restricciones de ocupación de celda
-            if (aIsPlantInColumns && !aIsColumnMode && !mApp->mPlayerInfo->mPlantAnywhere)
+            PlantingReason aReason = mBoard->CanPlantAt(mGridX, y, aSeedType);
+
+            if (aIsColumnMode)
             {
-                PlantsOnLawn aPlantOnLawn;
-                mBoard->GetPlantsOnLawn(mGridX, y, &aPlantOnLawn);
-                if (aSeedType == SeedType::SEED_PUMPKINSHELL && aPlantOnLawn.mPumpkinPlant)
+                // Modo COLUMN oficial: la celda debe estar completamente libre y ser válida.
+                if (aReason != PlantingReason::PLANTING_OK)
                     continue;
-                else if (aSeedType == SeedType::SEED_LILYPAD || aSeedType == SeedType::SEED_FLOWERPOT)
+            }
+            else // cheat "plant in columns"
+            {
+                // Mostramos preview aunque la celda ya tenga planta (el cheat la reemplaza).
+                // Solo saltamos casillas que son físicamente imposibles de usar:
+                // terreno equivocado, cráter, suelo no válido, etc.
+                switch (aReason)
                 {
-                    if (aPlantOnLawn.mUnderPlant) continue;
-                }
-                else if (aSeedType != SeedType::SEED_PUMPKINSHELL && aSeedType != SeedType::SEED_INSTANT_COFFEE && aPlantOnLawn.mNormalPlant)
-                {
-                    // Si la planta existente es upgradeable al tipo actual, mostrar el fantasma igualmente
-                    if (!aPlantOnLawn.mNormalPlant->IsUpgradableTo(aSeedType))
-                        continue;
+                case PlantingReason::PLANTING_NOT_HERE:
+                case PlantingReason::PLANTING_ONLY_IN_POOL:
+                case PlantingReason::PLANTING_NEEDS_GROUND:
+                case PlantingReason::PLANTING_NOT_ON_WATER:
+                case PlantingReason::PLANTING_NOT_ON_CRATER:
+                case PlantingReason::PLANTING_NOT_ON_GRAVE:
+                    continue;
+                default:
+                    break;
                 }
             }
-#endif
+
+            // Pixel exacto del centro de la celda destino.
+            float aRowPixX = mBoard->GridToPixelX(mGridX, y);
+            float aRowPixY = mBoard->GridToPixelY(mGridX, y);
+
+            // Offset relativo a la celda base: como mX/mY == aBasePixX/Y,
+            // este desplazamiento centra la imagen exactamente en la celda destino.
+            float aColOffsetX = aRowPixX - aBasePixX;
+            float aColOffsetY = aRowPixY - aBasePixY;
+            float aColRad = 0.0f;
+
+            float aHeight = PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
 
 #ifdef _HAS_ROOF_SLOPE_ANGLE
             if (mBoard->StageHasRoof() && (mGridX < 5 || (aSeedType == SeedType::SEED_COBCANNON && mGridX < 4)))
             {
-                // Posición pixel de la celda (mGridX, y) relativa al origen de dibujo (mX, mY)
                 int nextColumn = mGridX + 1;
                 if (aSeedType == SeedType::SEED_COBCANNON) nextColumn++;
-                const float cx1 = mBoard->GridToPixelX(mGridX, y);
-                const float cy1 = mBoard->GridToPixelY(mGridX, y);
+
                 const float cx2 = mBoard->GridToPixelX(nextColumn, y);
                 const float cy2 = mBoard->GridToPixelY(nextColumn, y);
-                float aColRad      = -atan2(cy2 - cy1, cx2 - cx1);
-                float aColHeight   = PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
-                float aColOffsetX  = (cx1 - mX) + (-cos(aColRad) * 15 + sin(aColRad) * aColHeight);
-                float aColOffsetY  = (cy1 - mY) + sin(aColRad) * 40;
-                Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aColOffsetX, aColOffsetY, aColRad);
+
+                aColRad      = -atan2(cy2 - aRowPixY, cx2 - aRowPixX);
+                aColOffsetX += -cos(aColRad) * 15 + sin(aColRad) * aHeight;
+                aColOffsetY += sin(aColRad) * 40;
             }
             else
 #endif
             {
-                float aOffsetY = 85.0f * (y - mGridY) + PlantDrawHeightOffset(mBoard, nullptr, aSeedType, mGridX, y);
-                Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, 0.0f, aOffsetY);
+                aColOffsetY += aHeight;
             }
+
+            Plant::DrawSeedType(g, mBoard->mCursorObject->mType, mBoard->mCursorObject->mImitaterType, DrawVariation::VARIATION_NORMAL, aColOffsetX, aColOffsetY, aColRad);
         }
     }
 
