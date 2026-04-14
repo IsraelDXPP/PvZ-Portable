@@ -367,7 +367,6 @@ void CursorPreview::Draw(Graphics* g)
     {
         int aMaxRow = mBoard->StageHas6Rows() ? 6 : 5;
 
-        // Coordenadas pixel de la celda base (donde está el ratón), igual a mX/mY.
         float aBasePixX = mBoard->GridToPixelX(mGridX, mGridY);
         float aBasePixY = mBoard->GridToPixelY(mGridX, mGridY);
 
@@ -380,15 +379,11 @@ void CursorPreview::Draw(Graphics* g)
 
             if (aIsColumnMode)
             {
-                // Modo COLUMN oficial: la celda debe estar completamente libre y ser válida.
                 if (aReason != PlantingReason::PLANTING_OK)
                     continue;
             }
             else // cheat "plant in columns"
             {
-                // Mostramos preview aunque la celda ya tenga planta (el cheat la reemplaza).
-                // Solo saltamos casillas que son físicamente imposibles de usar:
-                // terreno equivocado, cráter, suelo no válido, etc.
                 switch (aReason)
                 {
                 case PlantingReason::PLANTING_NOT_HERE:
@@ -403,12 +398,9 @@ void CursorPreview::Draw(Graphics* g)
                 }
             }
 
-            // Pixel exacto del centro de la celda destino.
             float aRowPixX = mBoard->GridToPixelX(mGridX, y);
             float aRowPixY = mBoard->GridToPixelY(mGridX, y);
 
-            // Offset relativo a la celda base: como mX/mY == aBasePixX/Y,
-            // este desplazamiento centra la imagen exactamente en la celda destino.
             float aColOffsetX = aRowPixX - aBasePixX;
             float aColOffsetY = aRowPixY - aBasePixY;
             float aColRad = 0.0f;
