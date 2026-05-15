@@ -504,7 +504,7 @@ void StoreScreen::Draw(Graphics* g)
     g->SetColor(Color(180, 255, 90));
     g->SetFont(Sexy::FONT_CONTINUUMBOLD14);
     std::string aCoinLabel = mApp->GetMoneyString(mApp->mPlayerInfo->mCoins);
-    g->DrawString(aCoinLabel, STORESCREEN_COINBANK_X + 111 - Sexy::FONT_CONTINUUMBOLD14->StringWidth(aCoinLabel), STORESCREEN_COINBANK_Y + 24);
+    g->DrawString(aCoinLabel, STORESCREEN_COINBANK_X + 116 - Sexy::FONT_CONTINUUMBOLD14->StringWidth(aCoinLabel), STORESCREEN_COINBANK_Y + 24);
 
     if (!mPrevButton->mDisabled)
     {
@@ -517,8 +517,8 @@ void StoreScreen::Draw(Graphics* g)
             }
         }
 
-        std::string aPageString = TodReplaceNumberString(TodReplaceNumberString("[STORE_PAGE]", "{PAGE}", mPage), "{NUM_PAGES}", aNumPages);
-        TodDrawString(g, aPageString, STORESCREEN_PAGESTRING_X, STORESCREEN_COINBANK_Y, Sexy::FONT_BRIANNETOD12, Color(80, 80, 80), DS_ALIGN_CENTER);
+        std::string aPageString = TodReplaceNumberString(TodReplaceNumberString("[STORE_PAGE]", "{PAGE}", mPage + 1), "{NUM_PAGES}", aNumPages);
+        TodDrawString(g, aPageString, STORESCREEN_PAGESTRING_X, STORESCREEN_PAGESTRING_Y, Sexy::FONT_BRIANNETOD12, Color(80, 80, 80), DS_ALIGN_CENTER);
     }
 }
 
@@ -583,7 +583,8 @@ void StoreScreen::UpdateMouse()
                 case STORE_ITEM_WHEEL_BARROW:           aMessageIndex = 2024;                           break;
                 case STORE_ITEM_STINKY_THE_SNAIL:       aMessageIndex = 2025;                           break;
                 case STORE_ITEM_PACKET_UPGRADE:
-                    aMessageIndex = mApp->mPlayerInfo->mPurchases[STORE_ITEM_PACKET_UPGRADE] + 2011;    break;
+                    aMessageIndex = ClampInt(mApp->mPlayerInfo->mPurchases[STORE_ITEM_PACKET_UPGRADE] + 2011, 2011, 2014);
+                    break;
                 case STORE_ITEM_POOL_CLEANER:           aMessageIndex = 2026;                           break;
                 case STORE_ITEM_ROOF_CLEANER:           aMessageIndex = 2027;                           break;
                 case STORE_ITEM_RAKE:                   aMessageIndex = 2028;                           break;
@@ -593,7 +594,7 @@ void StoreScreen::UpdateMouse()
                 case STORE_ITEM_TREE_FOOD:              aMessageIndex = 2031;                           break;
                 case STORE_ITEM_FIRSTAID:               aMessageIndex = 2033;                           break;
                 case STORE_ITEM_PVZ:                    aMessageIndex = 2034;                           break;
-                default:                                TOD_ASSERT(false);                                   break;
+                default:                                TOD_ASSERT(false);                              break;
                 }
                 if (mApp->mCrazyDaveMessageIndex != aMessageIndex)
                     SetBubbleText(aMessageIndex, 100, false);

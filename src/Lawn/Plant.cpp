@@ -1620,11 +1620,6 @@ void Plant::UpdateBlover()
         aBodyReanim->SetFramesForLayer("anim_loop");
         aBodyReanim->mLoopType = ReanimLoopType::REANIM_LOOP;
     }
-
-    if (mState != PlantState::STATE_DOINGSPECIAL && mStateCountdown == 0)
-    {
-        DoSpecial();
-    }
 }
 
 void Plant::UpdateFlowerPot()
@@ -3601,21 +3596,17 @@ float PlantDrawHeightOffset(Board* theBoard, Plant* thePlant, SeedType theSeedTy
     {
         doFloating = true;
     }
+    else if (theBoard->mBackground == BackgroundType::BACKGROUND_ZOMBIQUARIUM)
+    {
+        doFloating = true;
+    }
 
     if (doFloating)
     {
-        int aCounter;
-        if (theBoard)
-        {
-            aCounter = theBoard->mMainCounter;
-        }
-        else
-        {
-            aCounter = gLawnApp->mAppCounter;
-        }
+        uint32_t aCounter = theBoard ? theBoard->mMainCounter : gLawnApp->mAppCounter;
 
         float aPos = theRow * PI + theCol * 0.25f * PI;
-        float aTime = aCounter * 2.0f * PI / 200.0f;
+        float aTime = static_cast<float>(aCounter % 200) * (2.0f * PI / 200.0f);
         float aFloatingHeight = sin(aPos + aTime) * 2.0f;
         aHeightOffset += aFloatingHeight;
     }
@@ -4057,17 +4048,9 @@ void Plant::Draw(Graphics* g)
 
         if (Plant::IsFlying(mSeedType))
         {
-            int aCounter;
-            if (IsOnBoard())
-            {
-                aCounter = mBoard->mMainCounter;
-            }
-            else
-            {
-                aCounter = mApp->mAppCounter;
-            }
+            uint32_t aCounter = IsOnBoard() ? mBoard->mMainCounter : mApp->mAppCounter;
 
-            float aTime = (mRow * 97 + mPlantCol * 61 + aCounter) * 0.03f;
+            float aTime = static_cast<float>(fmod((mRow * 97.0 + mPlantCol * 61.0 + static_cast<double>(aCounter)) * 0.03, 2.0 * PI));
             float aWave = sin(aTime) * 2.0f;
             aOffsetY += aWave;
         }

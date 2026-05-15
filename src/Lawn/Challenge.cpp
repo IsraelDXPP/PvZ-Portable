@@ -431,6 +431,14 @@ void Challenge::StartLevel()
 		mBoard->mCursorObject->mCursorType = CURSOR_TYPE_HAMMER;
 		mBoard->mZombieCountDown = 200;
 		mBoard->mZombieCountDownStart = mBoard->mZombieCountDown;
+
+		ReanimatorEnsureDefinitionLoaded(ReanimationType::REANIM_HAMMER, true);
+		mApp->RemoveReanimation(mBoard->mCursorObject->mReanimCursorID);
+		Reanimation* aHammerReanim = mApp->AddReanimation(-25.0f, 16.0f, 0, ReanimationType::REANIM_HAMMER);
+		aHammerReanim->mIsAttachment = true;
+		aHammerReanim->PlayReanim("anim_whack_zombie", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0, 24.0f);
+		aHammerReanim->mAnimTime = 1.0f;
+		mBoard->mCursorObject->mReanimCursorID = mApp->ReanimationGetID(aHammerReanim);
 	}
 	if (mApp->IsStormyNightLevel())
 	{
@@ -2338,8 +2346,11 @@ void Challenge::DrawBeghouled(Graphics* g)
 			float aPixelX = mBoard->GridToPixelX(mChallengeGridX, mChallengeGridY) + 80;
 			float aPixelY = mBoard->GridToPixelY(mChallengeGridX, mChallengeGridY) + 100;
 
+			// Rotation speed coefficient is 2*PI*0.001, which means one full rotation every 1000 frames. Modulus is to avoid large angle float precision cliffs.
+			constexpr uint32_t BEGHOULED_TWIST_ROTATION_PERIOD = 1000;
+			float aRotation = -static_cast<float>(mBoard->mMainCounter % BEGHOULED_TWIST_ROTATION_PERIOD) * (2 * PI * 0.001f);
 			SexyTransform2D aTransform;
-			TodScaleRotateTransformMatrix(aTransform, aPixelX, aPixelY, -mBoard->mMainCounter * 2 * PI * 0.001f, 1, 1);
+			TodScaleRotateTransformMatrix(aTransform, aPixelX, aPixelY, aRotation, 1, 1);
 
 			Image* aImageOverlay = Sexy::IMAGE_BEGHOULED_TWIST_OVERLAY;
 			Rect aSrcRect = Rect(0, 0, aImageOverlay->mWidth, aImageOverlay->mHeight);
@@ -3043,9 +3054,9 @@ void Challenge::DrawRain(Graphics* g)
 
 	aBoardOffsetX = mBoard->mX / 100 * -100;
 
-	int aTime = mBoard->mEffectCounter;
-	int aTimeOffsetXEst = TodAnimateCurve(0, 100, aTime % 100, 0, -100, CURVE_LINEAR);
-	int aTimeOffsetYEst = TodAnimateCurve(0, 20, aTime % 20, -100, 0, CURVE_LINEAR);
+	const uint32_t aTime = mBoard->mEffectCounter;
+	int aTimeOffsetXEst = TodAnimateCurve(0, 100, static_cast<int>(aTime % 100u), 0, -100, CURVE_LINEAR);
+	int aTimeOffsetYEst = TodAnimateCurve(0, 20, static_cast<int>(aTime % 20u), -100, 0, CURVE_LINEAR);
 
 	// 绘制远景的雨
 	for (int aHorCnt = 9; aHorCnt > 0; aHorCnt--)
@@ -3058,9 +3069,8 @@ void Challenge::DrawRain(Graphics* g)
 		}
 	}
 
-	aTime = mBoard->mEffectCounter;
-	float aTimeOffsetXCls = TodAnimateCurve(0, 161, aTime % 161, 0, -100, CURVE_LINEAR);
-	float aTimeOffsetYCls = TodAnimateCurve(0, 33, aTime % 33, -100, 0, CURVE_LINEAR);
+	float aTimeOffsetXCls = TodAnimateCurve(0, 161, static_cast<int>(aTime % 161u), 0, -100, CURVE_LINEAR);
+	float aTimeOffsetYCls = TodAnimateCurve(0, 33, static_cast<int>(aTime % 33u), -100, 0, CURVE_LINEAR);
 	// 绘制近景的雨
 	for (int aHorCnt = 0; aHorCnt < 9; aHorCnt++)
 	{
