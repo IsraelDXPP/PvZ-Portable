@@ -603,6 +603,7 @@ void LawnApp::KillAwardScreen()
 #ifdef _ZOMBATAR
 void LawnApp::ShowZombatarScreen()
 {
+    KillZombatarScreen();
     mGameScene = GameScenes::SCENE_MENU;
     mZombatarWidget = new ZombatarWidget(this);
     mZombatarWidget->Resize(0, 0, mWidth, mHeight);

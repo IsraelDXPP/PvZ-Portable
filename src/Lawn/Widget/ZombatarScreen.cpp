@@ -17,11 +17,15 @@
 #include "graphics/Font.h"
 #include "../../Sexy.TodLib/TodStringFile.h"
 #include "../System/Zombatar.h"
+#include <cstring>
 
 MemoryImage* gZombatarClothes[NUM_CLOTHES];
 
 // GOTY @Inliothixi
 ZombatarWidget::ZombatarWidget(LawnApp* theApp) {
+	memset(mColorPalletes, 0, sizeof(mColorPalletes));
+	memset(mZombatarItems, 0, sizeof(mZombatarItems));
+
 	TodLoadResources("DelayLoad_Zombatar");
 	mApp = theApp;
 	mWidth = BOARD_WIDTH;
@@ -203,6 +207,10 @@ ZombatarWidget::ZombatarWidget(LawnApp* theApp) {
 
 	for (int x = 0; x < 9; x++) {
 		for (int y = 0; y < 2; y++) {
+			// Slot 17 is reserved for mClearPalleteButton (see SetCategory).
+			if (x + y * 9 == 17)
+				break;
+
 			NewLawnButton* mColorPallete = MakeNewButton(
 				ZombatarWidget::ZombatarScreen_Palletes + x + y * 9,
 				this,
@@ -353,6 +361,9 @@ void ZombatarWidget::SetupZombie() {
 		mZombie->mY = mZombie->mPosY = 351;
 
 		Reanimation* aBodyReanim = mApp->ReanimationTryToGet(mZombie->mBodyReanimID);
+		if (aBodyReanim == nullptr)
+			return;
+
 		aBodyReanim->GetTrackInstanceByName("anim_head1")->mRenderGroup = RENDER_GROUP_HIDDEN;
 		aBodyReanim->GetTrackInstanceByName("anim_head2")->mRenderGroup = RENDER_GROUP_HIDDEN;
 		aBodyReanim->GetTrackInstanceByName("anim_hair")->mRenderGroup = RENDER_GROUP_HIDDEN;
@@ -504,11 +515,13 @@ ZombatarWidget::~ZombatarWidget() {
 	if (mClearPickButton) delete mClearPickButton;
 	if (mClearPalleteButton) delete mClearPalleteButton;
 	for (NewLawnButton* pallete : mColorPalletes) {
-		delete pallete;
+		if (pallete)
+			delete pallete;
 	}
 
 	for (NewLawnButton* item : mZombatarItems) {
-		delete item;
+		if (item)
+			delete item;
 	}
 
 	if (mZombie)
@@ -577,11 +590,13 @@ void ZombatarWidget::AddedToManager(WidgetManager* theWidgetManager)
 	AddWidget(mClearPickButton);
 	AddWidget(mClearPalleteButton);
 	for (NewLawnButton* pallete : mColorPalletes) {
-		AddWidget(pallete);
+		if (pallete)
+			AddWidget(pallete);
 	}
 
 	for (NewLawnButton* item : mZombatarItems) {
-		AddWidget(item);
+		if (item)
+			AddWidget(item);
 	}
 }
 
@@ -603,11 +618,13 @@ void ZombatarWidget::RemovedFromManager(WidgetManager* theWidgetManager)
 	RemoveWidget(mClearPickButton);
 	RemoveWidget(mClearPalleteButton);
 	for (NewLawnButton* pallete : mColorPalletes) {
-		RemoveWidget(pallete);
+		if (pallete)
+			RemoveWidget(pallete);
 	}
 
 	for (NewLawnButton* item : mZombatarItems) {
-		RemoveWidget(item);
+		if (item)
+			RemoveWidget(item);
 	}
 }
 
@@ -627,11 +644,13 @@ void ZombatarWidget::OrderInManagerChanged()
 	PutInfront(mBackdropsButton, this);
 
 	for (NewLawnButton* pallete : mColorPalletes) {
-		PutInfront(pallete, this);
+		if (pallete)
+			PutInfront(pallete, this);
 	}
 
 	for (NewLawnButton* items : mZombatarItems) {
-		PutInfront(items, this);
+		if (items)
+			PutInfront(items, this);
 	}
 
 	PutInfront(mClearPickButton, this);
@@ -2155,10 +2174,12 @@ void ZombatarWidget::UpdatePalletes() {
 	}
 
 	for (NewLawnButton* aPallete : mColorPalletes) {
-		aPallete->SetDisabled(true);
+		if (aPallete)
+			aPallete->SetDisabled(true);
 	}
 	for (size_t i = 0; i < palleteCount; i++) {
-		mColorPalletes[i]->SetDisabled(false);
+		if (mColorPalletes[i])
+			mColorPalletes[i]->SetDisabled(false);
 	}
 }
 
@@ -2197,9 +2218,9 @@ void ZombatarWidget::UpdateZombieAvatar() {
 	}
 	{
 		Reanimation* aZombatarHairReanim = mApp->ReanimationTryToGet(mZombie->mZombatarHairID);
-		aZombatarHairReanim->AssignRenderGroupToTrack("anim_hair", mCurHair != -1 ? RENDER_GROUP_HIDDEN : RENDER_GROUP_NORMAL);
 		if (aZombatarHairReanim)
 		{
+			aZombatarHairReanim->AssignRenderGroupToTrack("anim_hair", mCurHair != -1 ? RENDER_GROUP_HIDDEN : RENDER_GROUP_NORMAL);
 			for (int i = ZombatarItem::ZOMBATAR_HAIR_1; i <= ZombatarItem::ZOMBATAR_HAIR_16; i++) {
 				ZombatarDefinition& aDef = GetZombatarDefinition((ZombatarItem)i);
 				int hairNum = i - ZombatarItem::ZOMBATAR_HAIR_1;
@@ -2219,7 +2240,7 @@ void ZombatarWidget::UpdateZombieAvatar() {
 		}
 
 		Reanimation* aZombatarHairLineReanim = mApp->ReanimationTryToGet(mZombie->mZombatarHairLineID);
-		if (aZombatarHairLineReanim)
+		if (aZombatarHairLineReanim && aZombatarHairReanim)
 		{
 			for (int i = ZombatarItem::ZOMBATAR_HAIR_1; i <= ZombatarItem::ZOMBATAR_HAIR_16; i++) {
 				int hairNum = i - ZombatarItem::ZOMBATAR_HAIR_1;
