@@ -238,6 +238,12 @@ jobs:
     - name: Install Tools
       run: choco install ninja ccache -y
 
+    # VS 2026 ships CMake 4; yasm's portfile still breaks under it without vcpkg's fix + CMake 3.x.
+    - name: Setup CMake
+      uses: cmake-actions/setup-cmake@v1
+      with:
+        cmake-version: '3.31.6'
+
     - name: Setup vcpkg (manifest mode)
       uses: lukka/run-vcpkg@v11
       with:
